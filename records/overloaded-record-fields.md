@@ -1,36 +1,28 @@
-# [OverloadedRecordFields](records/overloaded-record-fields)
-
-
-The Overloaded Record Fields family of extensions for GHC allow multiple record datatypes to share the same field names, and make it possible for type information to disambiguate selectors. In the design as implemented, there is no single `OverloadedRecordFields` extension, but there are extensions for `DuplicateRecordFields` and `OverloadedLabels`.
+The Overloaded Record Fields family of extensions for GHC allow multiple record datatypes to share the same field names, and make it possible for type information to disambiguate fields. There is no single `OverloadedRecordFields` extension, but rather a family of related extensions:
+ * `DisambiguateRecordFields`: makes use of constructor names to disambiguate fields in record construction or pattern matching.
+ * `DuplicateRecordFields`: permits a module to define the same field name in multiple datatypes.
+ * `OverloadedLabels`: provides `#foo` syntax for an identifier whose meaning is determined by typeclass instance resolution. Intended for use with the `HasField` magic type class.
+ * `NoFieldSelectors`: prevents fields being in scope as selector functions. (Not yet released as of January 2020.)
+ * `RecordDotSyntax`: permits `expression.field` syntax for record projection. (Not yet released as of January 2020.)
 
 For user-facing documentation, see the GHC user's guide:
 
+ - [DisambiguateRecordFields extension](https://downloads.haskell.org/ghc/latest/docs/html/users_guide/glasgow_exts.html#extension-DisambiguateRecordFields)
  - [DuplicateRecordFields extension](https://downloads.haskell.org/ghc/latest/docs/html/users_guide/glasgow_exts.html#duplicate-record-fields)
+ - [OverloadedLabels extension](https://downloads.haskell.org/ghc/latest/docs/html/users_guide/glasgow_exts.html#overloaded-labels)
+ - [Record field selector polymorphism (HasField class)](https://downloads.haskell.org/ghc/latest/docs/html/users_guide/glasgow_exts.html#record-field-selector-polymorphism)
 
- - [Record field selector polymorphism (HasField class)](https://downloads.haskell.org/ghc/latest/docs/html/users_guide/glasgow_exts.html#record-field-selector-polymorphism) 
+For implementation status, see #18598, the tracking ticket for most recent work related to overloaded record fields, and the ~OverloadedRecordFields label.
 
-For design details and implementation status, see:
+For design discussion, see the GHC proposals:
 
-- #18598: tracking ticket for most recent work related to overloaded record fields.
-
-- GHC proposals:
-
-  - [Adding setField to HasField](https://github.com/ghc-proposals/ghc-proposals/blob/master/proposals/0042-record-set-field.rst) (2018, being implemented for GHC 9.2, see #16232)
-  - [Adding HasField class, changes to OverloadedLabels](https://github.com/ghc-proposals/ghc-proposals/blob/master/proposals/0002-overloaded-record-fields.rst) (2016, implemented in GHC 8.2 without `IsLabel x (r -> a)` instance)
-- [Redesigned variant involving three extensions](records/overloaded-record-fields/redesign) (2015)
-
-  - Part 1: [DuplicateRecordFields](records/overloaded-record-fields/duplicate-record-fields) (in GHC 8.0)
-  - Part 2: [OverloadedLabels](records/overloaded-record-fields/overloaded-labels) (in GHC 8.0)
-  - Part 3: [Magic type classes](records/overloaded-record-fields/magic-classes) (partly in GHC 8.2)
-  - [Adam Gundry's blog post](http://www.well-typed.com/blog/2015/03/overloadedrecordfields-revived/)
-- [Original design](https://gitlab.haskell.org/trac/ghc/wiki/Records/OverloadedRecordFields/Design) (2013)
-
+  - [Adding HasField class, changes to OverloadedLabels](https://github.com/ghc-proposals/ghc-proposals/blob/master/proposals/0002-overloaded-record-fields.rst) (Implemented in GHC 8.2 without `IsLabel x (r -> a)` instance)
+  - [Adding setField to HasField](https://github.com/ghc-proposals/ghc-proposals/blob/master/proposals/0042-record-set-field.rst) (Being implemented, see !3257)
+  - [NoFieldSelectors](https://github.com/ghc-proposals/ghc-proposals/blob/master/proposals/0160-no-toplevel-field-selectors.rst) (Being implemented for GHC 9.2, see !4743)
+  - [RecordDotSyntax](https://github.com/ghc-proposals/ghc-proposals/blob/master/proposals/0282-record-dot-syntax.rst)
+  - [DuplicateRecordFields without ambiguous field access](https://github.com/ghc-proposals/ghc-proposals/blob/master/proposals/0366-no-ambiguous-field-access.rst)
 
 Content previously on this page has been moved to the [SORF](records/overloaded-record-fields/sorf) page.
-
-## Issues
-
-See the ~OverloadedRecordFields label.
 
 ## Code
 
@@ -39,14 +31,19 @@ See the ~OverloadedRecordFields label.
 - [Phab:D1331](https://phabricator.haskell.org/D1331), [ Phab:D1623](https://phabricator.haskell.org/D1623): `OverloadedLabels` extension
 - [Phab:D1687](https://phabricator.haskell.org/D1687), [ Phab:D2708](https://phabricator.haskell.org/D2708): magic classes
 - !3257: extension of `HasField` class to support updates
+- !4532: `RecordDotSyntax`
+- !4743: `NoFieldSelectors` and liberalisation of `DuplicateRecordFields`
 
 ## History
-
 
 The extension was initially implemented in 2013 as a Google Summer of Code project, by Adam Gundry under the mentorship of Simon Peyton Jones.
 
 - [Simple Overloaded Record Fields (SORF)](records/overloaded-record-fields/sorf), Simon PJ's original proposal
 - [Declared Overloaded Record Fields (DORF)](records/declared-overloaded-record-fields), a counterpoint proposal by Anthony Clayden
-- [Original design of the extension](records/overloaded-record-fields/design)
 - [Discussion of the problem and possible solutions](records)
-- [Google Summer of Code project details](http://www.google-melange.com/gsoc/project/google/gsoc2013/adamgundry/4766932662222848)
+- [Original design of the extension](records/overloaded-record-fields/design) (2013)
+- [Redesigned variant involving three extensions](records/overloaded-record-fields/redesign) (2015)
+  - Part 1: [DuplicateRecordFields](records/overloaded-record-fields/duplicate-record-fields) (in GHC 8.0)
+  - Part 2: [OverloadedLabels](records/overloaded-record-fields/overloaded-labels) (in GHC 8.0)
+  - Part 3: [Magic type classes](records/overloaded-record-fields/magic-classes) (partly in GHC 8.2)
+  - [Adam Gundry's blog post](http://www.well-typed.com/blog/2015/03/overloadedrecordfields-revived/)
