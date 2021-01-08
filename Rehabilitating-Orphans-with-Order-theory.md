@@ -94,7 +94,7 @@ But also:
 
 Maybe it's fine, but perhaps that last restriction is a little bit onerous? Say I want to to use `ClassA TypeC`, `ClassB TypeD`, but don't care about `ClassB TypeC` and `ClassA TypeD`? *Open Question*: Perhaps we can prune the module import relation to just concern modules that provide instances, or even just "potentially-overlapping" instances.
 
-## Referneces
+## References
 
 [1]: Non-Reformist Reform for Haskell Modularity. PhD thesis, Saarland University, 2019. https://people.mpi-sws.org/~skilpat/papers/kilpatrick-thesis-nov-2019-publication.pdf
 
