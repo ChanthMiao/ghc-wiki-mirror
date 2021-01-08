@@ -7,6 +7,7 @@ This page summarises examples and issues about functional dependencies in GHC.
 * [Type classes with functional dependencies](https://web.cecs.pdx.edu/~mpj/pubs/fundeps.html), Mark Jones, ESOP 2000.  The original fundep paper.
 * [Understanding functional dependencies via constraint handling rules](https://www.microsoft.com/en-us/research/publication/understanding-functional-dependencies-via-constraint-handling-rules/), Sulzmann et al, JFP 2006.  This journal paper has a lot of examples and we cite it frequently below as "JFP-paper".
 * [Elaboration on functional dependencies](https://people.cs.kuleuven.be/~tom.schrijvers/portfolio/haskell2017a.html), Karachalias and Schrijvers, Haskell Symposium 2017.  This paper shows how to translate functional dependencies into type families.
+* [Evidenced functional dependencies](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies/Evidenced-Functional-Dependencies) a wiki page developing the Karachalias and Schrijvers paper further.
 
 Key proposals:
 * Coverage condition: [Per-instance DYSFUNCTIONAL pragma](https://github.com/ghc-proposals/ghc-proposals/pull/374).
