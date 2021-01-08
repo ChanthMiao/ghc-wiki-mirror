@@ -8,6 +8,10 @@ This page summarises examples and issues about functional dependencies in GHC.
 * [Understanding functional dependencies via constraint handling rules](https://www.microsoft.com/en-us/research/publication/understanding-functional-dependencies-via-constraint-handling-rules/), Sulzmann et al, JFP 2006.  This journal paper has a lot of examples and we cite it frequently below as "JFP-paper".
 * [Elaboration on functional dependencies](https://people.cs.kuleuven.be/~tom.schrijvers/portfolio/haskell2017a.html), Karachalias and Schrijvers, Haskell Symposium 2017.  This paper shows how to translate functional dependencies into type families.
 
+Key proposals:
+* Coverage condition: [Per-instance DYSFUNCTIONAL pragma](https://github.com/ghc-proposals/ghc-proposals/pull/374).
+* Instance consistency condition: [Explore ways to weaken or abandon the Instance Consistency Condition](https://github.com/ghc-proposals/ghc-proposals/issues/391).
+
 -------------------------------
 
 ## 2. Terminology
@@ -291,96 +295,3 @@ We have added a strange context to the instance declaration, equal to itself!  N
 But GHC's type-class constraint solver has a long-standing trick whereby it solves goals co-inductively. I think it was first documented in [Scrap your boilerplate with class](https://www.microsoft.com/en-us/research/publication/scrap-your-boilerplate-with-class/), where it is *essential* to allow SYB-with-class to work at all.  You might enjoy the paper; the coinductive part is discussed in Section 5.   Coinduction is switched on all the time, but it only has an effect when you have `UndecidableInstances`, which allows instance declarations that don't provably terminate.
 
 So in priciple, LIBERAL+UNDECIDABLE lets you express DYSFUNCTIONAL (no coverage condition at all).  But it's a weird coding trick, and so we leave DYSFUNCTIONAL in our vocabulary, for now anyway, to mean "lift coverage condition".
-
-
-----------------
-
-
-## 7. Exploring the unique-unifiable-instance idea
-
-Here is a concrete idea, triggered by Examples 2, 3, and 4:
-
-* Abandon the LICC altogether. It is too weak (Examples 2,3) and too strong (Example 4).
-* Instead, when considering improvement of a Wanted constraint against the global instances, do the following:
-  * Find all the instances that can possibly match the Wanted (where "can possibly match" is "unify with").
-  * Among these instances see if there is one "best" instance, which is more specific than (is a substitution instance of) all the otheres
-  * If there is just one such, add the fundeps from that instance.
-  * "Add fundeps from instance" means (precisely as now): for each fundep, if the LHS tys match, then generate an equality with the instantiated RHS tys.
-
-These rules are very like the [rules for overlapping instances](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/instances.html?highlight=overlapping%20instances#overlapping-instances).
-
-#9210 is a very relevant ticket, with interesting discussion.
-
-### Examples of how it works
-
-Now consider Example 2:
-* Only one instance unifies with `[W] C Bool [alpha] beta`
-* So we take fudeps from that constraint alone, giving `beta ~ [alpha]`
-* Now we can solve `[W] C Bool [alpha] [alpha]`
-* Yielding `f :: a -> [a]` as desired
-
-Now Example 3.  `[W] C alpha beta (gamma,delta)` unifies with both instances, so we get no fundeps at all.
-If `alpha` gets unified with, say, `Int` by some other constraint, then it'll unify with just one instance and we can use the fundeps.
-
-Example 4.  If we have `[W] TypeEq Int Int r`, that unifies with only one instance, so we'll get a fundep `r ~ True` as desired. Similarly if the first two arguments are apart.  All is good.
-
-In the OP from #9210 we have
-```
-class Foo s t a b | a b s -> t where
-instance Foo (x, a) (y, a) x y where
-instance Foo (a, x) (a, y) x y where
-```
-We want to solve `[W] Foo (Int,Int) alpha Int String`.  This unifies with both instances, so we will not use either fundep.  We need more information to disambiguate.
-
-### Less completeness
-
-Because this new rule is a bit less aggressive on using fundeps, it may fail to solve some constraints that we can solve today.
-```
-class CX x a b | a -> b
-instance CX Int Int Bool
-instance CX Bool Int Bool
-
-class C2 a b | a -> b
-instance C2 Bool Bool
-```
-Now suppose we are solving `[W] CX alpha Int beta, [W] C2 beta alpha`.
-With our new rule, both instances unify, so no fundeps are used.  We are stuck.
-
-But in GHC today we take fundeps from both instances, giving `beta ~ Bool`.  Then we can get fundeps from `[W] C2 Bool alpha`, giving `alpha ~ Bool`.  Now we can solve the `CX` constraint.
-
-But this is an extremely delicate setup.
-
-### Can we do *any* instance consistency checks at all?
-
-We want to weaken instance consistency, but can we do *any* consistency checking on instances?  For example, these ones look pretty suspicious.
-```
-class C2 a b | a -> b
-instance C2 Int Bool
-instance C2 Int Char
-```
-But what about this:
-```
-instance C2 Int [Int]
-instance C2 Int (Maybe Bool)
-```
-Here if we have `[W] C Int [alpha]` only one instance matches and perhaps we can improve `alpha` to `Int`.
-
-Be careful: we want to allow Example 4.
-
-----------------
-
-## 8. A concrete proposal
-
-To have something concrete to discuss, here's a proposal:
-
-* Abandon instance consistency altogether, except perhaps some super-liberal instance consistency check.
-* For coverage, with no modifiers use SCC; with LIBERAL use LCC.
-* When doing improvement between a constraint and an instance, do so only if only one instance can possibly match
-
----------------
-
-## 9. Not functional dependencies in the original sense
-
-Mark Jones introduced the term "functional dependencies" by lifting it from the database world.  There if `a -> b` we really mean that `a` fully determines `b`.  That property is essential for the translation to type families proposed by Karachalias & Schrijvers (paper link at top).
-
-All proposals for liberal coverage conditions, and liberal (or even dropped) instance consistency, move decisively away from this story.  `a` does not fully determine `b`; translation into type families is impossible.  Fundeps guide type inference; they do not carry evidence.
