@@ -302,11 +302,12 @@ Here is a concrete idea, triggered by Examples 2, 3, and 4:
 
 * Abandon the LICC altogether. It is too weak (Examples 2,3) and too strong (Example 4).
 * Instead, when considering improvement of a Wanted constraint against the global instances, do the following:
-  * Look up the constraint in the instances.
-  * If at most one can possibly match (i.e. at most one instance unifies with the constraint) then, and only then, add the fundeps from that instance.
+  * Find all the instances that can possibly match the Wanted (where "can possibly match" is "unify with").
+  * Among these instances see if there is one "best" instance, which is more specific than (is a substitution instance of) all the otheres
+  * If there is just one such, add the fundeps from that instance.
   * "Add fundeps from instance" means (precisely as now): for each fundep, if the LHS tys match, then generate an equality with the instantiated RHS tys.
 
-This "if at most one can possibly match) is very like the [rule for overlapping instances](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/instances.html?highlight=overlapping%20instances#overlapping-instances).
+These rules are very like the [rules for overlapping instances](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/instances.html?highlight=overlapping%20instances#overlapping-instances).
 
 #9210 is a very relevant ticket, with interesting discussion.
 
