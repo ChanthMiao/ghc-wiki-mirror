@@ -67,6 +67,8 @@ Generally,
 
 ## 3. Coverage conditions
 
+The *coverage condition* applies to each individual instance declaration.
+
 ### Strict coverage condition (SCC)
 
 The **(strict) coverage condition** is given in the user manual under [Instance termination rules](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/instances.html?highlight=undecidable#instance-termination-rules) and in Defn 7 of of the JFP-paper.  Consider
@@ -86,11 +88,13 @@ instance {-# LIBERAL #-} C2 p q => C2 [p] [q]
 I'm using `{-# LIBERAL #-}` to signal that the instance only satisfies the liberal coverage condition, not the strict one.
 The intuition is that since `p` fixes `q` in the context, so `[p]` indirectly fixes `[q]`.
 
-See Defn 12 of the JFP-paper, which calls it the "weak coverage condition".
+See Defn 12 of the JFP-paper (Section 6.1), which calls it the "weak coverage condition".
 
 -------------------------
 
 ## 4. Instance consistency conditions
+
+The *instance consistency condition* applies to each pair-wise combination of instance declarations.
 
 ### Strict instance consistency condition (SICC)
 
@@ -104,7 +108,7 @@ They are mutually inconsistent. The fundep on `C2` says that `a` determines `b`;
 
 The instance consistency condition ensures that instances are pair-wise consistent. It appears not to be documented in GHC's user manual, but it is Defn 6 in the JFP-paper.
 
-** (Strict) instance consistency condition **.  Consider a declaration for class TC, and any pair of instance declarations for that class:
+**(Strict) instance consistency condition**.  Consider a declaration for class TC, and any pair of instance declarations for that class:
 ```
 class blah => TC a1 ... an | fd1; ...; fdm
 instance D1 => TC t1...tn
@@ -124,7 +128,10 @@ instance {-# LIBERAL #-} D p q => C Int  p [q]
 instance {-# LIBERAL #-} D r s => C Bool r [s]
 ```
 These instances do not satisfy the (strict) instance consistency condition.
-Yet if they are not allowed, then the liberal coverage condition is not very useful.
+*Yet if they are not allowed, then the liberal coverage condition (LCC) is not very useful.*
+If either instance of the pair satisfies LCC but not SCC, then the pair will not satisfy strict instance consistency (SICC).
+In short, LCC is incompatible with SICC.
+
 That motivates the definition of liberal instance consistency:
 
 **Liberal instance consistency condition**.  Consider a declaration for class TC, and any pair of instance declarations for that class:
@@ -155,11 +162,27 @@ GHC today does this:
   * uses the liberal (not strict) coverage condition
   * lifts the Paterson conditions
 
-* Always: GHC implements liberal instance consistency.  See `Note [Bogus consistency check]` in `GHC.Tc.Instance.Fundeps`.
+* Always: GHC implements liberal instance consistency unconditionally.  See `Note [Bogus consistency check]` in `GHC.Tc.Instance.Fundeps`.  (GHC presumably does this because SICC is incompatible with LCC.)
 
 -------------------------------
 
 ## 6. Some key examples
+
+### Examples 0: liberal coverage condition is highly desirable
+
+Many real-life examples need the LCC. Here are some [everyone: add more]:
+
+* Example 19 from JFP-paper (and Control.Monad) library
+  ```
+  class (Monad m) => MonadReader r m | m -> r
+  instance (Monoid w, MonadReader r m) => MonadReader r (WriterT w m)
+  ```
+* Example 6 from JFP-paper (also demonstrates the risk of non-termination)
+  ```
+  class Mul a b c | a b -> c where
+    (*)::a->b->c
+  instance Mul a b c => Mul a (Vec b) (Vec c) where ...
+  ```
 
 ### Example 1: liberal coverage breaks termination
 
