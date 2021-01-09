@@ -1,6 +1,6 @@
 ## Motivation
 
-Without orphans, the depenency graph suffers from linearization: the richer class hierarchy we have, the more we approach the a total order where every package is either imported or imports every other. This is catastrophic for productivity. 
+Without orphans, the dependency graph suffers from linearization: the richer class hierarchy we have, the more we approach the a total order where every package is either imported or imports every other. This is catastrophic for productivity. 
 
 The great thing about open source, and open source with Haskell in particular, is how much the product of our labor --- the code --- itself synchronizes the laborers --- us. The type systems allows information that humans could never communicate in a "game of telephone" to losslessly flow from package to package, all throughout the dependency tree. But rather than force all release happy to be tightly coordinately, types and version constraint solving frees us to release libraries fairly independently.
 
@@ -23,7 +23,7 @@ The "world semantics" from Chapter 1, section 4 of [1] clarify the situation imm
 
 The only quibble I might add is that the multi-param type class example of non-orphans gone wrong can be construed as a semi-orphan: because it only occurs when of the type class parameters have instance heads that *wouldn't* pass the orphan checks were they so sole parameter. A stronger orphan check would have required local-type-guarded argument for every parameter for a non-local type class, and that, while super restrictive, would solve the problem.
 
-Why isn't this approached used in the implementation already? The challenge is a naive implementation has rather bad asymptic complexity, as every pair of instance across every pair of imports needs to be checked. Even with the more obvious optomization of only comparing modules that have not been previously compared, that's still O(n^2) edges of the complete bipartite graph.
+Why isn't this approached used in the implementation already? The challenge is a naive implementation has rather bad asymptotic complexity, as every pair of instance across every pair of imports needs to be checked. Even with the more obvious optimization of only comparing modules that have not been previously compared, that's still O(n^2) edges of the complete bipartite graph.
 
 ### Rust
 
@@ -58,7 +58,7 @@ The results are good: if A ∧ B is exists, and isn't A or B, it is a third modu
 
 Since neither of A and B imports the other, we know only variable-head non-orphan "flexible" instances could overlap with our prospective instance in A ∧ B. That's a much more limited set of things to check for. Then, since every other module which could also write this instance imports A ∧ B, we can just use our existing per-instance check to ensure they don't!
 
-### Module Meet cannonicity?
+### Module Meet canonicity?
 
 But how do we know which module is A ∧ B? Checking the laws after the fact is:
 
@@ -71,7 +71,7 @@ Now, this does sound rather compositional. Have we just transformed a type class
 
 And indeed there is precedent for such an approach: rather than writing down complicated propositions about who provides what module, module interfaces, etc., we just use a black box version number.
 
-This is an apt comparison, because meet declarations should live in Cabal files. Any module purporting to be a meet between other moduled should be declared as such in the cabal file. We may also want to also have the coarser notion of "meet packages", and have the meet structure preserved by the coarsening isomorphism:
+This is an apt comparison, because meet declarations should live in Cabal files. Any module purporting to be the meet of some other modules should be declared as such in the cabal file. We may also want to also have the coarser notion of "meet packages", and have the meet structure preserved by the coarsening isomorphism:
 
 > module A in package a, module B in package b => module (A ∧ B) in package (a ∧ b)
 
