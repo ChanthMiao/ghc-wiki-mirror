@@ -66,7 +66,7 @@ Ignoring the minutiae of judging instance heads, the general idea of instance co
 
 This bares a strong resemblance to properties a property of a lattice meet:
 
-> x ≤ y => (x ∧ y = y, y ∧ x = y)
+> x ≤ y => (x ∧ y = x, y ∧ x = x)
 
 Now, the notion of meets applies to order elements that are incomparable --- indeed that is it's whole point! --- so the next question to ask is, what does such a meet look like in the Haskell context and what does it mean for coherence?
 
