@@ -13,6 +13,25 @@ From that vantage point, the linearization of the dependency graph directly inhi
 > - Expected chain length from dependency to a given "goal packages"
 > - How linearization relates to dependency bloat
 
+### `base`
+
+Perhaps the best illustration of these linearization woes is `base`.
+
+Base is a mix many different  things: pure highly portable abstrctions, basic concrete types, and highly GHC-specific implementations of things like numbers and IO. None of this really belongs together, and the fact that the unstable GHC-specific portions necessary necessitate a breaking changes and major version bumps each release is a huge source of churn and busywork.
+
+But untangling base is nigh impossible because the very high density of instances precludes this. Not only is are the imports linearized, but a satisfactory linear "meandering" through the modules is actually rather difficult to come by. So this unfortunate situation is not only bad for consumers of base, it is also bad for maintainers of base.
+
+Beyond avoiding version number churn, there are also issues making breaking changes in `base`. Stuff like the Applicative-Monad proposal took years, because each GHC only can work with a single version of base. Other controversies like `Text` vs `String` go unresolved. It is @Ericson214's view that there is no single right answer, because the needs of legacy code and new users are fundamentally irreconcilable.
+
+With orphans made safe to use, all these problems can be solved.
+
+- `base` can be broken up into many libraries, with the vast majority of packages only needing to depend on the stabler parts.
+- Even those unstable parts are free to make breaking changes faster, especially if we have the bandwidth to maintain multiple release families for a transition period.
+- Dubious decisions like `String`, `head`, and `tail`, etc. can be corned off.
+- Future versions of `base` can be a thin reexport of these new packages for sake of legacy code without updated `build-depends`
+
+This is perhaps most dramatic example, but the rest of the ecosystem should benefit from similar untanglings too.
+
 ## Background
 
 ### World semantics
