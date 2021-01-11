@@ -167,11 +167,12 @@ As this strand of work touches a lot of modules, doing everything as a single ga
   reduce the cognitive overload when dealing with error types;
   **Waiting CI/review**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/4747
 
-- [ ] Introduce proper error and warning types for the different phases of 
-  the compilation pipeline (i.e. `TcRnWarning`, `TcRnError` etc) as well as
-  two umbrella `GhcError` and `GhcWarning` types which will be used in the
-  driver, at the top level, to report errors. At this stage we won't yet
-  make use of these new types;
+- [ ] Introduce proper diagnostic types for the different phases of 
+  the compilation pipeline (i.e. `TcRnMessage`, `PsMessage` etc). Initially these
+  will be opaque types with no constructors, and "filled" later, to minimise
+  breakages. Introduce also an umbrella `GhcMessage` type which will be used in the
+  driver, at the top level, to report diagnostics. At this stage we won't yet
+  make use of any of the new types;
 
 - [ ] Extend the parser error types to adhere to the new error-messages
   architecture, and port the codebase to use these new format of errors.
