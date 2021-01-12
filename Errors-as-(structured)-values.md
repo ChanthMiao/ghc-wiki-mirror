@@ -173,6 +173,7 @@ As this strand of work touches a lot of modules, doing everything as a single ga
   breakages. Introduce also an umbrella `GhcMessage` type which will be used in the
   driver, at the top level, to report diagnostics. At this stage we won't yet
   make use of any of the new types;
+  **Waiting CI/review**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/4798
 
 - [ ] Extend the parser error types to adhere to the new error-messages
   architecture, and port the codebase to use these new format of errors.
