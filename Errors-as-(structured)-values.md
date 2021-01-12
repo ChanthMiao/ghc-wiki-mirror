@@ -169,7 +169,7 @@ As this strand of work touches a lot of modules, doing everything as a single ga
 
 - [ ] Introduce proper diagnostic types for the different phases of 
   the compilation pipeline (i.e. `TcRnMessage`, `PsMessage` etc). Initially these
-  will be opaque types with no constructors, and "filled" later, to minimise
+  can also contain a selection of all the GHC-emitted messages, and "filled" later, to minimise
   breakages. Introduce also an umbrella `GhcMessage` type which will be used in the
   driver, at the top level, to report diagnostics. At this stage we won't yet
   make use of any of the new types;
