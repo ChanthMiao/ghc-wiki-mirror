@@ -28,3 +28,9 @@ Thus, this style is discouraged in the GHC documentation.
 
 Module documentation should contain an `Overview` section that describes in greater length the purpose, APIs and underlying concepts exposed by the module.
 This section is typically not rendered through GHCi's `:doc` due to the particularities of a REPL's environment. That is why modules should always have a smaller, more compact introductory / summary paragraph that will be the first point of contact with the developer when they look modules up in the REPL.
+
+## Sources
+
+### Papers
+
+References to published papers should contain a direct URL to the document, or if unavailable, to the paper's page on the publisher website. It is discouraged to reference papers that are behind paywalls. The Digital Object Identifier (DOI) may be given as well in order to enable the reader's ability to find the paper online should the provided URL suffer from bitrot.
