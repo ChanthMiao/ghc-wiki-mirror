@@ -23,3 +23,8 @@ Being an international community of contributors, many of whom coming from Engli
 
 The usage of "Greek letters for types, Latin letters for terms", whilst in use in some circles, is not as widespread as one may think. In particular, it can be harder for the reader to deal with another alphabet if Latin is not their first one. Moreover, it can potentially come off as pedantic (an image which our community struggles to avoid).  
 Thus, this style is discouraged in the GHC documentation.
+
+## Module documentation
+
+Module documentation should contain an `Overview` section that describes in greater length the purpose, APIs and underlying concepts exposed by the module.
+This section is typically not rendered through GHCi's `:doc` due to the particularities of a REPL's environment. That is why modules should always have a smaller, more compact introductory / summary paragraph that will be the first point of contact with the developer when they look modules up in the REPL.
