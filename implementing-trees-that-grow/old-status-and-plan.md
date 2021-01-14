@@ -1,5 +1,3 @@
-# Old status and plan for Trees that Grow
-
 Based on reading and git log, @Ericson2314 doesn't think much of this stuff is very useful at this point, at least on the main TTG page, and so moved it here.
 
 ## Status
