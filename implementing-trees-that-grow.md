@@ -57,7 +57,7 @@ Here are some issues relating to that:
 The main work in recent months has been incrementally moving phase-specific stuff into extension points.
 This is trackeded in #16830.
 
-The larger picture has stayed, fairly constant, looking like:
+The larger picture, however, has stayed fairly constant, looking like:
 
 ```haskel
 module GHC.Hs.Extension
