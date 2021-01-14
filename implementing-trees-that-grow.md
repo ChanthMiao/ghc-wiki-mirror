@@ -18,24 +18,35 @@ Main protagonists: Shayan Najd and Alan Zimmerman.
 
 ## Goals
 
+### Long term
 
 The long term goal is to use a single data type for
 
-- GHC itself (currently `HsSyn`)
+- GHC itself (currently ~~`HsSyn`~~ `GHC.HS.*`)
 - Template Haskell (currently the types in the `template-haskell` library)
 - `hs-src-exts`, a popular library for processing Haskell
 
+This data type will need to be defined in another package, of course.
 
-The shorter term plan is to validate the idea by applying it to GHC.  That is, re-engineer `HsSyn` along the lines of Trees That Grow.
+### Short term
 
+The shorter term plan is to validate the idea by applying it to GHC.  That is, re-engineer `GHC.HS.*` along the lines of Trees That Grow.
 
-A major benefit is that we believe that this re-engineering will
+A major benefit is that we believe that this re-engineering will:
 
 - Completely subsume Alan Zimmerman's [Api Annotations](https://ghc.haskell.org/trac/ghc/wiki/ApiAnnotations), making them much easier to use.
-- Allow us to get rid of the annoying alternation between `t` and `Located t`, which pervades `HsSyn`
+- Allow us to get rid of the annoying alternation between `t` and `Located t`, which pervades `GHC.HS.*`
+
+### Getting from short to long term
+
+@Ericson2314 thinks the key is to "bud off" the AST module, so that it's increasingly ready to be shared between GHC and other packages per the long term goal. That means trying to separate the AST datatypes from as much GHC-specific machinery as possible.
+
+Here are some issues relating to that:
+
+- #18936
+- #19218
 
 ## Status
-
 
 We are following the General Plan (below), but we merge Step 1 and Step 3.
 We also split the overall work into multiple smaller patches, by working on a set of datatypes at a time.
@@ -132,7 +143,6 @@ It will give us a cleaner parser (design/code wise), and speed ups.
 Possibly, we remove the pattern synonyms to avoid a layer of indirection and get some speed up. 
 
 ### Step 4
-
 
 We work on refactoring, by then redundant, bits and pieces of TH by either just removing them (like the HsSyn-TH translator) or reusing the ones in the compiler.
 
