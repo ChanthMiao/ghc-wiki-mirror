@@ -128,9 +128,13 @@ type instance XConA GhcTc = ...
 
 Now we hava a nice separation between the parts that ought to be GHC-specific and those that out to be GHC-agnostic.
 
+The avoidance of `GHC.*` for the ghc-agnostic modules was not part of the original issue, but from a comment from @simonpj in https://gitlab.haskell.org/ghc/ghc/-/merge_requests/4778#note_323748.
+I think it's a great idea: since we won't be able to abstract away all the interactions with the rest of GHC that should go in the end, it's crucial to indicate to the programmers the intent of budding off these modules into a separate package before it's actually released.
+Otherwise, other backsliding is likely as other PRs accidentally introduce new entanglements with GHC even as the people TTG seek to get rid of them, and we go in circles.
+
 ### Cleaving dependencies
 
-But, at firstt, the `Language.Haskell.Syntax` parts will still be tied to the rest of GHC in unfortunate ways, as the new dependencies test added in !4778 shows.
+But, at first, the `Language.Haskell.Syntax` parts will still be tied to the rest of GHC in unfortunate ways, as the new dependencies test added in !4778 shows.
 
  - Imports of the type checker: WIP fix in !4782
 
@@ -143,6 +147,26 @@ But, at firstt, the `Language.Haskell.Syntax` parts will still be tied to the re
     But we need not be blocked on all that; we can just make more extension points, because even though the use of these types are not ntoday GHC-stage-specific, they certainly are GHC-specific.
 
 Or at least the beginning of it, more extension points might be needed for phase-agnostic but GHC-specific stuff.
+
+### Open vs closed world design
+
+Let's start with a specific example `GhcPass`.
+This is (modulo newtypes) a sum type, with a variant for each stage.
+This allows singleton-related machinery like `IsPass` in order to *exhaustively* dispatch on each stage within a function.
+
+The alternative method is used with `CollectPass`, a class for collecting the bound variables of patterns.
+It is needed because Haddock uses it with a non-`GhcPass` type for its own TTG type family instances.
+Unlike with variants for stages, there is no way to exhaustively case on `Type`, and so we have the implicit parameter in the form of the type class dictionary for how to handle the variable cases.
+
+Trying to pull out the AST from GHC raises these sorts of questions, because we have a bunch of stage agnostic helper functions today that are almost ghc-agnostic.
+In many cases however, they still require `GhcPass` because something transitively calls something that needs to case on the stage.
+We might be tempted to refactor those to live in the `Language.Haskell.Syntax` modules, but it will make the types more complex.
+
+It is @Ericson2314 view not to worry about generalizing things now.
+If it's GHC specific, just keep it that way, and instead focus on modularity.
+This is because modularity leads to multiple downstream consumers, and balancing the needs of multiple actually existing downstream consumers---not anticipating the needs of multiple hypothetical consumers---is what make libraries great.
+So if we have an AST package, and if GHC and other things that use it start duplicating functionality, then let's worry about the quality of our abstractions, but not before.
+Yes, @Ericson2314 has long been interested in seeing GHC use more high level abstractions, but trying to push GHC in that direction seems all around worse than just letting an ecosystem of packages evolve that naturally.
 
 ### #19218
 
