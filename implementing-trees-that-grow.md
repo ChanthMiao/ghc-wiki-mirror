@@ -152,10 +152,10 @@ Or at least the beginning of it, more extension points might be needed for phase
 
 Let's start with a specific example `GhcPass`.
 This is (modulo newtypes) a sum type, with a variant for each stage.
-This allows singleton-related machinery like `IsPass` in order to *exhaustively* dispatch on each stage within a function.
+This allows singleton-related machinery like `IsPass` in order to *exhaustively* dispatch on each stage within a function. (See `Note [IsPass]`.)
 
 The alternative method is used with `CollectPass`, a class for collecting the bound variables of patterns.
-It is needed because Haddock uses it with a non-`GhcPass` type for its own TTG type family instances.
+It is needed because Haddock uses it with a non-`GhcPass` type for its own TTG type family instances. 
 Unlike with variants for stages, there is no way to exhaustively case on `Type`, and so we have the implicit parameter in the form of the type class dictionary for how to handle the variable cases.
 
 Trying to pull out the AST from GHC raises these sorts of questions, because we have a bunch of stage agnostic helper functions today that are almost ghc-agnostic.
