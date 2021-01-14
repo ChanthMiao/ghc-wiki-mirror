@@ -85,9 +85,9 @@ type instance XConA GhcTc = ...
 
 This does mean that the AST and GHC stuff like `GhcPass` and it's instances is thoroughly mixed together.
 
-# Plan
+## Plan
 
-## #18936
+### #18936
 
 The next step per #18936 would be to change things up like this:
 
@@ -144,7 +144,7 @@ But, at firstt, the `Language.Haskell.Syntax` parts will still be tied to the re
 
 Or at least the beginning of it, more extension points might be needed for phase-agnostic but GHC-specific stuff.
 
-## #19218
+### #19218
 
 At long least, we move the `Language.Haskell.Syntax` modules to a separate package.
 We might want to make sure we have #10827 done by then so it's as easy to load the split GHC in GHCi as it is to load the original monolith.
