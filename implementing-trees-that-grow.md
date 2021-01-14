@@ -3,11 +3,16 @@
 
 In this page, we discuss the overall plan and details of implementing Trees that Grow in GHC.   Re-engineering `HsSyn` is a major exercise that touches a lot of code, so we need to move carefully.  This page outlines the plan.
 
+### External info
+
 - [The Trees that Grow paper](http://www.jucs.org/jucs_23_1/trees_that_grow/jucs_23_01_0042_0062_najd.pdf)
 - The motivation and some background information can be found at the [report](https://ghc.haskell.org/trac/ghc/wiki/NativeMetaprogramming) of a related Summer of Haskell project.
-- [Notes about instances](implementing-trees-that-grow/instances)
 - Main GHC branch: `wip/GrowableAST`
 - #14490: TTG snags
+
+### "Child" wiki pages
+
+- [Notes about instances](implementing-trees-that-grow/instances)
 - [Potential use for adding IDE support](implementing-trees-that-grow/ide-support)
 - [A set of advises for GHC developers on how to work with TTG](implementing-trees-that-grow/trees-that-grow-guidance)
 - [Handling Source Locations](implementing-trees-that-grow/handling-source-locations)
