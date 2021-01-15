@@ -305,7 +305,7 @@ If you switch between active trees, you must use a `setq` to change this variabl
 
 
 ```
-  ;; search withing GHC compiler code
+  ;; search within GHC compiler code
 (defun rgrep-ghc (regexp)
   (interactive (list (progn (grep-compute-defaults) (grep-read-regexp))))
   (rgrep regexp "*hs" (concat ghc-location "/compiler/")))
