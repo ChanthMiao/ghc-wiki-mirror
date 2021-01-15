@@ -162,7 +162,7 @@ Trying to pull out the AST from GHC raises these sorts of questions, because we 
 In many cases however, they still require `GhcPass` because something transitively calls something that needs to case on the stage.
 We might be tempted to refactor those to live in the `Language.Haskell.Syntax` modules, but it will make the types more complex.
 
-It is @Ericson2314 view not to worry about generalizing things now.
+It is @Ericson2314's view not to worry about generalizing things now.
 If it's GHC specific, just keep it that way, and instead focus on modularity.
 This is because modularity leads to multiple downstream consumers, and balancing the needs of multiple actually existing downstream consumers---not anticipating the needs of multiple hypothetical consumers---is what make libraries great.
 So if we have an AST package, and if GHC and other things that use it start duplicating functionality, then let's worry about the quality of our abstractions, but not before.
