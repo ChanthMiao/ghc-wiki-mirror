@@ -26,23 +26,25 @@ Main protagonists: Shayan Najd and Alan Zimmerman.
 
 ### Long term
 
-The long term goal is to use a single data type for
+The long term goal is to use a single collection of Haskell-syntax data types for multiple clients:
 
-- GHC itself (currently ~~`HsSyn`~~ `GHC.HS.*`)
+- GHC itself (currently `GHC.Hs.*`)
+- Haddock
 - Template Haskell (currently the types in the `template-haskell` library)
 - `hs-src-exts`, a popular library for processing Haskell
 
-This data type will need to be defined out side of the `ghc` package, so it can be properly shared between each of these without dragging in extraneous definitions.
-It should also live outside the `GHC.*` module namespace to indicate it's not GHC-specific. 
+These data types will need to be defined in a separate package, say `haskell-syntax` so it can be properly shared between each of these without dragging in extraneous definitions.
+
+It should also live outside the `GHC.*` module namespace to indicate it's not GHC-specific. Perhaps `Language.Haskell.Syntax`.
 
 ### Short term
 
-The shorter term plan is to validate the idea by applying it to GHC.  That is, re-engineer `GHC.HS.*` along the lines of Trees That Grow.
+The shorter term plan is to validate the idea by applying it to GHC:
+* Create a new sub-tree, still within the main GHC codebase, rooted at `Language.Haskell.Syntax`.  This will eventually become a separate package `haskell-syntax`.
+* Minimise, and eventually eliminate, dependencies from `Language.Haskell.*` to `GHC.*`
+* Keep `GHC.Hs` for GHC-specific code that manipulates the syntax tree.
+* In parallel, use the TTG extension points to implement Alan Zimmerman's [Api Annotations](https://ghc.haskell.org/trac/ghc/wiki/ApiAnnotations), making them much easier to use. See !2418.
 
-A major benefit is that we believe that this re-engineering will:
-
-- Completely subsume Alan Zimmerman's [Api Annotations](https://ghc.haskell.org/trac/ghc/wiki/ApiAnnotations), making them much easier to use.
-- Allow us to get rid of the annoying alternation between `t` and `Located t`, which pervades `GHC.HS.*`
 
 ### Getting from short to long term
 
