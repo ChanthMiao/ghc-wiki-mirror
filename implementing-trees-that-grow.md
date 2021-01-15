@@ -45,12 +45,7 @@ The shorter term plan is to validate the idea by applying it to GHC:
 * Keep `GHC.Hs` for GHC-specific code that manipulates the syntax tree.
 * In parallel, use the TTG extension points to implement Alan Zimmerman's [Api Annotations](https://ghc.haskell.org/trac/ghc/wiki/ApiAnnotations), making them much easier to use. See !2418.
 
-
-### Getting from short to long term
-
-@Ericson2314 thinks the key is to "bud off" the AST module, so that it's increasingly ready to be shared between GHC and other packages per the long term goal. That means trying to separate the AST datatypes from as much GHC-specific machinery as possible.
-
-Here are some issues relating to that:
+Here are some issues relating to these changes:
 
 - #18936
 - #19218
