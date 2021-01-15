@@ -32,7 +32,8 @@ The long term goal is to use a single data type for
 - Template Haskell (currently the types in the `template-haskell` library)
 - `hs-src-exts`, a popular library for processing Haskell
 
-This data type will need to be defined in another package, of course.
+This data type will need to be defined out side of the `ghc` package, so it can be properly shared between each of these without dragging in extraneous definitions.
+It should also live outside the `GHC.*` module namespace to indicate it's not GHC-specific. 
 
 ### Short term
 
