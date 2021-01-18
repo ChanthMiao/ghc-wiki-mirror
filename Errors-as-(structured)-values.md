@@ -156,12 +156,12 @@ As this strand of work touches a lot of modules, doing everything as a single ga
   flexibility on where to place certain error-related utility functions;
   **Implemented**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/4574
 
-- [ ] Clean-up the error hierarchy by introducing a proper data 
+- [X] Clean-up the error hierarchy by introducing a proper data 
   type for `Messages` (instead of a type alias to a tuple), parameterised
   by an error type `e`. Initially everything can be instantiated with `e = ErrDoc`
   to not change too many things at once, and later use proper domain-specific types
   (e.g. parser diagnostic messages, typecheck messages, etc);
-  **Waiting review**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/4728
+  **Approved**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/4728
 
 - [ ] (Optional, but desirable) Get rid of `ErrDoc`, `MsgDoc` and `WarnMsg` to
   reduce the cognitive overload when dealing with error types;
