@@ -14,6 +14,8 @@
 
 # Demand Analysis
 
+- #19224, !4833: evaluate thunks eagerly if exprOkForSpec.
+
 - #18907 Product demands
 
 - #18349 Trimming of DmdAnal results.
