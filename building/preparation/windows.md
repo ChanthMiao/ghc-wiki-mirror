@@ -101,11 +101,11 @@ Run
 ```
 arch=x86_64 # or i386
 bitness=64 # or 32
-curl -L https://downloads.haskell.org/~ghc/8.8.3/ghc-8.8.3-${arch}-unknown-mingw32.tar.xz | tar -xJ -C /mingw${bitness} --strip-components=1
+curl -L https://downloads.haskell.org/~ghc/8.10.2/ghc-8.10.2-${arch}-unknown-mingw32.tar.xz | tar -xJ -C /mingw${bitness} --strip-components=1
 ```
 
 
-Note: `--strip-components=1` places everything within the archive's `ghc-8.8.3` folder directly into the target directory.
+Note: `--strip-components=1` places everything within the archive's `ghc-8.10.2` folder directly into the target directory.
 
 
 Building GHC requires [Alex](http://www.haskell.org/alex/) and [ Happy](http://www.haskell.org/happy/).  They can be installed using `cabal-install`. We will also put them in `/usr/local/bin`, which is by default included in `PATH` in MSYS.
@@ -113,9 +113,9 @@ Building GHC requires [Alex](http://www.haskell.org/alex/) and [ Happy](http://w
 For newer Cabal 3.* using v2-style install
 ```
 mkdir -p /usr/local/bin
-curl -L https://downloads.haskell.org/cabal/cabal-install-3.0.0.0/cabal-install-3.0.0.0-${arch}-unknown-mingw32.zip | bsdtar -xzf- -C /usr/local/bin
+curl -L https://downloads.haskell.org/cabal/cabal-install-3.2.0.0/cabal-install-3.2.0.0-${arch}-unknown-mingw32.zip | bsdtar -xzf- -C /usr/local/bin
 cabal update
-cabal install -j --installdir=/usr/local/bin --install-method=copy alex happy hscolour
+cabal install -j --installdir=/usr/local/bin --install-method=copy alex-3.2.5 happy hscolour
 ```
 
 For older Cabal 2.* using v1-style install
@@ -123,7 +123,7 @@ For older Cabal 2.* using v1-style install
 mkdir -p /usr/local/bin
 curl -L https://downloads.haskell.org/cabal/cabal-install-2.4.1.0/cabal-install-2.4.1.0-${arch}-unknown-mingw32.zip | bsdtar -xzf- -C /usr/local/bin
 cabal update
-cabal install -j --prefix=/usr/local alex happy hscolour
+cabal install -j --prefix=/usr/local alex-3.2.5 happy hscolour
 ```
 
 hscolour is optional for building documentation with source links.
