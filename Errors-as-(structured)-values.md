@@ -161,7 +161,7 @@ As this strand of work touches a lot of modules, doing everything as a single ga
   by an error type `e`. Initially everything can be instantiated with `e = ErrDoc`
   to not change too many things at once, and later use proper domain-specific types
   (e.g. parser diagnostic messages, typecheck messages, etc);
-  **Approved**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/4728
+  **Implemented**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/4728
 
 - [ ] (Optional, but desirable) Get rid of `ErrDoc`, `MsgDoc` and `WarnMsg` to
   reduce the cognitive overload when dealing with error types;
