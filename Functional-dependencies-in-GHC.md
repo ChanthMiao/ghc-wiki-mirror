@@ -1,6 +1,6 @@
 This is the root page for examples and issues about functional dependencies in GHC.
 
-* [Background and terminology](background-and-terminology)
+* [Background and terminology](./background-and-terminology)
 * [Key examples](key-examples)
 * [Design choices](design-choices)
 
