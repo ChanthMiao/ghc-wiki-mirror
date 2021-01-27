@@ -1,3 +1,9 @@
+This page summarises background and terminology related to functional dependencies.
+
+Go up to [Functional dependencies in GHC](..)
+
+**Contents**
+
 [[_TOC_]]
 
 # 1. Terminology
