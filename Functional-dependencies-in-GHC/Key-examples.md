@@ -128,4 +128,37 @@ We have added a strange context to the instance declaration, equal to itself!  N
 
 But GHC's type-class constraint solver has a long-standing trick whereby it solves goals co-inductively. I think it was first documented in [Scrap your boilerplate with class](https://www.microsoft.com/en-us/research/publication/scrap-your-boilerplate-with-class/), where it is *essential* to allow SYB-with-class to work at all.  You might enjoy the paper; the coinductive part is discussed in Section 5.   Coinduction is switched on all the time, but it only has an effect when you have `UndecidableInstances`, which allows instance declarations that don't provably terminate.
 
-So in priciple, LIBERAL+UNDECIDABLE lets you express DYSFUNCTIONAL (no coverage condition at all).  But it's a weird coding trick, and so we leave DYSFUNCTIONAL in our vocabulary, for now anyway, to mean "lift coverage condition".
+So in principle, LIBERAL+UNDECIDABLE lets you express DYSFUNCTIONAL (no coverage condition at all).  But it's a weird coding trick, and so we leave DYSFUNCTIONAL in our vocabulary, for now anyway, to mean "lift coverage condition".
+
+## Example 7: Overlapping instances
+
+Here's an example from Csongor:
+```
+class HasField field s a | field s -> a where ...
+
+-- Generic instance
+instance {-# OVERLAPPABLE #-} 
+         GHasField field s a => HasField field s a  where ...
+
+-- Specific instance
+instance HasField "foo" Foo Int  where ...
+```
+His intent is that the "generic instance" provides a generic but perhaps inefficient way to extract a field.  But in many cases the programmer will provide a more efficient override, here the "specific instance".
+
+These definitions do not even satisfy the liberal coverage condition, because the two instance heads unify on `field` and `s`, but that unifier does not force the `a` part to be the same.   So Csongor wants a weaker instance consistency condition.
+
+The `ether` library does something similar. Here's an edited highlight
+```
+class Monad m => MonadReader tag r m | m tag -> r where ...
+
+-- Generic instance
+instance {-# OVERLAPPABLE #-}
+         ( Lift.LiftLocal t
+         , Monad (t m)
+         , MonadReader tag r m
+         ) => MonadReader tag r (t m) where ...
+
+-- Specific instance
+instance (Monad m, r ~ r') 
+      => MonadReader tag r (R.ReaderT tag r' m) where ...
+```
