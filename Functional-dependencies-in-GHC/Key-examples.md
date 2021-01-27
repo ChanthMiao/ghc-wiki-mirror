@@ -145,7 +145,7 @@ instance HasField "foo" Foo Int  where ...
 ```
 His intent is that the "generic instance" provides a generic but perhaps inefficient way to extract a field.  But in many cases the programmer will provide a more efficient override, here the "specific instance".
 
-These definitions do not even satisfy the liberal coverage condition, because the two instance heads unify on `field` and `s`, but that unifier does not force the `a` part to be the same.   So Csongor wants a weaker instance consistency condition.
+These definitions do not even satisfy the liberal instance consistency condition (LICC), because the two instance heads unify on `field` and `s`, but that unifier does not force the `a` part to be the same.   So Csongor wants a weaker instance consistency condition.
 
 The `ether` library does something similar. Here's an edited highlight
 ```
