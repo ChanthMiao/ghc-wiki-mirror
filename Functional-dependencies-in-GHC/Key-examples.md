@@ -1,7 +1,8 @@
 This page has key examples related to functional dependencies.
 
-Go up to [Functional dependencies in GHC]()
+Go up to [Functional dependencies in GHC](..)
 
+**Contents**
 [[_TOC_]]
 
 ## Example 0: liberal coverage condition is highly desirable
