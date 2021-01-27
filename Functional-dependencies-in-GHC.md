@@ -1,8 +1,8 @@
 This is the root page for examples and issues about functional dependencies in GHC.
 
-* [Background and terminology](./background-and-terminology)
-* [Key examples](key-examples)
-* [Design choices](design-choices)
+* [Background and terminology](Functional-dependencies-in-GHC/background-and-terminology)
+* [Key examples](Functional-dependencies-in-GHC/key-examples)
+* [Design choices](Functional-dependencies-in-GHC/design-choices)
 
 ## Key papers
 
