@@ -68,9 +68,11 @@ When renaming a type, we look up in the type namespace, while when renaming a te
 
 With `DataKinds` we already flex these rules a bit: when renaming a type, if `T` is not in scope in the type namespace we look in the term namespace (for a data constructor `T`).  And we provide an escape mechanism, the tick-mark: in a type, `'T` refers unconditionally to the term namespace.
 
-In DH, *we expect to retain this dual namespace unchanged*:
+In DH, *we expect to retain this dual namespace*, slightly generalized:
 * In the syntactic places where types appear in Haskell today, DH will continue to use the type namespace.
 * In the syntactic places where terms appear in Haskell today, DH will continue to use the term namespace.
+* In all syntactic places, when a lookup in the primary namespace fails, DH will look in the other namespace. (This is a natural extension of today's `DataKinds`
+approach.)
 
 In many dependently typed languages (Coq, Agda, Idris, F*, among others) the distinction between "types" and
 "terms" blurs or disappears entirely, so we will use the terms "type
@@ -82,11 +84,21 @@ DH programmers may find it convenient to avoid punning, so that they no longer n
 to consider the context of an identifier occurrence to be able to interpret its meaning.
 (That is, to understand an occurrence `Age` in the example above, we need to look around
 to see what context we are in.) We expect DH to support these programmers' desire to avoid
-punning, while still providing support for easy interaction with other code that uses puns.
+punning by providing optional warnings,
+while still also supporting easy interaction with other code that uses puns.
+[Proposal 270](https://github.com/ghc-proposals/ghc-proposals/pull/270) describes
+a way that might happen; the additional support of [local modules](https://github.com/ghc-proposals/ghc-proposals/pull/283)
+would allow for even easier use of punned identifiers with pun-avoiding code.
 
-(Some have argued that supporting dependent types does not require erasing the
-distinction between types and terms. This is true. Yet, it would seem to lead to a
-lot of duplication and clunkiness.)
+More generally, we advocate the following principle:
+
+**Syntactic unification principle.** In the absence of punning, there is no difference
+between type-syntax and term-syntax.
+
+This principle means that a DH programmer who avoids punning can simply forget about the distinction
+between type-syntax and term-syntax, and the context-sensitivity these notions require. This is meant
+to be a simplification available to those programmers. As we design DH, this principle informs
+design decisions, so that it may be true once DH is fully realized.
 
 ### 4. Quantifiers
 
@@ -95,7 +107,7 @@ There are three "attributes" to a quantifier
 ```
 Attribute    |  What it means
 -----------------------------------------------
-Static-ness  |  Compile-time reasoning about equality. Aka "dependence"
+Dependence   |  The argument appears later in the type
 Visibility   |  Argument is explicit at both definition and call site
 Erasure      |  Completely erased at runtime.  Aka "relevance"
 ```
@@ -104,40 +116,46 @@ As the [Hasochism](http://homepages.inf.ed.ac.uk/slindley/papers/hasochism.pdf) 
 three attributes are treated differently in types and terms, thus:
 
 ```
-Attribute   |    Types       |   Terms       |
--------------------------------------------  --------------
-Quantifier  | forall a. ty   |   t1 -> t2    |
-            |                |               |
-Static-ness | Static         |  Non-static   | Compiler reasons about equality of types,
-            |                |               |   but never of terms
-Visibility  | Invisible      |  Visible      | Programmer never supplies type arguments,
-            |                |               |   always supplies value arguments
-Erasure     | Erased         | Retained      | Types completely erased at runtime;
-            | aka Irrelevant | aka Relevant  |    terms never erased
+Attribute   |    Types       |   Terms        |
+------------------------------------------------------------
+Quantifier  | forall a. ty   |   t1 -> t2     |
+            |                |                |
+Dependence  | Dependent      |  Non-dependent | Compiler reasons about equality of types,
+            |                |                |   but never of terms
+Visibility  | Invisible      |  Visible       | Programmer never supplies type arguments,
+            |                |                |   always supplies value arguments
+Erasure     | Erased         | Retained       | Types completely erased at runtime;
+            | aka Irrelevant | aka Relevant   |    terms never erased
 ```
 
 NB: visible type application in GHC Haskell adds a refinement to this
 setup, by allows the programmer to give a visible type argument `(e @ty)`
 to a term `(e :: forall a.blah)`.  But the basic setup is as above.
 
-**A key aspect of a dependently typed language is that visibility and erasure
-can be chosen independently**.   (See "The Glorious Future" for static-ness.)
+**A key aspect of a dependently typed language is that these three
+can be chosen independently**.
 To cut to the chase, we have (interchanging rows and columns)
 ```
                   ------------  Attribute ------------------
-Quantifier        Static-ness    Visibility     Erasure
+Quantifier        Dependence     Visibility     Erasure
 ------------------------------------------------------------
-forall a. ty      Static         Invisible      Erased
-forall a -> ty    Static         Visible        Erased
-foreach a. ty     Static         Invisible      Retained
-foreach a -> ty   Static         Visible        Retained
-Eq a => ty        Dynamic        Invisible      Retained
-t1 -> t2          Dynamic        Visible        Retained
+forall a. ty      Dependent      Invisible      Erased
+forall a -> ty    Dependent      Visible        Erased
+foreach a. ty     Dependent      Invisible      Retained
+foreach a -> ty   Dependent      Visible        Retained
+Eq a => ty        Non-dependent  Invisible      Retained
+t1 -> t2          Non-dependent  Visible        Retained
 ```
 You can see that
 * The `forall` vs `foreach` part governs erasure: `forall`s are erased, while `foreach`s are retained
 
 * The "`.`" vs "`->`" part governs visibility: `.` says "invisible", while `->` says "visible
+
+* The presence of `forall`/`foreach` governs dependence: These dependent quantifiers introduce a variable that
+  can be used later in the type. Other abstractions (e.g. `->`) do not.
+
+* There appear to be two missing rows. Non-dependent, erased arguments cannot be used at compile-time
+  or at runtime, and are thus useless and omitted.
 
 * GHC already supports `forall k -> ty`, in *kinds*, meaning that the programmer must apply
   a type `(T :: forall k -> ty)` to an explicit kind argument
@@ -167,7 +185,9 @@ You can see that
   ```
 
 * The `foreach ->` quantifier allows us to eliminate the vast mess of singleton types,
-  about which the Hasochism paper is eloquent. For example, today we are sometimes forced
+  about which the Hasochism paper is eloquent. (That is, `foreach ->` quantifies over an
+  argument usable both at compile-time *and* and runtime, the hallmark of dependent types.)
+  For example, today we are sometimes forced
   to write
   ```
   data Nat = Z | S Nat
@@ -208,22 +228,34 @@ You can see that
   ```
   and at call sites the compiler will work out a suitable `Nat` to pass to `foo`.
 
+The `foreach` quantifier is the defining feature that makes Dependent Haskell a dependently-typed language.
+We now look at how `foreach`-functions are applied (eliminated) and defined (introduced).
+
 ### 5. Dependent application
 
-Suppose we have a function `f :: foreach (a::ty) -> blah`.  Then at a
+Suppose we have a function `f :: foreach (a::ty) -> blah` or `f :: forall (a::ty) -> blah`.  Then at a
 call site the programmer must supply an explicit argument, so the call will look like
 ```
   f <arg>
 ```
-**Question 1**: is `arg` written in term syntax or in type syntax?  Answer: in term syntax.
+**Question 1**: is `arg` written in term syntax or in type syntax?  Our answer: in term syntax.
 
 Recall that term-syntax vs type-syntax affects both which syntactic forms are allowed, and
 what namespace is used during renaming.  But during parsing and renaming *we do not know the type of `f`*,
 and DH maintains Haskell's separation of renaming and typechecking.  So we can only use term syntax for `arg`,
 and the term namespace for resolving identifier occurrences in `arg`.
 
+A consequence of writing `arg` in term-syntax is that we need to be able to write e.g. `Int -> Int`
+in term-syntax. This implies a modest expansion of what can be parsed and renamed as a term. The type-checker
+will know to treat `Int -> Int` as a type. It is
+here, however, that a punned `Int` identifier would be annoying. 
+
+An alternative would be to require the programmer to add a syntactic marker for dependent arguments
+of a function, in which case they could be written in type-syntax. However, the syntactic
+marker would be redundant once we otherwise uphold the *Syntactic Unification Principle*.
+
 **Question 2**: can `arg` be *any* expression whatsoever? Lambdas?
-List comprehensions?  Applicative do?  Local function bindings?
+List comprehensions?  Applicative-do?  Local function bindings?
 
 Ultimately we hope that the answer will be "yes", but DH is carefully crafted so that we do not need
 a "big bang" to get there.  Rather, we can move incrementally, one step at a time.  Here's how:
@@ -232,21 +264,27 @@ a "big bang" to get there.  Rather, we can move incrementally, one step at a tim
 * `arg` is *renamed* as a term
 * But during *typechecking* the compiler treats an application chain `f arg1 arg2 ... argn` specially.
   If it knows that `f :: forall a -> blah`, then it checks that `arg1` is a term written only in a
-  specified sub-language of terms --- initially a sub-language that maps directly to the language of (current) types.
+  specified sub-language of terms -- initially a sub-language that maps directly to the language of (current) types.
 
-We call this "specified sub-language of terms" the Static Subset of terms.  In GHC-speak,
+We call this "specified sub-language of terms" the **Static Subset** of terms.  In GHC-speak,
 a `HsExpr` in the Static Subset can readily be converted to a `HsType`.
 
-For example, suppose `f :: foreach (a :: [Bool) -> blah`.  An initial version of DH might allow
+For example, suppose `f :: foreach (a :: [Bool]) -> blah`.  An initial version of DH might allow
 ```
   f [True]            -- Allowed
   f [True,False]      -- Allowed
   f (True : [])       -- Allowed
-  f xs                -- Allowed iff xs is static
 
-  f (reverse xs)      -- Not allowed: typechecker does not understand reverse
-  f [not x | x <- xs] -- Not allowed: list comprehension
+  f [not x | x <- xs]   -- Not allowed: list comprehension
+  f (case ... of ...)   -- Not allowed: case
+  f ((\y -> y) [True])  -- Not allowed: lambda
+   
+  f xs                -- Allowed: xs equals only itself
+  f (reverse xs)      -- Allowed: reverse equals only itself and xs equals only itself
 ```
+These dependent applications might give rise to a need for compile-time reasoning
+over Haskell's very rich expression language. The Static Subset notion polices this
+boundary, initially allowing only simple expressions into type inference.
 Over time we expect to widen Static Subset of terms, to allow more syntactic forms.
 
 The technology for treating application chains specially is worked out in details in
@@ -254,7 +292,100 @@ The technology for treating application chains specially is worked out in detail
 It is *already* used to govern Visible Type Application (which also requires knowledge of whether the
 function part of the application has a forall-type). This aspect is well understood.
 
-### 5. The Glorious Future
+The examples above include applications to variables. These variables will be
+treated exactly as skolems at compile-time, *even if they are `let`-bound with
+known right-hand sides*. For example, suppose we now have `f2 :: foreach (bs :: [Bool]) -> T bs -> blah`.
+Then:
+
+```hs
+g :: [Bool] -> blah
+g bs t = f2 bs (undefined :: T bs)    -- this is allowed, but the second argument must have type `T bs`
+
+h = let bs = [True]
+        t :: T [True]
+        t = ...
+    in
+    f2 bs t    -- surprisingly rejected, as bs is equal only to itself
+```
+
+In the `h` example, we might expect `f2 bs t` to be accepted, but it will not be, as
+variables used in types are equal only to themselves. That is, GHC will forget the
+relationship between `bs` and `[True]`. This approach keeps things simple for now;
+we might imagine retaining the knowledge that `bs = [True]` when, say, the right-hand
+side of a `let` is in the Static Subset, but we leave that achievement for later.
+
+### 6. Dependent definition
+
+Principle: We will never *infer* a type with `foreach .`, `foreach ->`, or `forall ->`.
+We will continue to infer types with `forall .`, via `let`-generalization, just as we
+do today.
+
+Just as with all the other first-class polymorphism work, users can write a type signature
+to define functions with these quantifiers. Examples:
+
+```hs
+vReplicate :: foreach (n :: Nat) -> a -> Vec n a
+vReplicate Zero     _ = Nil
+vReplicate (Succ n) x = x :> vReplicate n x
+
+vReplicateImplicit :: foreach (n :: Nat). a -> Vec n a
+vReplicateImplicit x = case n of   -- n is in scope from -XScopedTypeVariables
+  Zero   -> Nil
+  Succ _ -> x :> vReplicateImplicit x
+
+-- alternative approach, from https://github.com/ghc-proposals/ghc-proposals/blob/master/proposals/0155-type-lambda.rst
+vReplicateImplicit :: foreach (n :: Nat). a -> Vec n a
+vReplicateImplicit @Zero     _ = Nil
+vReplicateImplicit @(Succ _) x = x :> vReplicateImplicit x
+
+the :: forall (a :: Type) -> a -> a
+the b x = (x :: b)    -- 'a' is not in scope here, as we're forced to bind 'b'.
+-- example usage: the Int 3
+```
+
+All variables introduced in term-syntax are in the term namespace. In particular, this applies to the `b` in
+the `the` example. Its use in a type relies on the lookup failing in the type namespace and succeeding in the
+term namespace.
+
+### 7. Phase distinction
+
+Erased arguments cannot be used at runtime. More specifically, they cannot be pattern-matched against, returned
+from a function, or otherwise used, except as an argument to a function expecting an erased argument. Examples:
+
+```hs
+ex1 :: forall (n :: Nat) -> Nat
+ex1 n = n    -- no: cannot return an erased argument
+
+ex2 :: foreach (n :: Nat) -> Nat
+ex2 n = n    -- OK, though arguments to 'ex2' will need to be in the Static Subset
+
+ex3 :: forall (n :: Nat) -> Bool
+ex3 Zero     = True
+ex3 (Succ _) = False
+  -- no: cannot pattern-match on an erased argument
+
+ex4 :: forall (a :: Type) -> a
+ex4 a = the a undefined   -- OK: can pass an erased argument to 'the', expecting an erased argument
+
+ex5 :: foreach (a :: Type) -> a
+ex5 a = the a undefined   -- OK: even though a is retained, can still pass to a function expecting an erased argument
+  -- ex5 would compile to a function that ignores its argument completely
+  -- this argument, of type 'Type', would be a runtime representation of a type, something like TypeRep
+
+data T where
+  MkT :: forall (a :: Int) -> foreach (b :: Int) -> X a b -> T
+
+ex6 :: T -> Int
+ex6 (MkT a b x) = a   -- no: a is erased
+
+ex7 :: T -> Int
+ex7 (MkT a b x) = b   -- OK: b is retained
+
+ex8 (MkT a b x) = x   -- no: x's type has existentially bound variables and returning it would cause skolem-escape
+  -- this last one is not about phase distinction, but it seems worth mentioning
+```
+
+### 8. The Glorious Future
 
 One glorious day, perhaps all terms will be understood by the static type
 checker.  To put it another way, any term whatsoever will be
@@ -264,10 +395,8 @@ Richard and Stephanie definitely want this.  Simon is not yet convinced
 that the pain will be worth the gain.)
 
 If that Glorious Day comes, the Static vs Non-static distinction will
-vanish.  *That is why DH makes no attempt to offer independent
-programmer control over that aspect*.  (This is in contrast to erasure
-and visibility, for which we very much *do* want programmer control;
-indeed that is the whole point.)
+vanish, and why it would be unseemly to force some syntactic marker in the
+code to indicate dependent arguments.
 
 Instead DH simply imposes restrictions on the terms that can be seen by
 the static type checker, and ensures that they lie within its ability
@@ -278,7 +407,8 @@ Note: fully-spectrum dependently typed languages treat `t1 -> t2` as a mere abbr
 differently:
 * If `f1 :: t1 -> t2`, then in a call `(f1 arg)`, there are no restrictions on `arg` (except of course that it has type `t1`).
 * If `f2 :: forall (_ :: t2) -> t2`, then in a call `(f2 arg)` arg must lie in the Static Subset of terms.
-
+Even once we reach the Glorious Day, nothing forces us to unify `t1 -> t2` with `foreach (_ :: t1) -> t2`, and
+we may decide not to.
 
 ### 6. Details, details.
 
