@@ -18,27 +18,31 @@ Here, then, are the design principles for Dependent Haskell:
 Dependent Haskell embodies type inference, just like Haskell.  Indeed, every Haskell
 program is a DH program: no extra type annotations are required.
 
-This stands in contrast to some dependently-typed languages (which?) that require every
+This stands in contrast to some dependently-typed languages (e.g. Agda, Idris) that require every
 binder to be explicitly type-annotated.
 
-Of course, just as in GHC-Haskell today, to reach the more sophisticated corners of
-the type system the programmer must supply some type annotates, but the goal is to have
+Of course, just as in GHC/Haskell today, to reach the more sophisticated corners of
+the type system the programmer must supply some type annotations (for example, define
+higher-rank types, guide impredicative type inference, check GADT pattern-matches), but the goal is to have
 simple, predictable rules to say when such annotations are necessary.
-
 
 ### 2. Erasure
 
 In DH, *the programmer knows, for sure, which bits of the program will be
 retained at runtime, and which will be erased*.  Some dependently
-typed languages (which?) leave this choice to a compiler analysis, but in DH
+typed languages (Idris1, but notably not Idris2) leave this choice to a compiler analysis, but in DH
 we make it fully explicit in the types.
 
 We will see under "Quantifiers" below exactly *how* this is made explicit to the programmer,
-but it is a key property that there should be absolutely no ambiguity about it.
+but as erasure is such a key property, there should be absolutely no ambiguity about it.
 Haskell has very strong erasure properties, and so does DH.
 
+Just as in Haskell today, some programmers may prefer to omit the annotations that guide
+erasure, and GHC will infer how much it can erase (choosing to erase as much as possible).
+The one exception to this is in datatypes, where erasure must always be made explicit (otherwise,
+GHC has no way to know what should be erased, unlike in functions).
 
-### 3. **Term and type syntax**
+### 3. Term and type syntax
 
 In Haskell,
 
@@ -50,12 +54,14 @@ In Haskell,
 * **Terms** appear in value declarations, such as  `f x = x+1`.
 
 Terms and types have different name-spaces, which allows "punning". We can write
-```
+
+```hs
 data Age = Age Int
 
-f :: Age -> Age         -- Type
-f (Age n) = Age (n+1)   -- Term
+birthday :: Age -> Age         -- Type
+birthday (Age n) = Age (n+1)   -- Term
 ```
+
 We have the type constructor `Age` in the type namespace, and an eponymous data constructor `Age` in the term namespace.
 When renaming a type, we look up in the type namespace, while when renaming a term we look up in the term namespace.
 ("Renaming" means resolving, for each occurrence of an identifier, what is the binding site to which that occurrence refers.)
@@ -66,16 +72,26 @@ In DH, *we expect to retain this dual namespace unchanged*:
 * In the syntactic places where types appear in Haskell today, DH will continue to use the type namespace.
 * In the syntactic places where terms appear in Haskell today, DH will continue to use the term namespace.
 
-In a dependently typed language the distinction between "types" and
+In many dependently typed languages (Coq, Agda, Idris, F*, among others) the distinction between "types" and
 "terms" blurs or disappears entirely, so we will use the terms "type
 syntax" and "term syntax" for these two syntactic location.  For GHC
-aficionados, type syntax is represented with `HsType`, while term
-syntax is represented with `HsExpr`.
+aficionados, type syntax is (currently) represented with `HsType`, while term
+syntax is represented with `HsExpr`, though this may change in the implementation of DH.
 
+DH programmers may find it convenient to avoid punning, so that they no longer need
+to consider the context of an identifier occurrence to be able to interpret its meaning.
+(That is, to understand an occurrence `Age` in the example above, we need to look around
+to see what context we are in.) We expect DH to support these programmers' desire to avoid
+punning, while still providing support for easy interaction with other code that uses puns.
+
+(Some have argued that supporting dependent types does not require erasing the
+distinction between types and terms. This is true. Yet, it would seem to lead to a
+lot of duplication and clunkiness.)
 
 ### 4. **Quantifiers**.
 
 There are three "attributes" to a quantifier
+
 ```
 Attribute    |  What it means
 -----------------------------------------------
@@ -83,6 +99,7 @@ Static-ness  |  Compile-time reasoning about equality
 Visibility   |  Argument is explicit at both definition and call site
 Erasure      |  Completely erased at runtime.  Aka "relevance"
 ```
+
 As the Hasochism paper points out, in ML, and largely in Haskell, these
 three attributes are treated differently in types and terms, thus:
 ```
