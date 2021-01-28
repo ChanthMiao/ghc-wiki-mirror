@@ -88,20 +88,21 @@ punning, while still providing support for easy interaction with other code that
 distinction between types and terms. This is true. Yet, it would seem to lead to a
 lot of duplication and clunkiness.)
 
-### 4. **Quantifiers**.
+### 4. Quantifiers
 
 There are three "attributes" to a quantifier
 
 ```
 Attribute    |  What it means
 -----------------------------------------------
-Static-ness  |  Compile-time reasoning about equality
+Static-ness  |  Compile-time reasoning about equality. Aka "dependence"
 Visibility   |  Argument is explicit at both definition and call site
 Erasure      |  Completely erased at runtime.  Aka "relevance"
 ```
 
-As the Hasochism paper points out, in ML, and largely in Haskell, these
+As the [Hasochism](http://homepages.inf.ed.ac.uk/slindley/papers/hasochism.pdf) paper points out, in ML, and largely in Haskell, these
 three attributes are treated differently in types and terms, thus:
+
 ```
 Attribute   |    Types       |   Terms       |
 -------------------------------------------  --------------
@@ -134,12 +135,13 @@ Eq a => ty        Dynamic        Invisible      Retained
 t1 -> t2          Dynamic        Visible        Retained
 ```
 You can see that
-* The `forall` vs `foreach` part governs erasure: `foralls` are erased, 
-* The "`.`" vs "`->`" part of
+* The `forall` vs `foreach` part governs erasure: `forall`s are erased, while `foreach`s are retained
+
+* The "`.`" vs "`->`" part governs visibility: `.` says "invisible", while `->` says "visible
 
 * GHC already supports `forall k -> ty`, in *kinds*, meaning that the programmer must apply
   a type `(T :: forall k -> ty)` to an explicit kind argument
-  ([GHC proposal 81, visible dependent quantification](https://github.com/ghc-proposals/ghc-proposals/pull/81).  For example:
+  ([GHC proposal 81, visible dependent quantification](https://github.com/ghc-proposals/ghc-proposals/pull/81)).  For example:
   ```
   data T k (a::k) = ...
   ```
@@ -155,7 +157,7 @@ You can see that
 * Even in GHC Haskell today there are no terms of type `forall a -> blah`, even though
   that is a well-formed type.  But in DH there are such terms:
   ```
-  f : forall a -> a -> Int
+  f :: forall a -> a -> Int
   f a (x::a) = 4     -- The pattern signature on (x::a) is optional
   ```
   This is natural extension of what happens at the type level, where you can write
@@ -180,7 +182,7 @@ You can see that
   terribly painful to construct these singleton values at call sites.  With
   `foreach` we can say what we want directly:
   ```
-  zeroVec :: foreach (n::Nat)-> Vec n
+  zeroVec :: foreach (n::Nat) -> Vec n
   zeroVec n = ...
   ```
   and a call might look like `zeroVec 7`.
@@ -206,7 +208,7 @@ You can see that
   ```
   and at call sites the compiler will work out a suitable `Nat` to pass to `foo`.
 
-### 4. **Dependent application**
+### 5. Dependent application
 
 Suppose we have a function `f :: foreach (a::ty) -> blah`.  Then at a
 call site the programmer must supply an explicit argument, so the call will look like
