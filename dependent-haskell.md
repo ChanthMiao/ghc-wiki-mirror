@@ -44,8 +44,6 @@ GHC has no way to know what should be erased, unlike in functions).
 
 ### 3. Lexical scoping, term-syntax and type-syntax, and renaming
 
-In Haskell,
-
 Haskell adheres to the following principle
 
 * **Lexical Scoping Principle (LSP)**. For every *occurrence* of an identifier, it is possible to uniquely identify its *binding site*, without involving the type system.
@@ -66,6 +64,8 @@ A Haskell program contains both types and terms:
 
 * **Terms** appear in value declarations, such as  `f x = x+1`.  We describe them as written in **term-syntax**.
 
+(GHC aficionados know type-syntax as `HsType` and term-syntax as `HsExpr`.)
+
 Term-syntax and type-syntax have different name-spaces, which allows "punning". We can write
 
 ```hs
@@ -82,16 +82,10 @@ When renaming a type, we look up in the type namespace, while when renaming a te
 With `DataKinds` we already flex these rules a bit: when renaming a type, if `T` is not in scope in the type namespace we look in the term namespace (for a data constructor `T`).  And we provide an escape mechanism, the tick-mark: in a type, `'T` refers unconditionally to the term namespace.
 
 In DH, *we support the same Lexical Scoping Principle, including Haskell's dual namespace*, slightly generalized:
-* In the syntactic places where types appear in Haskell today, DH will continue to use the type namespace.
-* In the syntactic places where terms appear in Haskell today, DH will continue to use the term namespace.
-* In all syntactic places, when a lookup in the primary namespace fails, DH will look in the other namespace. (This is a natural extension of today's `DataKinds`
+* In type-syntax, DH will continue to use the type namespace.
+* In term-syntax, DH will continue to use the term namespace.
+* When a lookup in the primary namespace fails, DH will look in the other namespace. (This is a natural extension of today's `DataKinds`
 approach.)
-
-In many dependently typed languages (Coq, Agda, Idris, F*, among others) the distinction between "types" and
-"terms" blurs or disappears entirely, so we will use the terms "type
-syntax" and "term syntax" for these two syntactic location.  For GHC
-aficionados, type syntax is (currently) represented with `HsType`, while term
-syntax is represented with `HsExpr`, though this may change in the implementation of DH.
 
 DH programmers may find it convenient to avoid punning, so that they no longer need
 to consider the context of an identifier occurrence to be able to interpret its meaning.
@@ -101,7 +95,7 @@ punning by providing optional warnings,
 while still also supporting easy interaction with other code that uses puns.
 [Proposal 270](https://github.com/ghc-proposals/ghc-proposals/pull/270) describes
 a way that might happen; the additional support of [local modules](https://github.com/ghc-proposals/ghc-proposals/pull/283)
-would allow for even easier use of punned identifiers with pun-avoiding code.
+would allow for even easier use of punned identifiers in pun-avoiding code.
 
 More generally, we advocate the following principle:
 
@@ -160,7 +154,7 @@ Eq a => ty        Non-dependent  Invisible      Retained
 t1 -> t2          Non-dependent  Visible        Retained
 ```
 You can see that
-* The `forall` vs `foreach` part governs erasure: `forall`s are erased, while `foreach`s are retained
+* The `forall` vs `foreach` part governs erasure: `forall`s are erased, while `foreach`s are retained. `foreach` is the default quantifier that appears in Coq, Agda, and Idris; it is also known as `∏` in the literature.
 
 * The "`.`" vs "`->`" part governs visibility: `.` says "invisible", while `->` says "visible"
 
@@ -428,6 +422,17 @@ ex8 (MkT a b x) = x   -- no: x's type has existentially bound variables and retu
   -- this last one is not about phase distinction, but it seems worth mentioning
 ```
 
+An open question: Can we do this?
+
+```hs
+f :: foreach (a :: Type) -> a -> a
+f a x = case a of
+  Bool -> not x
+  _    -> x
+```
+
+The theory says "yes"; the choice of `a` is available for pattern-matching. But can we implement this in practice? I think we can, by use type representations. Yet, we may choose to defer such behavior until later; we can always make `Type` opaque and unavailable for pattern-matching.
+
 ### 9. Full expressiveness
 
 One worry that some have about dependent types is that other dependently typed languages sometimes require all functions to be proved to terminate. (For example, Agda will not accept a transliteration of
@@ -446,7 +451,19 @@ collatz n = 1 + collatz (step n)
 
 without a proof that `collatz` terminates. Do let me know if you have such a [proof](https://en.wikipedia.org/wiki/Collatz_conjecture).) Backward compatibility (and the usefulness of not-known-to-terminate functions, such as interpreters) compels us to avoid adding this requirement to Haskell. Perhaps someday we will add a termination checker has an aid to programmers, but it will not be required for functions to terminate. Due to the way dependent types in Haskell are designed (e.g., as explained in this [ICFP'17 paper](https://richarde.dev/papers/2017/dep-haskell-spec/dep-haskell-spec.pdf)), it is not necessary to have a termination proof to support dependent types.
 
-### 10. The Glorious Future
+### 10. Typed intermediate language
+
+GHC has from the beginning supported a *typed* intermediate language. The type safety of this intermediate language is what allows us to say that Haskell itself is type-safe (no one has attempted a proof of type safety for Haskell itself), and the checks on this internal language allow us to catch many errors that otherwise would have crept into GHC's optimizer.
+
+Dependent Haskell continues to support a typed intermediate language, but one supporting dependent types natively. Designing such a language is hard and has been the subject of some research. We believe that the most recent paper (listed first below) is an adequate candidate for implementation in GHC.
+
+* [*A graded dependent type system with a usage-aware semantics*](https://richarde.dev/papers/2021/grad/grad-extended.pdf). Pritam Choudhury, Harley Eades III, Richard A. Eisenberg, and Stephanie Weirich. POPL'21. This paper combines linearity with dependent types.
+* [*A role for dependent types in Haskell*](https://richarde.dev/papers/2019/dep-roles/dep-roles-extended.pdf). Stephanie Weirich, Pritam Choudhury, Antoine Voizard, and Richard A. Eisenberg. ICFP'19. This paper combines roles with dependent types.
+* [*A specification for dependently-typed Haskell*](https://richarde.dev/papers/2017/dep-haskell-spec/dep-haskell-spec.pdf); [appendix](https://richarde.dev/papers/2017/dep-haskell-spec/dep-haskell-spec-appendix.pdf). Stephanie Weirich, Antoine Voizard, Pedro Henrique Azevedo de Amorim, and Richard A. Eisenberg. ICFP'17. This paper introduces homogeneous equality as a simplification over previous approaches.
+* [*Dependent types in Haskell: Theory and practice*](https://richarde.dev/papers/2016/thesis/eisenberg-thesis.pdf). Richard A. Eisenberg. PhD thesis, 2016. This work describes both a surface language and intermediate language for Dependent Haskell.
+* [*Type inference, Haskell, and dependent types*](https://adam.gundry.co.uk/pub/thesis/thesis-2013-12-03.pdf). Adam Gundry. PhD thesis, 2013. This work describes an intermediate language and the Static Subset included in this design document.
+
+### 11. The Glorious Future
 
 One glorious day, perhaps all terms will be understood by the static type
 checker.  To put it another way, any term whatsoever will be
