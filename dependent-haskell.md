@@ -54,7 +54,7 @@ This allows a compiler to proceed in two phases:
 * *Rename* the program, by deciding, for every occurrence, what its corresponding binder is.
 * *Typecheck* the program.
 
-It's not just an implementaion matter: this two-stage approach makes the language easier to describe to Haskell's users, by separating the concerns of *scoping* and *typing*.
+This two-stage approach is not just an implementation matter: it makes the language easier to describe to Haskell's users, by separating the concerns of *scoping* and *typing*.
 
 A Haskell program contains both types and terms:
 
