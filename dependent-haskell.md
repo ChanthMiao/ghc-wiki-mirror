@@ -162,8 +162,6 @@ You can see that
 * There appear to be two missing rows. Non-dependent, erased arguments cannot be used at compile-time
   or at runtime, and are thus useless and omitted.
 
-* [Proposal 281](https://github.com/ghc-proposals/ghc-proposals/pull/281) adds the `forall ->` quantifier to GHC.
-
 * GHC already supports `forall k -> ty`, in *kinds*, meaning that the programmer must apply
   a type `(T :: forall k -> ty)` to an explicit kind argument
   ([GHC proposal 81, visible dependent quantification](https://github.com/ghc-proposals/ghc-proposals/pull/81)).  For example:
@@ -172,6 +170,9 @@ You can see that
   ```
   Here an application of `T` must look like `T Type Int`, where `T` is explicitly applied to the kind `Type`.
   We can tell that from its kind: `T :: forall k -> k -> Type`.
+
+
+* [Proposal 281](https://github.com/ghc-proposals/ghc-proposals/pull/281) extends the `forall ->` quantifier to *types* as well as *kinds*.
 
 * The two `foreach` quantifiers are new.  They allow us to have an argument (visible or invisible)
   that:
