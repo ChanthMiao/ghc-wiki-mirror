@@ -172,16 +172,7 @@ You can see that
   We can tell that from its kind: `T :: forall k -> k -> Type`.
 
 
-* [Proposal 281](https://github.com/ghc-proposals/ghc-proposals/pull/281) extends the `forall ->` quantifier to *types* as well as *kinds*.
-
-* The two `foreach` quantifiers are new.  They allow us to have an argument (visible or invisible)
-  that:
-  * Can appear in the rest of the type. E.g. `f :: foreach (a::Bool). T a -> Int`.
-  * Is reasoned about at compile time.  E.g. `f True x` is type-incorrect if `x :: T False`.
-  * Is passed at runtime (just like `(Eq a => blah)`).
-
-* Even in GHC Haskell today there are no terms of type `forall a -> blah`, even though
-  that is a well-formed type.  But in DH there are such terms:
+* [Proposal 281](https://github.com/ghc-proposals/ghc-proposals/pull/281) extends the `forall ->` quantifier to *types* as well as *kinds*.  For example, we could then write
   ```
   f :: forall a -> a -> Int
   f a (x::a) = 4     -- The pattern signature on (x::a) is optional
@@ -191,6 +182,14 @@ You can see that
   type T :: forall k -> k -> Type
   data T k (a::k) = MkT    -- The kind signature on (a::k) is optional
   ```
+  This is a natural way to "fill out" GHC's current design, but it does not introduce anything fundamentally new; for example the intermediate language does not change.
+
+* In contrast, the two `foreach` quantifiers are fundamentally new.  They allow us to have an argument (visible or invisible)
+  that:
+  * Can appear in the rest of the type. E.g. `f :: foreach (a::Bool). T a -> Int`.
+  * Is reasoned about at compile time.  E.g. `f True x` is type-incorrect if `x :: T False`.
+  * Is passed at runtime (just like `(Eq a => blah)`).
+
 
 * The `foreach ->` quantifier allows us to eliminate the vast mess of singleton types,
   about which the Hasochism paper is eloquent. (That is, `foreach ->` quantifies over an
