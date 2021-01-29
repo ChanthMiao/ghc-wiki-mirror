@@ -1,7 +1,3 @@
-This page is to track design and implementation ideas around adding a form of dependent types to Haskell.
-
-***Disclaimer:*** Everything below represents a research proposal. While it is my (RAE's) hope that something resembling this all will actually make it into GHC, no one should read anything too strongly into words like "will happen".
-
 ## What is Dependent Haskell?
 
 The term "dependently typed programming language" covers a huge range of designs, and there is
