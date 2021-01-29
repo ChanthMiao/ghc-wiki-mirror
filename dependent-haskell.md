@@ -1,7 +1,7 @@
 ## What is Dependent Haskell?
 
 The term "dependently typed programming language" covers a huge range of designs, and there is
-a danger that we'll each have somethign different in mind.  So this wiki page outlines
+a danger that we'll each have something different in mind.  So this wiki page outlines
 one particular part of the design space, the one that Richard and Stephanie have in mind.
 It's not the only possible design -- and in any case it's not a fixed design, more sub-space
 of the huge design space -- but perhaps it can serve as a concrete baseline to help bring clarity
@@ -56,6 +56,7 @@ A Haskell program contains both types and terms:
   * in type or class declarations,
   * after `::` in a type or kind signature, and
   * after the "`@`" sign in visible type application.
+
   We say that the bits of the program in these places as written in **type-syntax**.
 
 * **Terms** appear in value declarations, such as  `f x = x+1`.  We describe them as written in **term-syntax**.
@@ -75,13 +76,14 @@ We have the type constructor `Age` in the type namespace, and an eponymous data 
 When renaming a type, we look up in the type namespace, while when renaming a term we look up in the term namespace.
 ("Renaming" means resolving, for each occurrence of an identifier, what is the binding site to which that occurrence refers.)
 
-With `DataKinds` we already flex these rules a bit: when renaming a type, if `T` is not in scope in the type namespace we look in the term namespace (for a data constructor `T`).  And we provide an escape mechanism, the tick-mark: in a type, `'T` refers unconditionally to the term namespace.
+
 
 In DH, *we support the same Lexical Scoping Principle, including Haskell's dual namespace*, slightly generalized:
-* In type-syntax, DH will continue to use the type namespace.
-* In term-syntax, DH will continue to use the term namespace.
-* When a lookup in the primary namespace fails, DH will look in the other namespace. (This is a natural extension of today's `DataKinds`
-approach.)
+1. In type-syntax, DH will continue to use the type namespace.
+2. In term-syntax, DH will continue to use the term namespace.
+3. When a lookup in the primary namespace fails, DH will look in the other namespace.
+
+Point (3) is a natural extension of today's `DataKinds` approach.  With `DataKinds`, when renaming a type, if `T` is not in scope in the type namespace we look in the term namespace (for a data constructor `T`).  (We also provide an escape mechanism, the tick-mark: in a type, `'T` refers unconditionally to the term namespace, and we might consider extending that escape to lower-case variables in DH.)
 
 DH programmers may find it convenient to avoid punning, so that they no longer need
 to consider the context of an identifier occurrence to be able to interpret its meaning.
