@@ -42,18 +42,31 @@ erasure, and GHC will infer how much it can erase (choosing to erase as much as 
 The one exception to this is in datatypes, where erasure must always be made explicit (otherwise,
 GHC has no way to know what should be erased, unlike in functions).
 
-### 3. Term and type syntax
+### 3. Lexical scoping, term-syntax and type-syntax, and renaming
 
 In Haskell,
+
+Haskell adheres to the following principle
+
+* **Lexical Scoping Principle (LSP)**. For every *occurrence* of an identifier, it is possible to uniquely identify its *binding site*, without involving the type system.
+
+This allows a compiler to proceed in two phases:
+* *Rename* the program, by deciding, for every occurrence, what its corresponding binder is.
+* *Typecheck* the program.
+
+It's not just an implementaion matter: this two-stage approach makes the language easier to describe to Haskell's users, by separating the concerns of *scoping* and *typing*.
+
+A Haskell program contains both types and terms:
 
 * **Types** appear
   * in type or class declarations,
   * after `::` in a type or kind signature, and
   * after the "`@`" sign in visible type application.
+  We say that the bits of the program in these places as written in **type-syntax**.
 
-* **Terms** appear in value declarations, such as  `f x = x+1`.
+* **Terms** appear in value declarations, such as  `f x = x+1`.  We describe them as written in **term-syntax**.
 
-Terms and types have different name-spaces, which allows "punning". We can write
+Term-syntax and type-syntax have different name-spaces, which allows "punning". We can write
 
 ```hs
 data Age = Age Int
@@ -68,7 +81,7 @@ When renaming a type, we look up in the type namespace, while when renaming a te
 
 With `DataKinds` we already flex these rules a bit: when renaming a type, if `T` is not in scope in the type namespace we look in the term namespace (for a data constructor `T`).  And we provide an escape mechanism, the tick-mark: in a type, `'T` refers unconditionally to the term namespace.
 
-In DH, *we expect to retain this dual namespace*, slightly generalized:
+In DH, *we support the same Lexical Scoping Principle, including Haskell's dual namespace*, slightly generalized:
 * In the syntactic places where types appear in Haskell today, DH will continue to use the type namespace.
 * In the syntactic places where terms appear in Haskell today, DH will continue to use the term namespace.
 * In all syntactic places, when a lookup in the primary namespace fails, DH will look in the other namespace. (This is a natural extension of today's `DataKinds`
