@@ -7,6 +7,8 @@ It's not the only possible design -- and in any case it's not a fixed design, mo
 of the huge design space -- but perhaps it can serve as a concrete baseline to help bring clarity
 to our discussion.
 
+Readers may also want to check out https://github.com/ghc-proposals/ghc-proposals/pull/378, a proposal to make sure that GHC continues to support development toward the language imagined here.
+
 Here, then, are the design principles for Dependent Haskell:
 
 ### 1. Type inference
