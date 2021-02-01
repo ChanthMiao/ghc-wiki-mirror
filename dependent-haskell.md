@@ -188,10 +188,10 @@ You can see that
 
 * In contrast, the two `foreach` quantifiers are fundamentally new.  They allow us to have an argument (visible or invisible)
   that:
-  * Can appear in the rest of the type. E.g. `f :: foreach (a::Bool). T a -> Int`.
+  * Can appear in the rest of the type. E.g. `f :: foreach (a::Bool) -> T a -> Int`.
   * Is reasoned about at compile time.  E.g. `f True x` is type-incorrect if `x :: T False`.
   * Is passed at runtime (just like `(Eq a => blah)`).
-
+[[BR]][[BR]]
 
 * The `foreach ->` quantifier allows us to eliminate the vast mess of singleton types,
   about which the Hasochism paper is eloquent. (That is, `foreach ->` quantifies over an
