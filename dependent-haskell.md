@@ -1,5 +1,3 @@
-## What is Dependent Haskell?
-
 The term "dependently typed programming language" covers a huge range of designs, and there is
 a danger that we'll each have something different in mind.  So this wiki page outlines
 one particular part of the design space, the one that Richard and Stephanie have in mind.
