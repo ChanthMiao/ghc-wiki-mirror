@@ -306,7 +306,7 @@ a "big bang" to get there.  Rather, we can move incrementally, one step at a tim
 We call this "specified sub-language of terms" the **Static Subset** of terms.  In GHC-speak,
 a `HsExpr` in the Static Subset can readily be converted to a `HsType`.
 
-For example, suppose `f :: foreach (a :: [Bool]) -> blah`.  An initial version of DH might allow
+For example, suppose `f :: foreach (a :: [Bool]) -> blah`.  An initial version of DH might allow constructors and applications in the static subset, but not list comprehensions, lambdas, or case expressions:
 ```
   f [True]            -- Allowed
   f [True,False]      -- Allowed
@@ -324,6 +324,16 @@ over Haskell's very rich expression language. The Static Subset notion polices t
 boundary, initially allowing only simple expressions into type inference.
 Over time we expect to widen Static Subset of terms, to allow more syntactic forms.
 
+Dependent application also requires us to extend term-syntax to include all types. For example, if `g :: forall a -> Int -> T a` we want to allow
+```
+  g (Int -> Int)           -- Instantiates `a` with `Int -> Int`
+  g (forall b. b->b)       -- Instantiates `a` with `forall b. b->b`
+```
+Although these type-like forms (function arrow, forall, foreach) are now valid term-syntax, accepted anywhere in term-syntax by the parser and renamer, they are rejected by the typechecker in actual terms, just as lambda and case are rejected in actual types.  Thus:
+```
+f x = Int -> Int       -- Accepted by parser and renamer, rejected by typechecker
+g y = forall a. a->a   -- Ditto
+```
 The technology for treating application chains specially is worked out in details in
 [A quick look at impredicativity](https://www.microsoft.com/en-us/research/publication/a-quick-look-at-impredicativity/).
 It is *already* used to govern Visible Type Application (which also requires knowledge of whether the
