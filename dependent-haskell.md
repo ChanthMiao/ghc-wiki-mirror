@@ -357,7 +357,12 @@ h = let bs = [True]
 
 In the `h` example, we might expect `f2 bs t` to be accepted, but it will not be, as
 variables used in types are equal only to themselves. That is, GHC will forget the
-relationship between `bs` and `[True]`. This approach keeps things simple for now;
+relationship between `bs` and `[True]`. 
+
+Similarly, if we see `f :: forall xs. T (reverse xs) -> blah`, can the `(reverse xs)` ever reduce (e.g. when `f` is instantiated at a call site)?  
+Our answer for now is no: variables used in types are equal only to themselves.  (After all, `reverse` might be defined in a separately compiled module, and might be defined with arbitrary Haskell terms.)
+
+This approach keeps things simple for now;
 we might imagine retaining the knowledge that `bs = [True]` when, say, the right-hand
 side of a `let` is in the Static Subset, but we leave that achievement for later.
 
