@@ -9,7 +9,9 @@ to our discussion.
 
 Readers may also want to check out https://github.com/ghc-proposals/ghc-proposals/pull/378, a proposal to make sure that GHC continues to support development toward the language imagined here.
 
-Here, then, are the design principles for Dependent Haskell:
+Here, then, are the design principles for Dependent Haskell.
+
+[[_TOC_]]
 
 ### 1. Type inference
 
