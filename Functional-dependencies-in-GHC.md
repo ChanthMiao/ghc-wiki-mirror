@@ -2,11 +2,13 @@ This is the root page for examples and issues about functional dependencies in G
 
 ## Main sub-pages
 
-These pages have most of the content!
+**IMPORTANT** This list of sub-pages have most of the content!
 
 * [Background and terminology](Functional-dependencies-in-GHC/background-and-terminology)
 * [Key examples](Functional-dependencies-in-GHC/key-examples)
 * [Design choices](Functional-dependencies-in-GHC/design-choices)
+
+The rest this page gathers other useful links.
 
 ## Key papers
 
