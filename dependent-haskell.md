@@ -102,8 +102,8 @@ More generally, we advocate the following principle:
 **Syntactic Unification Principle.** In the absence of punning, there is no difference
 between type-syntax and term-syntax.
 
-This is a *long term* goal: see [The Glorious Future](https://gitlab.haskell.org/ghc/ghc/-/wikis/dependent-haskell#11-the-glorious-future) below.  It is *not* true of Dependent Haskell as described here: type-syntax is, for now, a proper subset of term-syntax. We describe this further in [Dependent application and the Static Subset]().
-However, from a *scoping* point of view, it is already true.  Absent punning, you do not need to reason about term-syntax vs type-syntax when resolving scopes.
+This is a *long term* goal: see [The Glorious Future](https://gitlab.haskell.org/ghc/ghc/-/wikis/dependent-haskell#11-the-glorious-future) below.  It is *not* true of Dependent Haskell as described here: type-syntax is, for now, a proper subset of term-syntax. We describe this further in [Dependent application and the Static Subset](https://gitlab.haskell.org/ghc/ghc/-/wikis/dependent-haskell#6-dependent-application-and-the-static-subset).
+However, from a *scoping* point of view, it is already true: absent punning, you do not need to reason about term-syntax vs type-syntax when resolving scopes.
 
 The Syntactic Unification Principle means that a DH programmer who avoids punning can (in the end) simply forget about the distinction
 between type-syntax and term-syntax, and the context-sensitivity these notions require. This is meant
