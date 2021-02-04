@@ -61,6 +61,7 @@ Main ticket: #18174, MR !1866. Blocked on #18894
 
 # Eta expansion
 
+- #19302: eta-expand SimplM
 - #19251 INLINE makes things worse: again eta-expansion.
 - #18993: regression in 9.1 due to eta-expansion
 
