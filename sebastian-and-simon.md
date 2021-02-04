@@ -1,5 +1,9 @@
 # Agenda
 
+# Exceptions
+
+* #19181 Semantics of exceptions
+
 # SAT
 
 - #18962, !4553, #9374: Only SAT unfoldings
@@ -57,6 +61,7 @@ Main ticket: #18174, MR !1866. Blocked on #18894
 
 # Eta expansion
 
+- #19251 INLINE makes things worse: again eta-expansion.
 - #18993: regression in 9.1 due to eta-expansion
 
 - #18793: Arity analysis does only very naive fixed-point iteration
