@@ -139,7 +139,7 @@ Erasure     | Erased         | Retained       | Types completely erased at runti
 ```
 
 NB: visible type application in GHC Haskell adds a refinement to this
-setup, by allows the programmer to give a visible type argument `(e @ty)`
+setup, by allowing the programmer to give a visible type argument `(e @ty)`
 to a term `(e :: forall a.blah)`.  But the basic setup is as above.
 
 **A key aspect of a dependently typed language is that these three
