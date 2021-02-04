@@ -52,9 +52,11 @@
   - Anyway: I think we want an explicit fusion framework exposed as maybe Data.Stream.FB
   - Stalled because I need a PrimOp introduced in 8.10
 
-# Nested CPR
+# CPR
 
-Main ticket: #18174, MR !1866. Blocked on #18894
+* #13331, #19276: CPR and free variables.
+
+Nested CPR: Main ticket: #18174, MR !1866. Blocked on #18894
 
 - Interleave CPR and Termination analysis or not? See also https://gitlab.haskell.org/ghc/ghc/-/merge_requests/1866#note_304163
 - Also my "speculation analysis" proposal. Nested CPR could be made more aggressive by looking at call sites strictness. But that probably needs a refactoring of `Demand`.
