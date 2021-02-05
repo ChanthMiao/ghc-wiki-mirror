@@ -6,12 +6,14 @@
 
 # CPR
 
-- #13331, #19276: CPR and free variables.
+- #13331, #19276: CPR, free variables,and loss of sharing
+- #19309: conditional CPR and free variables
 - #19240: Don't pass constants/free variables in unboxed tuple
 - #19309: Do CPR even if not all code paths construct products by returning an unboxed sum
 - #18174, !1866: Nested CPR
   - GHC allocates *more* whlie compiling Cabal with -O0! Very suspicious
   - But conceptually ready for review
+- #16335 return pattern specialisation
 
 
 # SAT
