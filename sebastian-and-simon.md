@@ -6,7 +6,7 @@
 
 # CPR
 
-- #13331, #19276: CPR, free variables,and loss of sharing
+- #13331, #19276, #19326: CPR, free variables,and loss of sharing
 - #19309: conditional CPR and free variables
 - #19240: Don't pass constants/free variables in unboxed tuple
 - #19309: Do CPR even if not all code paths construct products by returning an unboxed sum
