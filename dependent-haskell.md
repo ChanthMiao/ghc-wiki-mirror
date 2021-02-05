@@ -87,6 +87,8 @@ In DH, *we support the same Lexical Scoping Principle, including Haskell's dual 
 
 Point (3) is a natural extension of today's `DataKinds` approach.  With `DataKinds`, when renaming a type, if `T` is not in scope in the type namespace we look in the term namespace (for a data constructor `T`).  (We also provide an escape mechanism, the tick-mark: in a type, `'T` refers unconditionally to the term namespace, and we might consider extending that escape to lower-case variables in DH.)
 
+Due to this extra lookup, the implicit quantification in type signatures (e.g. `f :: a -> a`, where `a` is implicitly quantified, making the type read `f :: forall a. a -> a`) would happen only for variables that are in scope in neither namespace. For backward compatibility, this change to implicit quantification would likely be guarded by an extension flag.
+
 DH programmers may find it convenient to avoid punning, so that they no longer need
 to consider the context of an identifier occurrence to be able to interpret its meaning.
 (That is, to understand an occurrence `Age` in the example above, we need to look around
@@ -497,7 +499,7 @@ Instead DH simply imposes restrictions on the terms that can be seen by
 the static type checker, and ensures that they lie within its ability
 to reason.
 
-Note: fully-spectrum dependently typed languages treat `t1 -> t2` as a mere abbreviation of
+Note: full-spectrum dependently typed languages treat `t1 -> t2` as a mere abbreviation of
 `foreach (_ :: t1) -> t2`.  But until the Glorious Day, DH will treat these two very
 differently:
 * If `f1 :: t1 -> t2`, then in a call `(f1 arg)`, there are no restrictions on `arg` (except of course that it has type `t1`).
