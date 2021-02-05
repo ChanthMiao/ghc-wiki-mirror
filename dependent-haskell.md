@@ -27,7 +27,7 @@ simple, predictable rules to say when such annotations are necessary.
 ### 2. Erasure
 
 In DH, *the programmer knows, for sure, which bits of the program will be
-retained at runtime, and which will be erased*.  Some dependently
+retained at runtime, and which will be erased*. We shall call this the **Predictable Erasure Principle (PEP)**. Some dependently
 typed languages (Idris1, but notably not Idris2) leave this choice to a compiler analysis, but in DH
 we make it fully explicit in the types.
 
@@ -101,7 +101,7 @@ would allow for even easier use of punned identifiers in pun-avoiding code.
 
 More generally, we advocate the following principle:
 
-**Syntactic Unification Principle.** In the absence of punning, there is no difference
+**Syntactic Unification Principle (SUP).** In the absence of punning, there is no difference
 between type-syntax and term-syntax.
 
 This is a *long term* goal: see [The Glorious Future](https://gitlab.haskell.org/ghc/ghc/-/wikis/dependent-haskell#11-the-glorious-future) below.  It is *not* true of Dependent Haskell as described here: type-syntax is, for now, a proper subset of term-syntax. We describe this further in [Dependent application and the Static Subset](https://gitlab.haskell.org/ghc/ghc/-/wikis/dependent-haskell#6-dependent-application-and-the-static-subset).
