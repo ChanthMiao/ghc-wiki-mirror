@@ -2,7 +2,17 @@
 
 # Exceptions
 
-* #19181 Semantics of exceptions
+- #19181 Semantics of exceptions
+
+# CPR
+
+- #13331, #19276: CPR and free variables.
+- #19240: Don't pass constants/free variables in unboxed tuple
+- #19309: Do CPR even if not all code paths construct products by returning an unboxed sum
+- #18174, !1866: Nested CPR
+  - GHC allocates *more* whlie compiling Cabal with -O0! Very suspicious
+  - But conceptually ready for review
+
 
 # SAT
 
@@ -51,15 +61,6 @@
   - But I got distracted by trying to solve list fusion, again...
   - Anyway: I think we want an explicit fusion framework exposed as maybe Data.Stream.FB
   - Stalled because I need a PrimOp introduced in 8.10
-
-# CPR
-
-* #13331, #19276: CPR and free variables.
-
-Nested CPR: Main ticket: #18174, MR !1866. Blocked on #18894
-
-- Interleave CPR and Termination analysis or not? See also https://gitlab.haskell.org/ghc/ghc/-/merge_requests/1866#note_304163
-- Also my "speculation analysis" proposal. Nested CPR could be made more aggressive by looking at call sites strictness. But that probably needs a refactoring of `Demand`.
 
 # Eta expansion
 
