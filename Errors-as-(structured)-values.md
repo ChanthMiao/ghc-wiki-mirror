@@ -133,7 +133,7 @@ API design explanation/considerations:
   can distinguish between warnings and errors by looking at each `MsgEnvelope`'s `Severity`;
 
 * We should try to give a `MsgEnvelope` the right `Severity` "at birth", without doing dodgy
-  demotions or promotions later in the codebase, at it makes much harder to track down the
+  demotions or promotions later in the codebase, as it makes much harder to track down the
   precise semantic of the diagnostic, or even trying to reconstruct the original "provenance"
   (was this a warning now turned into an error? If yes, when?);
 
