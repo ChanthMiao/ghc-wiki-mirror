@@ -137,7 +137,7 @@ API design explanation/considerations:
   precise semantic of the diagnostic, or even trying to reconstruct the original "provenance"
   (was this a warning now turned into an error? If yes, when?);
 
-* We render back the messages into an `SDoc` via the `RenderableMessage` type class. We
+* We render back the messages into an `SDoc` via the `RenderableDiagnostic` type class. We
   use `renderDiagnostic` to turn the structured message into something that can be printed
   on screen by GHC when it needs to report facts about the compiled program (errors, warnings
   etc);
