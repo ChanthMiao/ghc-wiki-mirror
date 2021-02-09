@@ -147,7 +147,7 @@ API design explanation/considerations:
 
 # The envelope contents (i.e. the diagnostics)
 
-We can get each subsystem to define their own error types. At the beginning, to smooth out the integration, they can even be very simple wrappers around `DecoratedSDoc`s:
+We can get each subsystem to define their own message types. At the beginning, to smooth out the integration, they can even be very simple wrappers around `DecoratedSDoc`s:
 
 
 ``` haskell
