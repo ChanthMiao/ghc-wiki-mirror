@@ -104,6 +104,8 @@ newtype DecoratedSDoc = Decorated { unDecorated :: [SDoc] }
 -- .. operations on messages
 ```
 
+## New API key points
+
 API design explanation/considerations:
 
 * `Messages` is now a `newtype` so it can be expressed in terms of an opaque interface, and
