@@ -163,9 +163,9 @@ As this strand of work touches a lot of modules, doing everything as a single ga
   (e.g. parser diagnostic messages, typecheck messages, etc);
   **Implemented**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/4728
 
-- [ ] (Optional, but desirable) Get rid of `ErrDoc`, `MsgDoc` and `WarnMsg` to
+- [x] (Optional, but desirable) Get rid of `ErrDoc`, `MsgDoc` and `WarnMsg` to
   reduce the cognitive overload when dealing with error types;
-  **Waiting CI/review**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/4747
+  **Implemented**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/4747
 
 - [ ] Introduce proper diagnostic types for the different phases of 
   the compilation pipeline (i.e. `TcRnMessage`, `PsMessage` etc). Initially these
