@@ -127,6 +127,15 @@ API design explanation/considerations:
      `a)` If this is an error or a warning;
      `b)` What does this `MsgEnvelope` carries inside its `errMsgDiagnostic`;
 
+* There is a **fluid** relationship between warnings and errors. A warning can be turned
+  into a fatal error and an error can be relaxed for example by deferring type errors. We
+  can distinguish between warnings and errors by looking at each `MsgEnvelope`'s `Severity`;
+
+* We should try to give a `MsgEnvelope` the right `Severity` "at birth", without doing dodgy
+  demotions or promotions later in the codebase, at it makes much harder to track down the
+  precise semantic of the diagnostic, or even trying to reconstruct the original "provenance"
+  (was this a warning now turned into an error? If yes, when?);
+
 * We render back the messages into an `SDoc` via the `RenderableMessage` type class. We
   use `renderDiagnostic` to turn the structured message into something that can be printed
   on screen by GHC when it needs to report facts about the compiled program (errors, warnings
