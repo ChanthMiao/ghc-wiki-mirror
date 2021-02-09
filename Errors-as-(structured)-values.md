@@ -119,7 +119,8 @@ API design explanation/considerations:
 
 * The **diagnostic** is the _envelope content_ of a `MsgEnvelope`, and it characterises the
   particular provenance of the envelope (is this a parser error? Is this a TcRn warning?). For
-  example, `MsgEnvelope PsMessage` is an envelope which was created during GHC parsing phase;
+  example, `MsgEnvelope PsMessage` is an envelope which was created during GHC parsing phase,
+  and represents a parsing diagnostic (either an error or a warning);
 
 * A `MsgEnvelope` has a `Severity`, which type reflects the fluid relationship between
   warnings and errors. The `Messages` type simply collects facts about the GHC running program:
