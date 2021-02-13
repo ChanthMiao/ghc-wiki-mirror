@@ -6,8 +6,8 @@ This page summarises the state of play on GHC
 
 Here are our [release](working-conventions/releases) plans for
 
-- [GHC 9.0.1](status/ghc-9.0.1) (next major release)
-- [GHC 8.10.3](status/ghc-8.10.3)
+- GHC 9.2.1 (next major release)
+- GHC 9.0.2
 
 We release GHC on multiple platforms; the [platforms page](platforms) gives details.
 
@@ -15,7 +15,10 @@ We release GHC on multiple platforms; the [platforms page](platforms) gives deta
 
 The release plans for previous releases are here:
 
-- GHC 8.10.2 (current major release)
+- [GHC 9.0.1](status/ghc-9.0.1) (current major release)
+- GHC 8.10.4
+- GHC 8.10.3
+- GHC 8.10.2
 - [GHC 8.10.1](status/ghc-8.10.1)
 - GHC 8.8.4
 - GHC 8.8.3
