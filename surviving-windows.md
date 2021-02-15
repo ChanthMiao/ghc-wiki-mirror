@@ -73,7 +73,7 @@ The Microsoft Visual C runtime. This is the `libc` of the Windows world. It also
 
 ## WSL
 
-Windows Subsystem for Linux (WSL, also known as the Linux on Windows or Drawbridge) is a project undertaken by Microsoft seeking to add a Linux subsystem to the Windows kernel, allowing full user-mode emulation of a Linux environment. Currently we don't use LoW for GHC development. It exhibits a few infelicities relative to "typical" POSIX systems (e.g. [file locking](https://github.com/haskell/cabal/issues/6551#issuecomment-589212080), and [mmap performance](https://github.com/microsoft/WSL/issues/1671)).
+Windows Subsystem for Linux (WSL, also known as the Linux on Windows (LoW) or Drawbridge) is a project undertaken by Microsoft seeking to add a Linux subsystem to the Windows kernel, allowing full user-mode emulation of a Linux environment. Currently we don't use LoW for GHC development. It exhibits a few infelicities relative to "typical" POSIX systems (e.g. [file locking](https://github.com/haskell/cabal/issues/6551#issuecomment-589212080), and [mmap performance](https://github.com/microsoft/WSL/issues/1671)).
 
 ## WSL2
 
