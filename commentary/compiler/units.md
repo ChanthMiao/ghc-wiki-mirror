@@ -20,7 +20,7 @@ Terminology related to units can be very confusing especially because it has cha
 
 * **Unit database**: a set of installed units. Often referred to as a “package database”. GHC doesn’t deal with units directly but with unit databases. However it can only read them, while ghc-pkg program can read/write them (it depends on Cabal library while GHC doesn’t).
 
-* *Unit info*: each unit in the unit database has associated unit info. It contains everything needed for GHC to reuse a unit: foreign library dependencies, dependencies on other units, available modules, etc.
+* **Unit info**: each unit in the unit database has associated unit info. It contains everything needed for GHC to reuse a unit: foreign library dependencies, dependencies on other units, available modules, etc.
 
 * **Indefinite** unit: a unit which depends on an indefinite unit or with some module holes. Module holes can be filled with other modules by *instantiating* the indefinite unit. Module holes have a *signature* (a kind of interface, think `.hs-boot` files) and modules used to fill a module hole have to be compatible with its signature. Module holes can be instantiated with other module holes in which case the resulting module hole inherits of their signatures merged into one.
 
@@ -28,15 +28,15 @@ Terminology related to units can be very confusing especially because it has cha
 
 This is the terminology for the entities only used inside the compiler.
 
-* *Home unit*: a/the unit for which GHC is currently type-checking/compiling some module(s). One of our goals is to add support for more than one home unit at the same time (e.g. to load projects consisting of several units into GHCi or in an IDE).
+* **Home unit**: a/the unit for which GHC is currently type-checking/compiling some module(s). One of our goals is to add support for more than one home unit at the same time (e.g. to load projects consisting of several units into GHCi or in an IDE).
 
-* *External unit*: a unit installed in a unit database and used as a dependency or loaded into GHCi.
+* **External unit**: a unit installed in a unit database and used as a dependency or loaded into GHCi.
 
-* *Unit state*: consolidated virtual database of units. We want to split it into an external unit database and external unit view to help supporting plugins in cross-compilers and multiple home-units (home units share the external unit database but not necessarily the external unit view).
+* **Unit state**: consolidated virtual database of units. We want to split it into an external unit database and external unit view to help supporting plugins in cross-compilers and multiple home-units (home units share the external unit database but not necessarily the external unit view).
 
-* *ExternalPackageState (EPS)*: a cache for things read from external units.
+* **ExternalPackageState (EPS)**: a cache for things read from external units.
 
-* *HomePackageTable (HPT)*: cache for home unit’s already compiled modules.
+* **HomePackageTable (HPT)**: cache for home unit’s already compiled modules.
 
 
 ### Entities overview
@@ -49,11 +49,12 @@ This is the terminology for the entities only used inside the compiler.
 ### Generic
 
 - [ ] Split UnitState in two parts: ExternalUnitDB and ExternalUnitView
+- [ ] Put ExternalPackageState into ExternalUnitsView (rename into ExternalUnitsCache?)
 
 ### Multiple home-unit support
 
 - [ ] Allow users to provide UnitInfo for home units. Especially foreign libraries and other stuff needed to link/load the unit.
-- [ ] Associate the HPT (interface cache for HomeUnit) to each HomeUnit
+- [ ] Put the HPT into HomeUnit (rename into HomeUnitCache?)
 
 ### Compiler plugins in cross-compilers
 
