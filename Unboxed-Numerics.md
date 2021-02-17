@@ -24,9 +24,9 @@ data Int64 = I64 Int64#
 
 #### Array ops
 ```haskell
-index{Int,Word}<N>OffAddr# :: Addr# -> Int# -> {Int,Word}#
-read{Int,Word}<N>OffAddr# :: Addr# -> Int# -> State# s -> (# State# s, {Int,Word}# #)
-write{Int,Word}<N>OffAddr# :: Addr# -> Int# -> {Int,Word}# -> State# s -> State# s
+indexInt<N>OffAddr# :: Addr# -> Int# -> Int#
+readInt<N>OffAddr# :: Addr# -> Int# -> State# s -> (# State# s, Int# #)
+writeInt<N>OffAddr# :: Addr# -> Int# -> Int# -> State# s -> State# s
 -- ...
 ```
 
@@ -65,9 +65,9 @@ data Int64 = I64 Int64#
 
 #### Array ops
 ```haskell
-index{Int,Word}<N>OffAddr# :: Addr# -> Int# -> {Int,Word}<N>#
-read{Int,Word}<N>OffAddr# :: Addr# -> Int# -> State# s -> (# State# s, {Int,Word}<N># #)
-write{Int,Word}<N>OffAddr# :: Addr# -> Int# -> {Int,Word}<N># -> State# s -> State# s
+indexInt<N>OffAddr# :: Addr# -> Int# -> Int<N>#
+readInt<N>OffAddr# :: Addr# -> Int# -> State# s -> (# State# s, Int<N># #)
+writeInt<N>OffAddr# :: Addr# -> Int# -> Int<N># -> State# s -> State# s
 -- ...
 ```
 
