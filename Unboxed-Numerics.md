@@ -9,6 +9,7 @@ Examples use `Int`, but equally holds for `Word`.
 data Int8 = I8 Int#
 data Int16 = I16 Int#
 data Int32 = I32 Int#
+
 #if WORD_SIZE_IN_BITS == 64
 data Int64 = I64 Int#
 #else
@@ -37,6 +38,7 @@ writeInt<N>OffAddr# :: Addr# -> Int# -> Int# -> State# s -> State# s
 data Int8 = I8 Int8#
 data Int16 = I16 Int16#
 data Int32 = I32 Int32#
+
 #if WORD_SIZE_IN_BITS == 64
 data Int64 = I64 Int#
 #else
@@ -81,11 +83,26 @@ writeInt<N>OffAddr# :: Addr# -> Int# -> Int<N># -> State# s -> State# s
 
 1. Old discussion about `Int64#` TODO fill in.
 
-   - https://gitlab.haskell.org/ghc/ghc/-/issues/11953
+   - #11953: Export Word32#, Word64# on all architectures
 
-   - https://gitlab.haskell.org/ghc/ghc/-/issues/17377
+     Maybe this is the oldest issue here; some conversation.
 
-   - https://gitlab.haskell.org/ghc/ghc/-/issues/17375
+   - #16964: Documentation of RuntimeRep is wrong about 64-bit integer reps
+
+     This is the issues with the most conversation.
+     The main point of contention was not whether we should more faithfully represent the fixed-sized options, but whether the native options should be nominally distinct or aliases:
+
+       - `Int` should be distinct from `Int<N>` for back compat.
+       - `Int#` could be an alias of `Int<N>#` (for some `N`).
+       - `IntRep` could be an alias of `Int<N>Rep` (for some `N`).
+
+     The most conservative option for now is to keep everything nominally distinct.
+
+   - From #16964, two follow-up issues made to track specific issues with no conversation yet:
+
+     - #17377: Int64#/Word64# are defined on all platforms, but some of the operations are only available on 32-bit
+
+     - #17375: Int64# is exported on 64-bit systems (probably unintentionally), but you can't do anything with it.
 
 2. Aarch64 NGC needed the boxed types changed.
 
