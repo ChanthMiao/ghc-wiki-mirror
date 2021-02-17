@@ -93,7 +93,7 @@ write{Int,Word}<N>OffAddr# :: Addr# -> Int# -> {Int,Word}<N># -> State# s -> Sta
 
    2. (later in thread) solution agreed upon: https://mail.haskell.org/pipermail/ghc-devs/2020-October/019332.html
 
-   3. (side note) x@Ericson2314 points out this dovetails nicely with earlier plans: https://mail.haskell.org/pipermail/ghc-devs/2020-October/019333.html
+   3. (side note) @Ericson2314 points out this dovetails nicely with earlier plans: https://mail.haskell.org/pipermail/ghc-devs/2020-October/019333.html
 
 3. https://gitlab.haskell.org/ghc/ghc/-/issues/19026 opened to track doing the rest.
 
