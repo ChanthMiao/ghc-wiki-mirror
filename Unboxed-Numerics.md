@@ -117,3 +117,17 @@ writeInt<N>OffAddr# :: Addr# -> Int# -> Int<N># -> State# s -> State# s
 3. https://gitlab.haskell.org/ghc/ghc/-/issues/19026 opened to track doing the rest.
 
    - TODO find comment where @RyanGlScott pointed out that array primops no longer agreeing with boxed wrapper type constructors was causing pain.
+
+## Issues being addressed
+
+- The new systems is much simpler and more symmetric, being easier to learn. It also matches expectations for users coming from C since C99, and Rust. Overall, the wider programming community seems to agree retrofitting fixed-sized numerics on top of native ones was a historical convenience that lived far too long.
+
+- Sized standard (boxed) Haskell types, especially via their `Foreign.C.Types` newtypes, not corresponding to sized C-- types broke FFI on Aarch64.
+
+- `Int64#` requires copious CPP to use correctly portably across 64-bit and 32-bit platforms. The CPP is pure cruft as there is no difference in *intent* just the *mechanism* by which that attempt is accomplished.
+
+- The `Int8#` and `Int16#` primops better express the intent to the backend, allowing perhaps faster numeric code (e.g. between autovectorization in LLVM and OOM magic on the CPU itself).
+
+- The `Int8#` and `Int16#` primops by *not* being used by their boxed type counterparts are somewhat under-tested.
+
+- The implementation of the dissapearing `Int64#` primops is the final remaining single-target assumption baked into the GHC binary. Otherwise GHC is is entirely multi-target as controlled by the configuration files and CLI flags.
