@@ -50,3 +50,9 @@ This wiki page can hopefully serve as a point of reference so that we don't step
    3. Figure out a format for GHC output that allows us to add new interface files without disturbing tools that only care about the final interface files too much (e.g. a directory). If this is a significant change, it may require work in downstream tools to support it (e.g. cabal). Can be done in parallel with earlier steps.
 
    4. Actually implement serialisation and the driver code to use it.
+
+#### Phase 3: Use the new capabilities in downstream tools
+
+   1. Teach build tools (e.g. cabal) to make use of the additional available parallelism.
+   
+   2. Come up with a workflow for external tools (e.g. plugins) to write and read their own extra data into the interface directory (or whatever it is).
