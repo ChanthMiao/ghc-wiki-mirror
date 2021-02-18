@@ -6,9 +6,9 @@ Simultaneously, IOHK would like to have more useful intermediate files in order 
 
 This wiki page can hopefully serve as a point of reference so that we don't step on each other's toes and generally coordinate the overlap in these efforts, and make it apparent to all GHC developers what we're working toward.
 
-### The plan from Obsidian's side
+## Detailed Roadmap
 
-#### Phase 1: Parallelise `--make` alone, don't worry about `.hi` files, use existing in-memory data structures
+### Phase 1: Parallelise `--make` alone, don't worry about `.hi` files, use existing in-memory data structures
 
    1. Clean up existing code so subsequent refactors are easier to review and understand:
  
@@ -39,7 +39,7 @@ This wiki page can hopefully serve as a point of reference so that we don't step
         - Probably needed to do the prior step in a non-adhoc way
         - Chance to delete the `.bkp` file special cases, if we can do multi-home unit, with sigs / delayed code gen, in the regular case.
 
-#### Phase 2: Write intermediate data structures needed to resume compilation in hi files. Write separate hi files per phase to avoid contention.
+### Phase 2: Write intermediate data structures needed to resume compilation in hi files. Write separate hi files per phase to avoid contention.
 
    0. There exists a [branch by Ed Yang](https://github.com/ezyang/ghc/commit/13615ca4e4bf759f323de22a3d182b06c4050f38) which implements fat interfaces from which compilation can be resumed. We probably want to determine how helpful this might be, if at all. The description mentions resuming typechecking after loading the fat interface, so it's unclear whether these fat interfaces are the right ones for our split, though they may be after all.
 
@@ -51,8 +51,10 @@ This wiki page can hopefully serve as a point of reference so that we don't step
 
    4. Actually implement serialisation and the driver code to use it.
 
-#### Phase 3: Use the new capabilities in downstream tools
+### Phase 3: Use the new capabilities in downstream tools
 
    1. Teach build tools (e.g. cabal) to make use of the additional available parallelism.
-   
+
+     - The IDE work, with it's experimentation with shake-ifying the driver, might derived the most benefit from this work, as the separated concerns and fine-grained building blocks from the "cleanup" stage should make this experimentation easier and more fruitful.
+
    2. Come up with a workflow for external tools (e.g. plugins) to write and read their own extra data into the interface directory (or whatever it is).
