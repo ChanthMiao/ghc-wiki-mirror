@@ -6,6 +6,7 @@
 
 # CPR
 
+- #19398, !5054: Nested CPR light
 - #13331, #19276, #19326: CPR, free variables,and loss of sharing
 - #19309: conditional CPR and free variables
 - #19240: Don't pass constants/free variables in unboxed tuple
