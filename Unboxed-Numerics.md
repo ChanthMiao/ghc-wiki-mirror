@@ -112,6 +112,8 @@ writeInt<N>OffAddr# :: Addr# -> Int# -> Int<N># -> State# s -> State# s
 
    3. (side note) @Ericson2314 points out this dovetails nicely with earlier plans: https://mail.haskell.org/pipermail/ghc-devs/2020-October/019333.html
 
+   4. https://gitlab.haskell.org/ghc/ghc/-/commit/be5d74caab64abf9d986fc7290f62731db7e73e7 so changes sized types. Submodules are bumped, but changes to submodules were not merged to their master branches yet.
+
 3. https://gitlab.haskell.org/ghc/ghc/-/issues/19026 opened to track doing the rest.
 
    - TODO find comment where @RyanGlScott pointed out that array primops no longer agreeing with boxed wrapper type constructors was causing pain.
