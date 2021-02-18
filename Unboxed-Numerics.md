@@ -89,8 +89,8 @@ writeInt<N>OffAddr# :: Addr# -> Int# -> Int<N># -> State# s -> State# s
 
    - #16964: Documentation of RuntimeRep is wrong about 64-bit integer reps
 
-     These are the issues with the most conversation.
-     The main point of contention was not whether we should more faithfully represent the fixed-sized options, but whether the native options should be nominally distinct or aliases:
+     This are the issue with the most conversation.
+     The main point of contention was not whether we should more faithfully represent the fixed-sized options, which everyone seemed to agree with, but whether the native options should be nominally distinct or aliases:
 
        - `Int` should be distinct from `Int<N>` for back compat.
        - `Int#` could be an alias of `Int<N>#` (for some `N`).
@@ -108,7 +108,7 @@ writeInt<N>OffAddr# :: Addr# -> Int# -> Int<N># -> State# s -> State# s
 
    1. problem stated: https://mail.haskell.org/pipermail/ghc-devs/2020-October/019317.html
 
-   2. (later in thread) solution agreed upon: https://mail.haskell.org/pipermail/ghc-devs/2020-October/019332.html
+   2. (later in thread) solution agreed upon: https://mail.haskell.org/pipermail/ghc-devs/2020-October/019332.html. In short, `Int<N>` *must* wrap `Int<N>#` for various FFI to work properly. 
 
    3. (side note) @Ericson2314 points out this dovetails nicely with earlier plans: https://mail.haskell.org/pipermail/ghc-devs/2020-October/019333.html
 
