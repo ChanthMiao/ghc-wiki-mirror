@@ -47,7 +47,7 @@ This wiki page can hopefully serve as a point of reference so that we don't step
 
    2. Figure out what data actually need to go into the finer-grained .hi files. The general goal will be to be able to resume compilation with after the point at which we stopped compilation earlier.
 
-   3. Figure out a format for GHC output that allows us to add new interface files without disturbing tools that only care about the final interface files too much (e.g. a directory). If this is a significant change, it may require work in downstream tools to support it (e.g. cabal). Can be done in parallel with earlier steps.
+   3. Figure out a format for GHC output that allows us to add new interface files without disturbing tools that only care about the final interface files too much (e.g. a directory). If this is a significant change, it may require work in downstream tools to support it (e.g. cabal). Can be done in parallel with earlier steps. (Discussion: all _file_ formats shouldn't require changes in Cabal, and a directory format is a small (but breaking) change to make it recursively copy the directories for `install`.)
 
    4. Actually implement serialisation and the driver code to use it.
 
