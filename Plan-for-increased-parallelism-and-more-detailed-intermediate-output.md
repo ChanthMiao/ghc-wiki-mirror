@@ -55,6 +55,6 @@ This wiki page can hopefully serve as a point of reference so that we don't step
 
    1. Teach build tools (e.g. cabal) to make use of the additional available parallelism.
 
-     - The IDE work, with it's experimentation with shake-ifying the driver, might derived the most benefit from this work, as the separated concerns and fine-grained building blocks from the "cleanup" stage should make this experimentation easier and more fruitful.
+      - The IDE work, with it's experimentation with shake-ifying the driver, might derived the most benefit from this work, as the separated concerns and fine-grained building blocks from the "cleanup" stage should make this experimentation easier and more fruitful.
 
    2. Come up with a workflow for external tools (e.g. plugins) to write and read their own extra data into the interface directory (or whatever it is).
