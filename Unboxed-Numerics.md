@@ -59,9 +59,9 @@ Same as before
 
 #### Data types
 ```haskell
-data Int8 = I8 Int#
-data Int16 = I16 Int#
-data Int32 = I32 Int#
+data Int8 = I8 Int8#
+data Int16 = I16 Int16#
+data Int32 = I32 Int32#
 data Int64 = I64 Int64#
 ```
 
