@@ -43,6 +43,10 @@ This wiki page can hopefully serve as a point of reference so that we don't step
 
    0. There exists a [branch by Ed Yang](https://github.com/ezyang/ghc/commit/13615ca4e4bf759f323de22a3d182b06c4050f38) which implements fat interfaces from which compilation can be resumed. We probably want to determine how helpful this might be, if at all. The description mentions resuming typechecking after loading the fat interface, so it's unclear whether these fat interfaces are the right ones for our split, though they may be after all.
 
-   1. Figure out what data actually need to go into the finer-grained .hi files. The general goal will be to be able to resume compilation with desugaring after stopping the compiler post-typecheck.
+   1. Work out where to cut the compilation process for best results. Between typechecking and desugaring? Between desugaring and Core->Core?
 
-   2. Actually implement serialisation and the driver code to use it.
+   2. Figure out what data actually need to go into the finer-grained .hi files. The general goal will be to be able to resume compilation with after the point at which we stopped compilation earlier.
+
+   3. Figure out a format for GHC output that allows us to add new interface files without disturbing tools that only care about the final interface files too much (e.g. a directory). If this is a significant change, it may require work in downstream tools to support it (e.g. cabal). Can be done in parallel with earlier steps.
+
+   4. Actually implement serialisation and the driver code to use it.
