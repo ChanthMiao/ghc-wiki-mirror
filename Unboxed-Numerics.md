@@ -21,7 +21,7 @@ data Int64 = I64 Int64#
 - `Int8#` some, not used by boxed
 - `Int16#` some, not used by boxed
 - `Int32#` none
-- `Int64#` complete when `WORD_SIZE_IN_BITS == 64`, none otherwise
+- `Int64#` complete when `WORD_SIZE_IN_BITS /= 64`, none otherwise
 
 #### Array ops
 ```haskell
@@ -50,7 +50,7 @@ data Int64 = I64 Int64#
 - `Int8#` complete, not used by boxed
 - `Int16#` complete, not used by boxed
 - `Int32#` complete, not used by boxed
-- `Int64#` complete when `WORD_SIZE_IN_BITS == 64`, none otherwise
+- `Int64#` complete when `WORD_SIZE_IN_BITS /= 64`, none otherwise
 
 #### Array ops
 Same as before
@@ -89,7 +89,7 @@ writeInt<N>OffAddr# :: Addr# -> Int# -> Int<N># -> State# s -> State# s
 
    - #16964: Documentation of RuntimeRep is wrong about 64-bit integer reps
 
-     This is the issues with the most conversation.
+     These are the issues with the most conversation.
      The main point of contention was not whether we should more faithfully represent the fixed-sized options, but whether the native options should be nominally distinct or aliases:
 
        - `Int` should be distinct from `Int<N>` for back compat.
