@@ -31,6 +31,13 @@ writeInt<N>OffAddr# :: Addr# -> Int# -> Int# -> State# s -> State# s
 -- ...
 ```
 
+#### Conversion ops
+`N` is restricted to be 8 and 16:
+```haskell
+extendInt<N> :: Int<N># -> Int#
+NarrowInt<N> :: Int# -> Int<N>#
+```
+
 ### GHC HEAD as of 2021-02-17
 
 #### Data types
@@ -55,6 +62,9 @@ data Int64 = I64 Int64#
 #### Array ops
 Same as before
 
+#### Conversion ops
+Same as before, but `N` can also be 32.
+
 ### GHC 9.2 goal
 
 #### Data types
@@ -65,6 +75,12 @@ data Int32 = I32 Int32#
 data Int64 = I64 Int64#
 ```
 
+#### Numeric ops
+- `Int8#` complete, used by boxed
+- `Int16#` complete, used by boxed
+- `Int32#` complete, used by boxed
+- `Int64#` complete, used by boxed
+
 #### Array ops
 ```haskell
 indexInt<N>OffAddr# :: Addr# -> Int# -> Int<N>#
@@ -73,11 +89,12 @@ writeInt<N>OffAddr# :: Addr# -> Int# -> Int<N># -> State# s -> State# s
 -- ...
 ```
 
-#### Numeric ops
-- `Int8#` complete, used by boxed
-- `Int16#` complete, used by boxed
-- `Int32#` complete, used by boxed
-- `Int64#` complete, used by boxed
+#### Conversion ops
+```haskell
+int<N>ToInt :: Int<N># -> Int#
+intToInt<N> :: Int# -> Int<N>#
+```
+(`N` is not restricted, all of 8, 16, 32, and 64 are supported.)
 
 ## How we got here
 
