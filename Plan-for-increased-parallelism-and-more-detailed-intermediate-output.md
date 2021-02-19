@@ -58,3 +58,7 @@ This wiki page can hopefully serve as a point of reference so that we don't step
       - The IDE work, with it's experimentation with shake-ifying the driver, might derived the most benefit from this work, as the separated concerns and fine-grained building blocks from the "cleanup" stage should make this experimentation easier and more fruitful.
 
    2. Come up with a workflow for external tools (e.g. plugins) to write and read their own extra data into the interface directory (or whatever it is).
+
+### Other follow-up improvements we can make
+
+ - `-dynamic-too` should be less of a hack. Right now, there is tons of special cases repeating steps. But if we had dependency graph / non-shot steps that were granular enough, this could all fall out of regular caching logic.
