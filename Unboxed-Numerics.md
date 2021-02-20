@@ -20,7 +20,7 @@ data Int64 = I64 Int64#
 #### Numeric ops
 - `Int8#` some, not used by boxed
 - `Int16#` some, not used by boxed
-- `Int32#` none
+- `Int32#` none, barely existed
 - `Int64#` complete when `WORD_SIZE_IN_BITS /= 64`, none otherwise
 
 #### Array ops
@@ -125,7 +125,7 @@ intToInt<N> :: Int# -> Int<N>#
 
    1. problem stated: https://mail.haskell.org/pipermail/ghc-devs/2020-October/019317.html
 
-   2. (later in thread) solution agreed upon: https://mail.haskell.org/pipermail/ghc-devs/2020-October/019332.html. In short, `Int<N>` *must* wrap `Int<N>#` for various FFI to work properly. 
+   2. (later in thread) solution agreed upon: https://mail.haskell.org/pipermail/ghc-devs/2020-October/019332.html. In short, `Int<N>` *must* wrap `Int<N>#` for various FFI to work properly.
 
    3. (side note) @Ericson2314 points out this dovetails nicely with earlier plans: https://mail.haskell.org/pipermail/ghc-devs/2020-October/019333.html
 
@@ -137,7 +137,8 @@ intToInt<N> :: Int# -> Int<N>#
 
 ## Issues being addressed
 
-- The new systems is much simpler and more symmetric, being easier to learn. It also matches expectations for users coming from C since C99, and Rust. Overall, the wider programming community seems to agree retrofitting fixed-sized numerics on top of native ones was a historical convenience that lived far too long.
+- The new systems is much simpler and more symmetric, being easier to learn. It also matches expectations for users coming from C since C99, and Rust.
+  Overall, the wider programming community seems to agree retrofitting fixed-sized numerics on top of native ones was a historical convenience that lived far too long.
 
 - Sized standard (boxed) Haskell types, especially via their `Foreign.C.Types` newtypes, not corresponding to sized C-- types broke FFI on Aarch64.
 
@@ -147,4 +148,23 @@ intToInt<N> :: Int# -> Int<N>#
 
 - The `Int8#` and `Int16#` primops by *not* being used by their boxed type counterparts are somewhat under-tested.
 
-- The implementation of the dissapearing `Int64#` primops is the final remaining single-target assumption baked into the GHC binary. Otherwise GHC is is entirely multi-target as controlled by the configuration files and CLI flags.
+- The implementation of the dissapearing `Int64#` primops is the final remaining single-target assumption baked into the GHC binary.
+  Otherwise GHC is is entirely multi-target as controlled by the configuration files and CLI flags.
+
+- The old `{extend,narrow}Int<N>` naming scheme didn't scale to 32 and 64 bits:
+
+   - With 32-bit prim types on 32-bit arch, we aren't "extending" or "narrowing" at all, everything is a no op.
+
+   - With 64-bit prim types on 32-bit arch, we are in fact narrowing with the "extending" op, and  extending with the "narrowing" op.
+     In other words, the names would be completely backwards!
+
+   - Then new `<type>To<type>` naming scheme avoids extra connotations that would be invalidated.
+
+## Unresolved questions
+
+- Should we create reexports for the old conversion primop names? So far, @Ericson2314 has no found any breakage caused by the rename.
+  Most (all?) of the uses in boot libraries are only since the Aarch64 NCG, and thus can just be changed without CPP.
+  This is because all that unboxed code was optimizing boxed interfaces, and until 9.2 none of the boxed interfaces use `Int8#` or `Int16#`.
+  Also it's because `Int8#` or `Int16#` are so much newer.
+
+  @Ericson2314 therefore thinks deprecated shims won't provide much benefit, but is happy to add them if others want them.
