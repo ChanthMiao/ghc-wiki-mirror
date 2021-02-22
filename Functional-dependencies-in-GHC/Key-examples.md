@@ -22,7 +22,7 @@ Many real-life examples need the LCC. Here are some [everyone: add more]:
   instance Mul a b c => Mul a (Vec b) (Vec c) where ...
   ```
 
-### Example 1: liberal coverage breaks termination
+## Example 1: liberal coverage breaks termination
 
 The liberal coverage condition means that type inference can diverge.
 Example from 5.2 of the JFP-paper:
