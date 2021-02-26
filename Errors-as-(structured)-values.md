@@ -67,9 +67,9 @@ data WarnReason
 
 </details>
 
-# New design
+# New API, initial attempt (start here)
 
-This is the new API:
+This is a first sketch of the new API:
 
 ```haskell
 
@@ -117,7 +117,9 @@ API design explanation/considerations:
 
 * The old `Severity` type is split into two types, `MessageClass` and `Severity`. The former
   is the _class_ of the message (is this a debug message? A dump one? An information log
-  emitted by GHC somewhere?) whereas the `Severity` is the severity of the **diagnostic**;
+  emitted by GHC somewhere?) whereas the `Severity` is the severity of the **diagnostic**. This
+  split **prevents** the construction of **impossible states**, like creating a `MsgEnvelope`
+  which `Severity` is `MCDump`, for example.
 
 * The **diagnostic** is the _envelope content_ of a `MsgEnvelope`, and it characterises the
   particular provenance of the envelope (is this a parser error? Is this a TcRn warning?). For
@@ -126,7 +128,7 @@ API design explanation/considerations:
 
 * A `MsgEnvelope` has a `Severity`, which type reflects the fluid relationship between
   warnings and errors. The `Messages` type simply collects facts about the GHC running program:
-  peeking into the invividual envelope tells us:
+  peeking into the individual envelope tells us:
      `a)` If this is an error or a warning;
      `b)` What does this `MsgEnvelope` carries inside its `errMsgDiagnostic`;
 
@@ -190,64 +192,7 @@ This might involve systematically retaining a bit more information (context line
 At the "top level", in the driver, where we call the different subsystems to process Haskell modules, we would end up accumulating and reporting `GhcMessage` values. The goal is to have the GHC program emit the exact same diagnostics as it does today, but affect the API in such a way that GHC API users would at this point get a chance to work with the algebraic error descriptions, making inspection and custom treatment a whole lot easier to implement. We could perhaps even demonstrate it at this point by implementing a little "demo" of sorts for this new way to consume errors.
 
 
-# Implementation plan
-
-As this strand of work touches a lot of modules, doing everything as a single gargantuan MR seems highly impractical. Rather, we are considering breaking things down into atomic chunks which could be reviewed in isolation. A sketch of the plan might be the following:
-
-- [X] Split `GHC.Driver.Env` into the former and a new 
-  `GHC.Driver.Env.Types` module to avoid `.boot` modules later on.
-  **Implemented**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/4551
-
-- [X] Rename types inside `GHC.Parser.Errors` to give them a `Ps` prefix. 
-  This is because when we will have a lot of different `Warning` and 
-  `Error` types it will be better to be explicit in the code to understand 
-  at glance "which is which".
-  **Implemented**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/4555
-
-- [X] Untangle the error reporting functions from the `DynFlag` even 
-  further. This can be done by getting rid of the `errShortString` field 
-  from the `ErrMsg` record, which allows us to drop an extra `DynFlag` 
-  argument from a lots of functions (e.g. `mkErr`) and give us more 
-  flexibility on where to place certain error-related utility functions;
-  **Implemented**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/4574
-
-- [X] Clean-up the error hierarchy by introducing a proper data 
-  type for `Messages` (instead of a type alias to a tuple), parameterised
-  by an error type `e`. Initially everything can be instantiated with `e = ErrDoc`
-  to not change too many things at once, and later use proper domain-specific types
-  (e.g. parser diagnostic messages, typecheck messages, etc);
-  **Implemented**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/4728
-
-- [x] (Optional, but desirable) Get rid of `ErrDoc`, `MsgDoc` and `WarnMsg` to
-  reduce the cognitive overload when dealing with error types;
-  **Implemented**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/4747
-
-- [ ] Split the old Severity into `MessageClass` and `Severity`, and try to construct
-  messages with their `Severity` set "at birth", without spurious reclassifications
-  (i.e. demotions/promotions etc);
-
-- [ ] Introduce proper diagnostic types for the different phases of 
-  the compilation pipeline (i.e. `TcRnMessage`, `PsMessage` etc). Initially these
-  can also contain a selection of all the GHC-emitted messages, and "filled" later, to minimise
-  breakages. Introduce also an umbrella `GhcMessage` type which will be used in the
-  driver, at the top level, to report diagnostics. At this stage we won't yet
-  make use of any of the new types;
-  **Waiting CI/review**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/4798
-
-- [ ] Extend the parser error types to adhere to the new error-messages
-  architecture, and port the codebase to use these new format of errors.
-
-- [ ] Convert the `TcRn` error types to adhere to the new error-messages
-  architecture. We will also try to make use of the new `Suggestion` API
-  when reporting suggestions to users.
-
-- [ ] Convert the `Ds` error types to adhere to the new error-messages
-  architecture;
-
-- [ ] Convert the `Driver` error types to adhere to the new error-messages
-  architecture.
-
-# Alternative Proposal
+# Improving the proposal
 
 The "New API" design above suffers from an infelicity: duplication. Imagine we have
 
@@ -277,8 +222,14 @@ When we consider a `MsgEnvelope`, then, we do not want the envelope to describe 
 Putting this all together, this situation suggests the following temporary design:
 
 ```hs
-data Severity = SevWarning | SevError
-data DiagReason = WarningWithoutFlag | WarningWithFlag !WarningFlag | ErrorWithoutFlag
+data Severity 
+ = SevWarning 
+ | SevError
+
+data DiagnosticReason 
+  = WarningWithoutFlag 
+  | WarningWithFlag !WarningFlag 
+  | ErrorWithoutFlag
 
 -- | Computes a severity from a reason in the absence of DynFlags. This will likely
 -- be wrong in the presence of -Werror.
@@ -294,19 +245,21 @@ data MsgEnvelope a = MsgEnvelope   -- assume `Diagnostic a` holds
   , errMsgSeverity   :: Severity
   } deriving Functor
 
+-- See "New API key points" for the rationale on why we introduced this.
+-- The class of the message (Is this a dump message? An info message? A diagnostic?)
 data MessageClass
   = MCOutput
   | ...    -- several other non-diagnostic message classifications
-  | MCDiagnostic Severity DiagReason
+  | MCDiagnostic Severity DiagnosticReason
 
 -- | A 'MessageClass' for always-fatal errors.
 mcDiagnosticError :: MessageClass
 mcDiagnosticError = MCDiagnostic SevError ErrorWithoutFlag
 
--- | Make a 'MessageClass' for a given 'DiagReason', without consulting the 'DynFlags'.
+-- | Make a 'MessageClass' for a given 'DiagnosticReason', without consulting the 'DynFlags'.
 -- This will not respect -Werror or warning suppression and so is probably wrong
 -- for any warning.
-mkMCDiagnostic :: DiagReason -> MessageClass
+mkMCDiagnostic :: DiagnosticReason -> MessageClass
 mkMCDiagnostic reason = MCDiagnostic (defaultReasonSeverity reason) reason
 
 -- Text organized into bullets.
@@ -314,7 +267,7 @@ newtype DecoratedSDoc = Decorated { unDecorated :: [SDoc] }
 
 data DiagnosticMessage = DiagnosticMessage
   { diagMessage :: !DecoratedSDoc
-  , diagReason  :: !DiagReason
+  , diagReason  :: !DiagnosticReason
   }
 
 type WarnMsg = MsgEnvelope DiagnosticMessage  -- INVARIANT: errMsgSeverity == SevWarning
@@ -322,7 +275,7 @@ type ErrMsg  = MsgEnvelope DiagnosticMessage  -- INVARIANT: errMsgSeverity == Se
 
 class Diagnostic a where
   diagnosticMessage :: a -> DecoratedSDoc
-  diagnosticReason  :: a -> DiagReason
+  diagnosticReason  :: a -> DiagnosticReason
 
 instance Diagnostic DiagnosticMessage where
   diagnosticMessage = diagMessage
@@ -369,10 +322,69 @@ printOrThrowWarnings = ...
 ```
 
 A few details to highlight:
-* `DiagReason` and `Severity` are independent. A `DiagReason` is a fundamental property of a message, while `Severity` also takes `DynFlags` into account.
+* `DiagnosticReason` and `Severity` are independent. A `DiagnosticReason` is a fundamental property of a message, while `Severity` also takes `DynFlags` into account.
 * While a `Severity` is chosen at birth, it can be modified by `printOrThrowWarnings`. This is the temporary part of the design; ideally, we would get the severity correct at birth. In this "at birth" design, `mkMsgEnvelope` would also take a `DynFlags`.
 * There is a representable impossible state: `MCDiagnostic SevWarning ErrorWithoutFlag`. This one seems hard to get rid of without resorting to fancy types. (Really, we want the severity to be greater than or equal to the default severity.)
 * There is no duplication between the `MsgEnvelope` and its payload.
 * `MCDiagnostic` carries enough information to be used in much the same way it is used in !5024.
 * Right now, all code that generates warnings first checks to see whether the warning flag is enabled. With this proposed design, it seems straightforward to extend `Severity` with `SevIgnore` that instructs the logger to simply do nothing on a message.
 * This design points out that `defaultReasonSeverity` is naughty, as it bypasses `DynFlags`. I bet there are real bugs in GHC around this, but they are hard to trigger: the warnings that bypass the normal mechanism arise in Core Lint, Stg Lint, the optimizer, and in two situations dealing with dynamic linking. (I searched for uses of `MCDiagnostic` with a hard-coded warning reason.) The warning text does not appear in the testsuite, so these code paths are completely untested. This proposed design does not fix these bugs, but it makes them more obvious by forcing the use of a function that is labeled as wrong.
+
+# Implementation plan
+
+As this strand of work touches a lot of modules, doing everything as a single gargantuan MR seems highly impractical. Rather, we are considering breaking things down into atomic chunks which could be reviewed in isolation. A sketch of the plan might be the following:
+
+- [X] Split `GHC.Driver.Env` into the former and a new 
+  `GHC.Driver.Env.Types` module to avoid `.boot` modules later on.
+  **Implemented**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/4551
+
+- [X] Rename types inside `GHC.Parser.Errors` to give them a `Ps` prefix. 
+  This is because when we will have a lot of different `Warning` and 
+  `Error` types it will be better to be explicit in the code to understand 
+  at glance "which is which".
+  **Implemented**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/4555
+
+- [X] Untangle the error reporting functions from the `DynFlag` even 
+  further. This can be done by getting rid of the `errShortString` field 
+  from the `ErrMsg` record, which allows us to drop an extra `DynFlag` 
+  argument from a lots of functions (e.g. `mkErr`) and give us more 
+  flexibility on where to place certain error-related utility functions;
+  **Implemented**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/4574
+
+- [X] Clean-up the error hierarchy by introducing a proper data 
+  type for `Messages` (instead of a type alias to a tuple), parameterised
+  by an error type `e`. Initially everything can be instantiated with `e = ErrDoc`
+  to not change too many things at once, and later use proper domain-specific types
+  (e.g. parser diagnostic messages, typecheck messages, etc);
+  **Implemented**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/4728
+
+- [x] (Optional, but desirable) Get rid of `ErrDoc`, `MsgDoc` and `WarnMsg` to
+  reduce the cognitive overload when dealing with error types;
+  **Implemented**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/4747
+
+- [ ] Split the old Severity into `MessageClass` and `Severity`, introduce
+  `DiagnosticReason` and `DiagnosticMessage`.
+
+- [ ] Correctly give the right `Severity` "at birth", without spurious reclassifications
+  (i.e. demotions/promotions etc) for diagnostic messages;
+
+- [ ] Introduce proper diagnostic types for the different phases of 
+  the compilation pipeline (i.e. `TcRnMessage`, `PsMessage` etc). Initially these
+  can also contain a selection of all the GHC-emitted messages, and "filled" later, to minimise
+  breakages. Introduce also an umbrella `GhcMessage` type which will be used in the
+  driver, at the top level, to report diagnostics. At this stage we won't yet
+  make use of any of the new types;
+  **Waiting CI/review**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/4798
+
+- [ ] Extend the parser error types to adhere to the new error-messages
+  architecture, and port the codebase to use these new format of errors.
+
+- [ ] Convert the `TcRn` error types to adhere to the new error-messages
+  architecture. We will also try to make use of the new `Suggestion` API
+  when reporting suggestions to users.
+
+- [ ] Convert the `Ds` error types to adhere to the new error-messages
+  architecture;
+
+- [ ] Convert the `Driver` error types to adhere to the new error-messages
+  architecture.
