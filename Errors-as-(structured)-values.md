@@ -67,9 +67,9 @@ data WarnReason
 
 </details>
 
-# New API, initial attempt (start here)
+# New API
 
-This is a first sketch of the new API:
+Let's start by making `Messages` and `MsgEnvelope` polymorphic over `e`, which is the particular message they now carry:
 
 ```haskell
 
@@ -82,29 +82,58 @@ data MsgEnvelope e = MsgEnvelope
    , errMsgSeverity    :: Severity
    } deriving Functor
 
-data MessageClass
-  = MCOutput
-  | MCFatal
-  | MCInteractive
-  | MCDump
-  | MCInfo
-  | MCDiagnostic Severity
-  deriving (Eq, Show)
-
-data Severity
-  = SevWarning !WarnReason -- ^ Born as a warning or demoted from an error.
-  | SevError   !ErrReason  -- ^ Born as an error  or promoted from a warning (e.g. -Werror)
-  deriving (Eq, Show)
-
-class RenderableDiagnostic a where
-  renderDiagnostic :: a -> DecoratedSDoc
-
+-- Text organized into bullets.
 newtype DecoratedSDoc = Decorated { unDecorated :: [SDoc] }
 
 -- .. operations on messages
 ```
 
-## New API key points
+This allows us to move away from `SDoc` and simply instantiate `e` with a structured message, specific a particular compilation phase (parsing, tcRn, ...)
+
+
+# The envelope contents (i.e. the diagnostics)
+
+We can get each subsystem to define their own message (diagnostic) types. At the beginning, to smooth out the integration, they can even be very simple wrappers around `DecoratedSDoc`s:
+
+
+``` haskell
+-- somewhere in the parser
+data PsMessage = PsUknownMessage DecoratedSDoc
+
+-- in GHC.Tc.Monad/Types?
+data TcRnMessage = TcRnUnknownMessage DecoratedSDoc
+
+-- somewhere under GHC.Driver
+data GhcMessage where
+  -- | A message from the parsing phase.
+  GhcPsMessage      :: PsMessage -> GhcMessage
+  -- | A message from typecheck/renaming phase.
+  GhcTcRnMessage    :: TcRnMessage -> GhcMessage
+  -- | A message from the desugaring (HsToCore) phase.
+  GhcDsMessage      :: DsMessage -> GhcMessage
+  -- | A message from the driver.
+  GhcDriverMessage  :: DriverMessage -> GhcMessage
+  -- | An \"escape\" hatch which can be used when we don't know the source of the message or
+  -- if the message is not one of the typed ones.
+  GhcUnknownMessage :: forall a. (RenderableDiagnostic a, Typeable a) => a -> GhcMessage
+
+```
+
+With those types in place, we could begin instantiating `e` to the relevant type for all use sites of the error infrastructure. The parser could would deal with `Messages PsMessage` values, the renamer and typechecker would produce `Message TcRnMessage` values, and so on.
+
+Finally, we could start turning concrete errors into dedicated constructors of `PsMessage`/`TcRnMessage`. Starting slowly with simple [`not in scope` errors](https://gitlab.haskell.org/ghc/ghc/-/blob/master/compiler/GHC/Rename/Unbound.hs#L64) and the likes, before converting over [the entire typechecking error infrastructure](https://gitlab.haskell.org/ghc/ghc/-/blob/master/compiler/GHC/Tc/Errors.hs) and more.  For example:
+```
+data TcRnMessage = TcRnUnknownMessage DecoratedSDoc
+  | OutOfScopeErr RdrName
+  | ...
+```
+The idea is to have one data constructor per error, so that a IDE using the GHC API would not have to parse strings to understand the errors.
+
+This might involve systematically retaining a bit more information (context lines for the typechecker, for instance) and therefore might give rise to some more generic error infrastructure constructs. This page will be updated to incorporate such details once they are figured out.
+
+At the "top level", in the driver, where we call the different subsystems to process Haskell modules, we would end up accumulating and reporting `GhcMessage` values. The goal is to have the GHC program emit the exact same diagnostics as it does today, but affect the API in such a way that GHC API users would at this point get a chance to work with the algebraic error descriptions, making inspection and custom treatment a whole lot easier to implement. We could perhaps even demonstrate it at this point by implementing a little "demo" of sorts for this new way to consume errors.
+
+# New API key points
 
 API design explanation/considerations:
 
@@ -136,73 +165,9 @@ API design explanation/considerations:
   into a fatal error and an error can be relaxed for example by deferring type errors. We
   can distinguish between warnings and errors by looking at each `MsgEnvelope`'s `Severity`;
 
-* We should try to give a `MsgEnvelope` the right `Severity` "at birth", without doing dodgy
-  demotions or promotions later in the codebase, as it makes much harder to track down the
-  precise semantic of the diagnostic, or even trying to reconstruct the original "provenance"
-  (was this a warning now turned into an error? If yes, when?);
-
-* We render back the messages into an `SDoc` via the `RenderableDiagnostic` type class. We
-  use `renderDiagnostic` to turn the structured message into something that can be printed
-  on screen by GHC when it needs to report facts about the compiled program (errors, warnings
-  etc);
-
 * A `DecoratedSDoc` is a newtype that allows us to collect a list of `SDoc` from various
   printing functions and place a bullet between each of them, so that they render nicely.
 
-# The envelope contents (i.e. the diagnostics)
-
-We can get each subsystem to define their own message (diagnostic) types. At the beginning, to smooth out the integration, they can even be very simple wrappers around `DecoratedSDoc`s:
-
-
-``` haskell
--- somewhere in the parser
-data PsMessage = PsMessage DecoratedSDoc
-
--- in GHC.Tc.Monad/Types?
-data TcRnMessage = TcRnMessage DecoratedSDoc
-
--- somewhere under GHC.Driver
-data GhcMessage where
-  -- | A message from the parsing phase.
-  GhcPsMessage      :: PsMessage -> GhcMessage
-  -- | A message from typecheck/renaming phase.
-  GhcTcRnMessage    :: TcRnMessage -> GhcMessage
-  -- | A message from the desugaring (HsToCore) phase.
-  GhcDsMessage      :: DsMessage -> GhcMessage
-  -- | A message from the driver.
-  GhcDriverMessage  :: DriverMessage -> GhcMessage
-  -- | An \"escape\" hatch which can be used when we don't know the source of the message or
-  -- if the message is not one of the typed ones.
-  GhcUnknownMessage :: forall a. (RenderableDiagnostic a, Typeable a) => a -> GhcMessage
-
-```
-
-With those types in place, we could begin instantiating `e` to the relevant type for all use sites of the error infrastructure. The parser could would deal with `Messages PsMessage` values, the renamer and typechecker would produce `Message TcRnMessage` values, and so on.
-
-Finally, we could start turning concrete errors into dedicated constructors of `PsMessage`/`TcRnMessage`. Starting slowly with simple [`not in scope` errors](https://gitlab.haskell.org/ghc/ghc/-/blob/master/compiler/GHC/Rename/Unbound.hs#L64) and the likes, before converting over [the entire typechecking error infrastructure](https://gitlab.haskell.org/ghc/ghc/-/blob/master/compiler/GHC/Tc/Errors.hs) and more.  For example:
-```
-data TcRnMessage = TcRnMessage DecoratedSDoc
-  | OutOfScopeErr RdrName
-  | ...
-```
-The idea is to have one data constructor per error, so that a IDE using the GHC API would not have to parse strings to understand the errors.
-
-This might involve systematically retaining a bit more information (context lines for the typechecker, for instance) and therefore might give rise to some more generic error infrastructure constructs. This page will be updated to incorporate such details once they are figured out.
-
-At the "top level", in the driver, where we call the different subsystems to process Haskell modules, we would end up accumulating and reporting `GhcMessage` values. The goal is to have the GHC program emit the exact same diagnostics as it does today, but affect the API in such a way that GHC API users would at this point get a chance to work with the algebraic error descriptions, making inspection and custom treatment a whole lot easier to implement. We could perhaps even demonstrate it at this point by implementing a little "demo" of sorts for this new way to consume errors.
-
-
-# Improving the proposal
-
-The "New API" design above suffers from an infelicity: duplication. Imagine we have
-
-```hs
-data TcRnMessage = TcRnOutOfScope ... | TcRnBadTelescope ... | ...
-```
-
-and we have a `MsgEnvelope TcRnMessage`. Such a structure effectively contains two "reasons" for the error: one encoded in the choice of constructor of `TcRnMessage`, and one in the payload of the `errMsgSeverity` field. This alternative is meant to address this problem.
-
-Key points to consider:
 * Every warning or error arises for a *reason*.
   * Most warnings are controlled by specific `-Wblah-blah` flags; we call these *reasons* for the warning.
   * Some warnings are not associated with a flag. We currently say these have "no reason" for arising, but really, we mean that there is no flag.
