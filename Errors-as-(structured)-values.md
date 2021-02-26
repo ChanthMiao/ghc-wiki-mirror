@@ -85,6 +85,9 @@ data MsgEnvelope e = MsgEnvelope
 -- Text organized into bullets.
 newtype DecoratedSDoc = Decorated { unDecorated :: [SDoc] }
 
+class Diagnostic a 
+  ... -- more on this later
+
 -- .. operations on messages
 ```
 
@@ -115,7 +118,7 @@ data GhcMessage where
   GhcDriverMessage  :: DriverMessage -> GhcMessage
   -- | An \"escape\" hatch which can be used when we don't know the source of the message or
   -- if the message is not one of the typed ones.
-  GhcUnknownMessage :: forall a. (RenderableDiagnostic a, Typeable a) => a -> GhcMessage
+  GhcUnknownMessage :: forall a. (Diagnostic a, Typeable a) => a -> GhcMessage
 
 ```
 
