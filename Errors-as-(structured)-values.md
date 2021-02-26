@@ -164,10 +164,6 @@ API design explanation/considerations:
      `a)` If this is an error or a warning;
      `b)` What does this `MsgEnvelope` carries inside its `errMsgDiagnostic`;
 
-* There is a **fluid** relationship between warnings and errors. A warning can be turned
-  into a fatal error and an error can be relaxed for example by deferring type errors. We
-  can distinguish between warnings and errors by looking at each `MsgEnvelope`'s `Severity`;
-
 * A `DecoratedSDoc` is a newtype that allows us to collect a list of `SDoc` from various
   printing functions and place a bullet between each of them, so that they render nicely.
 
