@@ -373,3 +373,103 @@ As this strand of work touches a lot of modules, doing everything as a single ga
 
 - [ ] Convert the `Driver` error types to adhere to the new error-messages
   architecture.
+
+# Eventual design
+
+The design described above is a temporary waypoint. In particular, it includes `defaultReasonSeverity :: DiagReason -> Severity`, which cannot be implemented correctly, because determining the `Severity` of a `DiagReason` requires consulting the `DynFlags`. A more correct design would look like this:
+
+```hs
+diagReasonSeverity :: DynFlags -> DiagReason -> Severity
+diagReasonSeverity dflags (WarningWithFlag wflag) | wopt_fatal wflag dflags     = SevError
+                                                  | otherwise                   = SevWarning
+diagReasonSeverity dflags WarningWithoutFlag      | gopt Opt_WarnIsError dflags = SevError
+                                                  | otherwise                   = SevWarning
+diagReasonSeverity _      ErrorWithoutFlag                                      = SevError
+
+mkMsgEnvelope :: Diagnostic err => DynFlags -> SrcSpan -> PrintUnqualified -> err -> MsgEnvelope err
+mkMsgEnvelope dflag slocn print_unqual err
+  = MsgEnvelope { errMsgSpan = locn
+                , errMsgContext = print_unqual
+                , errMsgDiagnostic = err
+                , errMsgSeverity = diagReasonSeverity dflags (diagnosticReason err)
+                }
+
+-- printOrThrowWarnings would no longer reclassify
+```
+
+This eventual design classifies diagnostics as error or warnings *at birth*, using the `DynFlags` in effect at the time of birth. These `DynFlags` will be correct. We cannot do this today because of interaction with `checkIfErrs` and friends (search within this page to find more discussion), but we will hopefully be able to do this soon.
+
+Once this is done, we should hopefully be able to rid ourselves of `defaultReasonSeverity`. Exception: `defaultReasonSeverity` is correct for errors. So we might keep around some `errReasonSeverity :: DiagReason -> Severity` which always returns `SevError` after confirming that its argument is `ErrorWithoutFlag`, panicking otherwise. It's not clear whether this is a good design or a bad design.
+
+# Suppressed warnings
+
+This section contains thoughts on improvements to the design to support more uniform suppression of warnings that the
+user does not want. Note that this *builds on* the design above. It does *not* suggest a new alternative to the design above.
+
+## Current design
+
+Today, all code that creates a warning should check whether that warning is suppressed. Here is one representative example:
+
+```hs
+; warn_mono <- woptM Opt_WarnMonomorphism
+       ; when (case infer_mode of { ApplyMR -> warn_mono; _ -> False}) $
+         diagnosticTc (WarningWithFlag Opt_WarnMonomorphism)
+                      (constrained_tvs `intersectsVarSet` tyCoVarsOfTypes taus)
+                      mr_msg
+```
+
+This code produces a warning that the monomorphism restriction has affect types. Note that it first checks whether `Opt_WarnMonomorphism` is enabled. Then, (maybe) it creates a warning with `WarningWithFlag Opt_WarnMonomorphism`. This is strage, because the code must interact with `Opt_WarnMonomorphism` *twice*: once to see whether the warnings should be generated at all, and again to mark the flag for the warning, which other code uses to determine whether the warning should be fatal (i.e. because of `-Werror`). This is error prone (every code that generates a warning must remember to make an extra check) and duplicative.
+
+## Proposed Design A
+
+One possibility is to introduce a new `Severity`:
+
+```hs
+data Severity = SevIgnore | SevWarning | SevError
+
+diagReasonSeverity :: DynFlags -> DiagReason -> Severity
+diagReasonSeverity dflags (WarningWithFlag wflag) | not (wopt wflag dflags)     = SevIgnore
+                                                  | wopt_fatal wflag dflags     = SevError
+                                                  | otherwise                   = SevWarning
+diagReasonSeverity dflags WarningWithoutFlag      | gopt Opt_WarnIsError dflags = SevError
+                                                  | otherwise                   = SevWarning
+diagReasonSeverity _      ErrorWithoutFlag                                      = SevError
+```
+
+`SevIgnore`d diagnostics are never printed. This is nice and uniform with the other severities and would likely be very easy to implement. However, it's a bit disappointing in that we would continue to carry around lots of `SevIgnore`d warning messages, just to let them be garbage-collected at the end of execution.
+
+## Proposed Design B
+
+Another possibility is to keep `data Severity = SevWarning | SevError` (as described above) but make the creation of `MsgEnvelope`s partial. To wit:
+
+```hs
+diagReasonSeverity :: DynFlags -> DiagReason -> Maybe Severity
+diagReasonSeverity dflags (WarningWithFlag wflag) | not (wopt wflag dflags)     = Nothing
+                                                  | wopt_fatal wflag dflags     = Just SevError
+                                                  | otherwise                   = Just SevWarning
+diagReasonSeverity dflags WarningWithoutFlag      | gopt Opt_WarnIsError dflags = Just SevError
+                                                  | otherwise                   = Just SevWarning
+diagReasonSeverity _      ErrorWithoutFlag                                      = Just SevError
+
+
+mkMsgEnvelope :: Diagnostic err => DynFlags -> SrcSpan -> PrintUnqualified -> err -> Maybe (MsgEnvelope err)
+mkMsgEnvelope dflags locn print_unqual err
+  = do sev <- diagReasonSeverity dflags (diagnosticReason err)
+       return $ MsgEnvelope { errMsgSpan = locn
+                            , errMsgContext = print_unqual
+                            , errMsgDiagnostic = err
+                            , errMsgSeverity = sev
+                            }
+```
+
+This appears to be more efficient (we more eagerly drop any ignored messages) but it requires all callers of `mkMsgEnvelope` to deal with the possibility of failure. A quick review of usage sites suggests this won't be hard (the result is often just put into a bag, and if `mkMsgEnvelope` returns `Nothing`, it's very easy to put nothing into a bag), but this design is definitely more invasive than Design A.
+
+## Knock-on simplifications
+
+One we execute either Design A or Design B, we can then remove the many places throughout GHC that check for a warning flag before emitting a warning. We must be slightly careful, though: it might be computationally intensive even to know whether to produce a warning, and it's foolish to work hard only to ignore the result. (Maybe sometimes laziness would save us, but not if any monadic work is involved, of course.) This computationally-intensive case is likely the exception, and so most places that might give rise to a warning can just skip the check entirely, leaving it to the error-message infrastructure above to toss out unwanted warnings.
+
+A good way to approach this is simply to search for any occurrence of `Opt_Warn` in the code and remove extra conditionals.
+
+## Conclusion
+
+I (Richard) recommend design B, because I'm worried about the performance implications of Design A. Though, it might be worthwhile to implement A first (should be very very easy), then remove the conditionals, and then measure performance before going with the more-involved B.
