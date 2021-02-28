@@ -10,7 +10,7 @@ Setting the environment manually can be tedious on some platforms (e.g. Windows)
 Then to build GHC, you only have to execute one of the following commands:
 
 ```
-hadrian/build-stack.sh  -c -j --flavour=quick # on UNIX-like platforms
+hadrian/build-stack  -c -j --flavour=quick # on UNIX-like platforms
 hadrian\build-stack.bat -c -j --flavour=quick # on Windows platform
 ```
 
@@ -29,5 +29,6 @@ cd hadrian
 stack exec --cwd=.. ./boot -- <boot-params>
 stack exec --cwd=.. ./configure -- <configure-params>
 cd ..
-hadrian/build.stack.{sh,bat} -j --flavour=quick # don't use "-c" here
+hadrian/build-stack -j --flavour=quick # don't use "-c" here, on UNIX-like platforms
+hadrian/build-stack.bat -j --flavour=quick # don't use "-c" here, on Windows platform
 ```
