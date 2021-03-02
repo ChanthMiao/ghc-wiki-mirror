@@ -7,9 +7,9 @@ The Overloaded Record Fields family of extensions for GHC allow multiple record 
 
 For user-facing documentation, see the GHC user's guide:
 
- - [DisambiguateRecordFields extension](https://downloads.haskell.org/ghc/latest/docs/html/users_guide/glasgow_exts.html#extension-DisambiguateRecordFields)
- - [DuplicateRecordFields extension](https://downloads.haskell.org/ghc/latest/docs/html/users_guide/glasgow_exts.html#duplicate-record-fields)
- - [OverloadedLabels extension](https://downloads.haskell.org/ghc/latest/docs/html/users_guide/glasgow_exts.html#overloaded-labels)
+ - [DisambiguateRecordFields extension](https://downloads.haskell.org/ghc/latest/docs/html/users_guide/exts/disambiguate_record_fields.html)
+ - [DuplicateRecordFields extension](https://downloads.haskell.org/ghc/latest/docs/html/users_guide/exts/duplicate_record_fields.html)
+ - [OverloadedLabels extension](https://downloads.haskell.org/ghc/latest/docs/html/users_guide/exts/overloaded_labels.html)
  - [Record field selector polymorphism (HasField class)](https://downloads.haskell.org/ghc/latest/docs/html/users_guide/glasgow_exts.html#record-field-selector-polymorphism)
 
 For implementation status, see #18598, the tracking ticket for most recent work related to overloaded record fields, and the ~OverloadedRecordFields label.
