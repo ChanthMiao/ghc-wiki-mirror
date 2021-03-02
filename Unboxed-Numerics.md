@@ -133,6 +133,8 @@ intToInt<N> :: Int# -> Int<N>#
 
 3. https://gitlab.haskell.org/ghc/ghc/-/issues/19026 opened to track doing the rest.
 
+   - Tracks remaining PRs, including !4492, !4717, and !3658
+
    - TODO find comment where @RyanGlScott pointed out that array primops no longer agreeing with boxed wrapper type constructors was causing pain.
 
 ## Issues being addressed
