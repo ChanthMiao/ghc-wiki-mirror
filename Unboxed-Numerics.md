@@ -125,7 +125,7 @@ intToInt<N> :: Int# -> Int<N>#
 
 ## How we got here
 
-1. Old discussion about `Int64#` TODO fill in.
+1. Old discussion about `Int64#`:
 
    - #11953: Export Word32#, Word64# on all architectures
 
