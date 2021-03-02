@@ -1,7 +1,7 @@
 The Overloaded Record Fields family of extensions for GHC allow multiple record datatypes to share the same field names, and make it possible for type information to disambiguate fields. There is no single `OverloadedRecordFields` extension, but rather a family of related extensions:
  * `DisambiguateRecordFields`: makes use of constructor names to disambiguate fields in record construction or pattern matching.
  * `DuplicateRecordFields`: permits a module to define the same field name in multiple datatypes.
- * `OverloadedLabels`: provides `#foo` syntax for an identifier whose meaning is determined by typeclass instance resolution. Intended for use with the `HasField` magic type class.
+ * `OverloadedLabels`: provides `#field` syntax for an identifier whose meaning is determined by typeclass instance resolution. Intended for use with the `HasField` magic type class.
  * `NoFieldSelectors`: prevents fields being in scope as selector functions. (Not yet released as of January 2020.)
  * `RecordDotSyntax`: permits `expression.field` syntax for record projection. (Not yet released as of January 2020.)
 
@@ -10,7 +10,7 @@ For user-facing documentation, see the GHC user's guide:
  - [DisambiguateRecordFields extension](https://downloads.haskell.org/ghc/latest/docs/html/users_guide/exts/disambiguate_record_fields.html)
  - [DuplicateRecordFields extension](https://downloads.haskell.org/ghc/latest/docs/html/users_guide/exts/duplicate_record_fields.html)
  - [OverloadedLabels extension](https://downloads.haskell.org/ghc/latest/docs/html/users_guide/exts/overloaded_labels.html)
- - [Record field selector polymorphism (HasField class)](https://downloads.haskell.org/ghc/latest/docs/html/users_guide/glasgow_exts.html#record-field-selector-polymorphism)
+ - [Record field selector polymorphism (HasField class)](https://downloads.haskell.org/ghc/latest/docs/html/users_guide/exts/hasfield.html)
 
 For implementation status, see #18598, the tracking ticket for most recent work related to overloaded record fields, and the ~OverloadedRecordFields label.
 
