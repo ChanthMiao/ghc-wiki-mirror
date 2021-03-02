@@ -142,7 +142,7 @@ intToInt<N> :: Int# -> Int<N>#
 ## Unresolved questions
 
 - Should we create reexports for the old conversion primop names? So far, @Ericson2314 has no found any breakage caused by the rename.
-  Most (all?) of the uses in boot libraries are only since the Aarch64 NCG, and thus can just be changed without CPP.
+  Most (all?) of the uses in boot libraries are only since Aarch64 macOS support, and thus can just be changed without CPP.
   This is because all that unboxed code was optimizing boxed interfaces, and until 9.2 none of the boxed interfaces use `Int8#` or `Int16#`.
   Also it's because `Int8#` or `Int16#` are so much newer.
 
@@ -152,7 +152,7 @@ intToInt<N> :: Int# -> Int<N>#
 
 ### GHC HEAD as of 2021-02-17
 
-This is after AArch64 NCG, but before the rest of the plan.
+This is after AArch64 macOS support, but before the rest of the plan.
 
 #### Data types
 ```haskell
