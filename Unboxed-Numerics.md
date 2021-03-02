@@ -158,16 +158,13 @@ intToInt<N> :: Int# -> Int<N>#
 
    4. https://gitlab.haskell.org/ghc/ghc/-/commit/be5d74caab64abf9d986fc7290f62731db7e73e7 so changes sized types. Submodules are bumped, but changes to submodules were not merged to their master branches yet.
 
-3. https://gitlab.haskell.org/ghc/head.hackage/-/issues/26 is opened to track issues in libraries . Similar discussion at https://gitlab.haskell.org/ghc/ghc/-/merge_requests/3658#note_316169 and the following commit.
-
-  - In short, @RyanGlScott agrees the #19026 plan improves things.
-
 3. https://gitlab.haskell.org/ghc/ghc/-/issues/19026 opened to track doing the rest.
 
    - Tracks remaining PRs, including !4492, !4717, and !3658
 
-   - https://gitlab.haskell.org/ghc/ghc/-/merge_requests/3658#note_316185
-TODO find comment where @RyanGlScott pointed out that array primops no longer agreeing with boxed wrapper type constructors was causing pain.
+4. https://gitlab.haskell.org/ghc/head.hackage/-/issues/26 is opened to track issues in libraries . Similar discussion at https://gitlab.haskell.org/ghc/ghc/-/merge_requests/3658#note_316169 and the following comment.
+
+   - In short, @RyanGlScott agrees the #19026 plan improves things over the intermediate state the breakage occurred.
 
 ## Unresolved questions
 
