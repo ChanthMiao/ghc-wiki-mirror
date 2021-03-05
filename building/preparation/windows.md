@@ -115,7 +115,7 @@ For newer Cabal 3.* using v2-style install
 mkdir -p /usr/local/bin
 curl -L https://downloads.haskell.org/cabal/cabal-install-3.2.0.0/cabal-install-3.2.0.0-${arch}-unknown-mingw32.zip | bsdtar -xzf- -C /usr/local/bin
 cabal update
-cabal install -j --installdir=/usr/local/bin --install-method=copy alex-3.2.5 happy hscolour
+cabal install -j --installdir=/usr/local/bin --install-method=copy alex-3.2.6 happy hscolour
 ```
 
 For older Cabal 2.* using v1-style install
