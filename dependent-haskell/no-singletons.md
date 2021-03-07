@@ -142,7 +142,7 @@ vReplicateMax :: foreach (n :: Nat) (m :: Nat) -> a -> Vec (Max n m) a
 vReplicateMax n m a = vReplicate (Max n m) a
 ```
 
-It follows, then, that in order to achieve TFD, we must take one of the two routes:
+It follows, then, that in order to solve TFD, we must take one of the two routes:
 
 * Make type families (e.g. `Max`) available at the term level
 * Make functions (e.g. `max`) reducible at the type level
