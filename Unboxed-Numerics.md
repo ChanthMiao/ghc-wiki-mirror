@@ -62,7 +62,7 @@ writeInt<N>OffAddr# :: Addr# -> Int# -> Int# -> State# s -> State# s
 `N` is restricted to be 8 and 16:
 ```haskell
 extendInt<N> :: Int<N># -> Int#
-NarrowInt<N> :: Int# -> Int<N>#
+narrowInt<N> :: Int# -> Int<N>#
 ```
 
 ### GHC 9.2 goal
