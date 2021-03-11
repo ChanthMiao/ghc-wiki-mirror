@@ -1,5 +1,9 @@
 # Agenda
 
+# Simplifier and occurrence analysis
+
+* #19516
+
 # Exceptions
 
 - #19181 Semantics of exceptions
