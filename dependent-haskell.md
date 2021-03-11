@@ -7,11 +7,13 @@ to our discussion.
 
 Readers may also want to check out https://github.com/ghc-proposals/ghc-proposals/pull/378, a proposal to make sure that GHC continues to support development toward the language imagined here.
 
+Given the Haskell's community lack of experience with dependent types, there are also a number of misconceptions that have arisen around the design of dependent types. A section at the end of this document describes several common misconceptions   and better ways of understanding certain design points.
+
 Here, then, are the design principles for Dependent Haskell.
 
 [[_TOC_]]
 
-### 1. Type inference
+## 1. Type inference
 
 Dependent Haskell embodies type inference, just like Haskell.  Indeed, every Haskell
 program is a DH program: no extra type annotations are required.
@@ -24,7 +26,7 @@ the type system the programmer must supply some type annotations (for example, d
 higher-rank types, guide impredicative type inference, check GADT pattern-matches), but the goal is to have
 simple, predictable rules to say when such annotations are necessary.
 
-### 2. Erasure
+## 2. Erasure
 
 In DH, *the programmer knows, for sure, which bits of the program will be
 retained at runtime, and which will be erased*. We shall call this the **Predictable Erasure Principle (PEP)**. Some dependently
@@ -40,7 +42,7 @@ erasure, and GHC will infer how much it can erase (choosing to erase as much as 
 The one exception to this is in datatypes, where erasure must always be made explicit (otherwise,
 GHC has no way to know what should be erased, unlike in functions).
 
-### 3. Lexical scoping, term-syntax and type-syntax, and renaming
+## 3. Lexical scoping, term-syntax and type-syntax, and renaming
 
 Haskell adheres to the following principle
 
@@ -112,7 +114,7 @@ between type-syntax and term-syntax, and the context-sensitivity these notions r
 to be a simplification available to those programmers. As we design DH, this principle informs
 design decisions, so that it may be true once DH is fully realized.
 
-### 4. Quantifiers
+## 4. Quantifiers
 
 There are three "attributes" to a quantifier
 
@@ -252,7 +254,7 @@ also possible to line up relevance and multiplicity in the internal language wit
 The `foreach` quantifier is the defining feature that makes Dependent Haskell a dependently-typed language.
 We now look at how `foreach`-functions are applied (eliminated) and defined (introduced).
 
-### 5. Dependent pattern-match
+## 5. Dependent pattern-match
 
 When we pattern-match on a value that also appears in a type (that is, something bound by a `foreach`), the type-checker can use the matched-against pattern to refine the type. For example, consider an implementation of `vReplicate`:
 
@@ -270,7 +272,7 @@ only when in *checking* mode of bidirectional type-checking, never in *inference
 above, we do indeed know the result type: `Vec n a`. We can thus perform an informative pattern-match, as required
 to accept the definition.
 
-### 6. Dependent application and the Static Subset
+## 6. Dependent application and the Static Subset
 
 Suppose we have a function `f :: foreach (a::ty) -> blah` or `f :: forall (a::ty) -> blah`.  Then at a
 call site the programmer must supply an explicit argument, so the call will look like
@@ -368,7 +370,7 @@ This approach keeps things simple for now;
 we might imagine retaining the knowledge that `bs = [True]` when, say, the right-hand
 side of a `let` is in the Static Subset, but we leave that achievement for later.
 
-### 7. Dependent definition
+## 7. Dependent definition
 
 Principle: We will never *infer* a type with `foreach .`, `foreach ->`, or `forall ->`.
 We will continue to infer types with `forall .`, via `let`-generalization, just as we
@@ -403,7 +405,7 @@ All variables introduced in term-syntax are in the term namespace. In particular
 the `the` example. Its use in a type relies on the lookup failing in the type namespace and succeeding in the
 term namespace.
 
-### 8. Phase distinction
+## 8. Phase distinction
 
 Erased arguments cannot be used at runtime. More specifically, they cannot be pattern-matched against, returned
 from a function, or otherwise used, except as an argument to a function expecting an erased argument. Examples:
@@ -452,7 +454,7 @@ f a x = case a of
 
 The theory says "yes"; the choice of `a` is available for pattern-matching. But can we implement this in practice? I think we can, by use type representations. Yet, we may choose to defer such behavior until later; we can always make `Type` opaque and unavailable for pattern-matching.
 
-### 9. Full expressiveness
+## 9. Full expressiveness
 
 One worry that some have about dependent types is that other dependently typed languages sometimes require all functions to be proved to terminate. (For example, Agda will not accept a transliteration of
 
@@ -470,7 +472,7 @@ collatz n = 1 + collatz (step n)
 
 without a proof that `collatz` terminates. Do let me know if you have such a [proof](https://en.wikipedia.org/wiki/Collatz_conjecture).) Backward compatibility (and the usefulness of not-known-to-terminate functions, such as interpreters) compels us to avoid adding this requirement to Haskell. Perhaps someday we will add a termination checker has an aid to programmers, but it will not be required for functions to terminate. Due to the way dependent types in Haskell are designed (e.g., as explained in this [ICFP'17 paper](https://richarde.dev/papers/2017/dep-haskell-spec/dep-haskell-spec.pdf)), it is not necessary to have a termination proof to support dependent types.
 
-### 10. Typed intermediate language
+## 10. Typed intermediate language
 
 GHC has from the beginning supported a *typed* intermediate language. The type safety of this intermediate language is what allows us to say that Haskell itself is type-safe (no one has attempted a proof of type safety for Haskell itself), and the checks on this internal language allow us to catch many errors that otherwise would have crept into GHC's optimizer.
 
@@ -482,7 +484,7 @@ Dependent Haskell continues to support a typed intermediate language, but one su
 * [*Dependent types in Haskell: Theory and practice*](https://richarde.dev/papers/2016/thesis/eisenberg-thesis.pdf). Richard A. Eisenberg. PhD thesis, 2016. This work describes both a surface language and intermediate language for Dependent Haskell.
 * [*Type inference, Haskell, and dependent types*](https://adam.gundry.co.uk/pub/thesis/thesis-2013-12-03.pdf). Adam Gundry. PhD thesis, 2013. This work describes an intermediate language and the Static Subset included in this design document.
 
-### 11. The Glorious Future
+## 11. The Glorious Future
 
 One glorious day, perhaps all terms will be understood by the static type
 checker.  To put it another way, any term whatsoever will be
@@ -507,3 +509,99 @@ differently:
 Even once we reach the Glorious Day, nothing forces us to unify `t1 -> t2` with `foreach (_ :: t1) -> t2`, and
 we may decide not to.
 
+# Misconceptions
+
+This section describes several common misconceptions around dependent types, in an attempt to refute them. This was cribbed from (a GHC proposal comment)[https://github.com/ghc-proposals/ghc-proposals/pull/281#issuecomment-736850050];
+the "I" here is Richard.
+
+## Punning
+
+False: **Dependent Haskell and/or this proposal is trying to ban definitions like `data T = T`.**
+
+There is no effort as far as I'm aware to eliminate code containing definitions like `data T = T`. This is an example of *punning*, where identifiers of the same spelling are used at the term level and at the type level. The design of DH I've been thinking about, and every concrete description I've seen, continues to allow `data T = T`, into perpetuity.
+
+Instead, the leading design for DH introduces warnings `-Wpuns` and `-Wpun-bindings` that warn at either occurrences or binding sites (respectively) of punned identifiers. This is (in my view) the main payload of #270. (The rest of #270 is just about giving users a way to silence the warnings.) No one has to enable these warnings. All DH features work with punned identifiers, perhaps at the expense of requiring a little more disambiguation. #270 has the details.
+
+It is true that we believe that idiomatic DH will tend to avoid punning, but it will be up to the community to see how it will all play out. Maybe the disambiguation means are easy enough (at a minimum, prefixes like `D.` or `T.`) that punning remains commonplace.
+
+## Complexity
+
+Overstated: **Dependent Haskell is complicated.**
+
+Well, it's a bit hard to make a "False" statement on that one (but I did anyway), but let me try to explain what I mean. @simonpj's comment https://github.com/ghc-proposals/ghc-proposals/pull/281#issuecomment-733715402 is the source of this one. According to my understanding, the complication he refers to is twofold: (1) the need to think about two namespaces, and (2) the need for the T2T translation. 
+
+1. In corner cases, we do need to worry about the two namespaces -- but only when the user binds an identifier in both. This proposal #281 thus irons out which namespace takes precedence. However, if a name is not punned, then the user may remain blissfully unaware of the distinction. Thus, when I say DH is not complicated in this way, I mean that idiomatic DH -- where the user disambiguates between the namespaces instead of using punning -- is not.
+
+   Even a user who does use punning is OK: names bound to the left of a `::` are term-level names; those bound to the right of one are type-level names. Occurrences to the left of a `::` look in the term-level namespace first; those to the right of one look in the type-level namespace first. Of course, there are subtleties here, as spelled out in the proposal, but that summary is morally all there is to it.
+
+2. The T2T translation is needed only until we merge terms and types. Note that this merger is *independent* of the namespace issue: we can imagine identical ASTs for terms and for types, but with different name-resolution characteristics. There are relatively few barriers to merging terms and types: essentially, we have to sort out the fact that `'` means something different in the two ASTs (it selects the term-level namespace in types, while it denotes a TH name quote in terms) and we will have to be able to parse type-like things such as `forall` and `->` in terms. Happily, `->` is *already* illegal in terms, so this probably boils down to making `forall` a keyword.
+
+   There may be a stretch of time that we retain the complexity of T2T, but my hope is that this time will be limited. One of the reasons I wrote #378 is to motivate us to deal with that temporary complexity.
+
+So I claim things are not as bad as they appear here.
+
+## Separate syntaxes
+
+Likely False: **It would work just fine to have dependent types but keep terms as terms and types as types.**
+
+It is possible to have a dependently typed language that keeps terms and types separate. For example [Twelf](http://twelf.org/wiki/Main_Page) is such a language. I agree that this is possible. But I claim such a language is complicated in precisely the way that @simonpj is worried about for DH, and thus a design to avoid.
+
+Twelf works by having a notion of type *indices*, distinct from type parameters. (I am not a Twelf expert; please correct me if I go wrong here.) Indices are terms. Thus, if we say (adapting to Haskell syntactic conventions) `x :: T (a b c)`, that `a b c` is a *term*, not a type. This is because Twelf types are indexed by terms. We thus have a clear separation between types and terms: the thing right after a `::` is a type, and all of its arguments are terms. Yet, we have dependent types.
+
+However, Twelf is missing a feature crucial in Haskell: polymorphism. That is, Haskellers like to talk about `Maybe Int`, where the argument to a type `Maybe` is another type `Int`. This is impossible in Twelf.
+
+To mix type arguments and term arguments, we can imagine (at least) two strategies:
+
+1. Disambiguate according to a type's kind. That is, if we see `T (a b c) (d e f)`, we can look at `T`'s kind to determine whether each of `a b c` and `d e f` are types or terms. This is challenging for several reasons. Firstly, it would be impossible to parse using a parser generator, if types and terms have separate parsers. Let's assume we get around that hurdle by combining syntaxes. Then, it would be very hard to do name resolution. It means we would need the kind of `T` before we can do name resolution on `a b c` or `d e f`. Maybe it seems that this is not unreasonable for a type constructor like `T`. But what about `t (a b c) (d e f)`, where `t` is a type variable, perhaps subject to kind inference? We are now sliding down a slippery slope. Either we say we can't abstract over types that take terms as argument (and hobble our type system) or have strict requirements on kind annotations, etc., to make sure we know `t`'s kind before ever even doing name resolution on its arguments. I don't envy someone trying to implement this.
+
+2. Disambiguate with syntactic markers. That is, we require users to write `T (a b c) (data d e f)` where the `data` keyword indicates that a term comes next. This would mean that *every* use of `T` would need the `data` keyword right there, which would quickly become annoying to users. It's especially annoying when there is no semantic difference between a type argument and a term argument: both would be erased during compilation. The `data` keyword would just be there to select a different sub-language, but with no semantic distinction.
+
+Either design *also* requires a considerable amount of duplication. We would need type families in order to do computation on types, alongside functions to do computation on terms. (We already have this, and it's already painful, in my opinion.) Consider also the desire for propositional equality (i.e. `Data.Type.Equality.:~:`). Is it parameterized by types or terms? We'd need both variants, in practice. Would we need basic datatypes that work over both terms and types? Quite possibly.
+
+So, my claim here is that, while possible, this design is unappealing. If the costs of going to a unified language were very high, then maybe it would be worth it. But I claim that the costs are small: we introduce a way to disambiguate puns (as well as a way to control the built-in puns around lists tuples), and we merge the syntaxes. Disambiguating puns is relatively low-cost: it is an opt-in feature (see my first refutation above -- no one is proposing to ban puns), and the designs for disambiguation hook nicely into the module system (another disambiguation mechanism). Unifying the syntaxes is also relatively low-cost: it means making `forall` (and perhaps `foreach`) unconditionally a keyword, and it means changing the meaning of `'` in types. These costs are non-zero. But I think they are worth paying in order to avoid having a distinction among sub-languages without a difference.
+
+## Type erasure
+
+False: **Dependent Haskell destroys the phase distinction and/or type erasure.**
+
+Other dependently typed languages (notably, Agda and Idris 1) have a murky notion of what information is kept around at runtime, and what is erased during compilation. For example, I can write this in Agda:
+
+```hs
+quickLength : ∀ {a : Set} {n : ℕ} → Vec a n → ℕ
+quickLength {n = n} _ = n
+```
+
+This function returns the length of a vector simply by looking at the index it is parameterized by. By contrast, we cannot write this function in Haskell, because the `n` stored as the length of the vector is a compile-time quantity, not available at runtime. To get the length of a length-indexed vector in Haskell, we must traverse the entire vector, just as we do for lists.
+
+In the design for Dependent Haskell, this phase distinction (the fact that some data is compile-time and some data is run-time) remains, unlike in Agda. Every argument to a function, both implicit and explicit, must somehow be marked as *relevant* or *irrelevant*. (I don't mind calling irrelevant arguments as phantom, but having the terms in obvious contrast is helpful, I think. Though the most appealing opposite of *phantom* is *corporeal*, a fun word to bat around.)
+
+Continuing our example, we could write
+
+```hs
+quickLength :: forall (a :: Type). foreach (n :: Nat). Vec a n -> Nat
+quickLength @_ @n _ = n
+
+slowLength :: forall (a :: Type) (n :: Nat). Vec a n -> Nat
+slowLength Nil = Zero
+slowLength (_ :> v) = Succ (slowLength v)
+```
+
+Note that `quickLength` uses `foreach (n :: Nat)`. The `foreach` quantifier (also known as `pi` or `∏`) tells us that its argument is relevant and must be passed at runtime. Accordingly, the caller of `quickLength` must somehow already know (at run-time!) the length of the vector before calling. If we were to write the implementation of `quickLength` with the type of `slowLength`, we would get an error, saying that we cannot return an input that is known only at compile-time.
+
+A few other notes on this example:
+
+* The kind annotations (`:: Type` and `:: Nat`) are unnecessary and could be inferred.
+
+* Leaving off any quantification would yield `slowLength`'s type. That is, we assume irrelevant quantification in types.
+
+* The `forall a.` is necessary in `quickLength` is necessary because of the forall-or-nothing rule.
+
+* We could reverse the order of implicit arguments in both examples.
+
+If a function is missing a type signature, it is actually easy to infer relevance: just look at the usages of a variable. If every usage is as an irrelevant argument, then the variable can be quantified irrelevantly. Otherwise, it must be relevant. Relevance inference could be done over a mutually recursive group much like role inference works today, by finding a fixpoint. Also, note that role inference just works -- it has needed essentially no maintenance since being written with the original implementation of roles. I would expect similar of relevance inference.
+
+## Termination
+
+False: **Dependent Haskell will require functions to terminate.**
+
+This has not come up much recently, but it's a misconception I've heard. I won't refute it longhand here. But it's not true. No one is proposing a termination checker. Dependent types without a termination checker is not suitable for use as a proof assistant, but it makes for a wonderfully type-safe language.
