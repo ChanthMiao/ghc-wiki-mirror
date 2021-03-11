@@ -13,6 +13,8 @@ Here, then, are the design principles for Dependent Haskell.
 
 [[_TOC_]]
 
+# Design for Dependent Haskell
+
 ## 1. Type inference
 
 Dependent Haskell embodies type inference, just like Haskell.  Indeed, every Haskell
@@ -43,6 +45,8 @@ The one exception to this is in datatypes, where erasure must always be made exp
 GHC has no way to know what should be erased, unlike in functions).
 
 ## 3. Lexical scoping, term-syntax and type-syntax, and renaming
+
+### Status quo
 
 Haskell adheres to the following principle
 
@@ -80,7 +84,7 @@ We have the type constructor `Age` in the type namespace, and an eponymous data 
 When renaming a type, we look up in the type namespace, while when renaming a term we look up in the term namespace.
 ("Renaming" means resolving, for each occurrence of an identifier, what is the binding site to which that occurrence refers.)
 
-
+### Changes to support dependent types
 
 In DH, *we support the same Lexical Scoping Principle, including Haskell's dual namespace*, slightly generalized:
 1. In type-syntax, DH will continue to use the type namespace.
@@ -101,7 +105,9 @@ while still also supporting easy interaction with other code that uses puns.
 a way that might happen; the additional support of [local modules](https://github.com/ghc-proposals/ghc-proposals/pull/283)
 would allow for even easier use of punned identifiers in pun-avoiding code.
 
-More generally, we advocate the following principle:
+### Syntactic unification
+
+Going further, we aim to support the following principle:
 
 **Syntactic Unification Principle (SUP).** In the absence of punning, there is no difference
 between type-syntax and term-syntax.
@@ -113,6 +119,12 @@ The Syntactic Unification Principle means that a DH programmer who avoids punnin
 between type-syntax and term-syntax, and the context-sensitivity these notions require. This is meant
 to be a simplification available to those programmers. As we design DH, this principle informs
 design decisions, so that it may be true once DH is fully realized.
+
+### Switching syntaxes
+
+Given that some programmers will continue to use punning, it may be necessary to explicitly tell GHC to switch syntaxes. As originally described in (#281)[https://github.com/int-index/ghc-proposals/blob/visible-forall/proposals/0000-visible-forall.rst#43secondary-change-type-herald], we propose using the keyword `type` to tell GHC to switch to interpreting type-syntax, not term-syntax. This changes both parsing and name resolution. For example, we might say `sizeof (type Bool)` to allow disambiguation between a `Bool` in the term-level namespace and one in the type-level namespace. We can similarly imagine a `data` herald to switch to the term-level namespace.
+
+There are some details to be worked out here (e.g. the precise BNF), but a disambiguation syntax may be necessary, and this section suggests a way to accommodate one.
 
 ## 4. Quantifiers
 
