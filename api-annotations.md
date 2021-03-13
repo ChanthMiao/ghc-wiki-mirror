@@ -7,22 +7,29 @@ to replicate the original source from a parsed AST.
 Sections delimited by "RAE" are questions that should be answered in the final version of this design.
 Once such a question is answered, please delete the question.
 
-## Naming
+## What are "API annotations" and "exact-printing"?
 
 Taking an AST tree and converting it into a string that looks like what the user originally wrote
 is called *exact-printing*. An exact-printed program includes the original spacing and all comments.
 
 We use the term *API Annotations* to refer to the extra bits of information included in the AST
-only for the purposes of exact-printing. By definition, API annotations are used only for exact-printing;
-they are not otherwise consulted during compilation.
+only for the purposes of exact-printing.  For example:
+* An if-then-else node in the syntax tree will include the precise location of the `if`, `then`, and `else` keywords
+* An list-comprehension node such as `[ f x | x <- xs, x > 3 ]` will include the locations of the `[`, `|`, and `]` punctuation; its statements will include the location of the comma separators.
+* Every node will contain the locations and content of "nearby" comment (see XXX for what "nearby" means)
+In total, every visible part of the original program will be represented somewhere in the AST.
+
+By definition, API annotations are used only for exact-printing; they are not otherwise consulted during compilation.
 
 **RAE:** Why are these called API annotations? I would think "keyword annotations" or "exact-printing annotations" (EPAs, for short)
 would be better. **End RAE**
 
 ## Goals
 
-The reason to include API annotations is to perform exact-printing, both without and with possible
-changes to the AST. For example, a tool might want to float out a local definition from a `where` clause
+The reason to include API annotations is to perform exact-printing, so that an IDE can render a program exactly as the user wrote it, comments and all.
+
+Moreover, it should be possible to preserve much of this layout information across refactorings
+of the AST.  For example, a tool might want to float out a local definition from a `where` clause
 to become a top-level definition. It should be possible to do this without disrupting the user's
 stylistic choices and comments.
 
