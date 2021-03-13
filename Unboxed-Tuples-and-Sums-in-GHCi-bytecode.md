@@ -105,9 +105,9 @@ GHCi supports each unary (non-tuple) unboxed type explicitly supported by byteco
 
 The above approach works well if we only have to deal with a limited number of different representation and calling conventions. Tuples come in infinitely many shapes and sizes, so it's not possible to have a specific `stg_ret_XXX`/`stg_ctoi_XXX` for each of them.
 
-Therefore we take a slightly different approach. We introduce a single set of "generic" instructions and prodecures that handle all tuples: `RETURN_T`, `PUSH_ALTS_T`, `stg_ret_t`, `stg_ctoi_t`. These instructions can handle all possible tuple shapes by using a description (i.e. which registers and how much stack space are used) of the specific tuple at hand.
+Therefore we take a slightly different approach. We introduce a single set of "generic" instructions and prodecures that handle all tuples: `RETURN_TUPLE`, `PUSH_ALTS_TUPLE`, `stg_ret_t`, `stg_ctoi_t`. These instructions can handle all possible tuple shapes by using a description (i.e. which registers and how much stack space are used) of the specific tuple at hand.
 
-The generic tuple instructions have some runtime overhead, therefore we keep using the existing instructions and helpers for unboxed values where possible. For example the tuple `(# Double#, Void#, Void# #)` has the same runtime representation as `Double#`, so we use `RETURN_D`/`stg_ret_d` to return such a tuple, instead of the less efficient `RETURN_T`.
+The generic tuple instructions have some runtime overhead, therefore we keep using the existing instructions and helpers for unboxed values where possible. For example the tuple `(# Double#, Void#, Void# #)` has the same runtime representation as `Double#`, so we use `RETURN_D`/`stg_ret_d` to return such a tuple, instead of the less efficient `RETURN_TUPLE`.
 
 ### Bytecode from STG
 
@@ -121,7 +121,7 @@ To solve this, we compute the type of each breakpoint in `CoreToStg` and store i
 
 ### New Bytecode Operations
 
-We introduce the new bytecode instructions `RETURN_T` and `PUSH_ALTS_T` and the new helpers `stg_ret_t` and `stg_ctoi_t` (see `rts/StgMiscClosures.cmm`)
+We introduce the new bytecode instructions `RETURN_TUPLE` and `PUSH_ALTS_TUPLE` and the new helpers `stg_ret_t` and `stg_ctoi_t` (see `rts/StgMiscClosures.cmm`)
 
 The new instructions use the helper data `tuple_BCO` and `tuple_info`, described below.
 
@@ -136,7 +136,7 @@ Since the native calling convention expands every element to a full word width, 
 
 #### Returning a tuple
 
-Bytecode that returns a tuple first pushes all the tuple fields followed by the appropriate `tuple_info` and `tuple_BCO` onto the stack. It then executes the `RETURN_T` instruction, which causes the interpreter to push `stg_ret_t_info` to the top of the stack. The stack then looks as follows:
+Bytecode that returns a tuple first pushes all the tuple fields followed by the appropriate `tuple_info` and `tuple_BCO` onto the stack. It then executes the `RETURN_TUPLE` instruction, which causes the interpreter to push `stg_ret_t_info` to the top of the stack. The stack then looks as follows:
 
 ```
 ...
@@ -154,15 +154,15 @@ If `next_frame` is bytecode, the interpreter will start executing it. If it's ob
 
 #### Receiving a tuple
 
-Bytecode that receives a tuple uses the `PUSH_ALTS_T` instruction to push a continuation, followed by jumping to the code that produces the tuple. The `PUSH_ALTS_T` instuction contains three pieces of data:
+Bytecode that receives a tuple uses the `PUSH_ALTS_TUPLE` instruction to push a continuation, followed by jumping to the code that produces the tuple. The `PUSH_ALTS_TUPLE` instuction contains three pieces of data:
 
 * `cont_BCO`: the continuation that receives the tuple
 * `tuple_info`: see below
 * `tuple_BCO`: see below
 
-The interpreter pushes these onto the stack when the `PUSH_ALTS_T` instruction is executed, followed by `stg_ctoi_tN_info`, with `N` depending on the number of stack words used by the tuple in the GHC native calling convention. `N` is derived from `tuple_info`.
+The interpreter pushes these onto the stack when the `PUSH_ALTS_TUPLE` instruction is executed, followed by `stg_ctoi_tN_info`, with `N` depending on the number of stack words used by the tuple in the GHC native calling convention. `N` is derived from `tuple_info`.
 
-For example if we expect a tuple with three words on the stack, the stack looks as follows after `PUSH_ALTS_T`:
+For example if we expect a tuple with three words on the stack, the stack looks as follows after `PUSH_ALTS_TUPLE`:
 
 ```
 ...
