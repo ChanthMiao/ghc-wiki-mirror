@@ -43,17 +43,41 @@ The general approach is to store extra information in the Trees-That-Grow extens
 each constructor. This extra information includes locations of any keywords used in a construct.
 For example, in a `HsLet`, we need to store the location of the `let` and the `in`.
 
-However, we must be careful about exactly how we store the location. A simple fixed row/column
-will not do, because a construct might be moved before exact-printing. We thus define a new
-concept of *anchor*: an anchor is **RAE** finish this sentence **End RAE**. Anchors are stored
-as **RAE** finish this sentence **End RAE**.
+The general pattern is this:
+```
+module Language.Haskell.Syntax.Expr where
+  -- The client-independent syntax tree
+  data HsExpr p = ...
+    | HsLet       (XLet p)           -- The extension field
+                  (LHsLocalBinds p)
+                  (LHsExpr  p)
 
-In addition we sometimes must store *deltas*: differences from one location to another. These
-arise **RAE** finish this sentence **End RAE**.
+module GHC.Hs.Expr where
+  -- The GHC specific stuff about HsExpr
+  type instance XLet GhcPs = ApiAnn' AnnsLet
+  type instance XLet GhcRn = ...
+  type instance XLet GHcTc = ...
 
-Because we must exact-print with comments intact, we track all comments. These are associated
-with the innermost enclosing AST node -- that is, the one whose `SrcSpan` is smallest, yet includes 
-the comment. They are stored **RAE** where? **End RAE**.
+  data AnnsLet = AnnsLet { alLet :: AnnAnchor, alIn :: AnnAnchor }
+
+module GHC.Parser.Annotation where 
+  -- Shared data types relating to API annotations
+data ApiAnn' ann
+  = ApiAnn { entry   :: Anchor
+           , anns     :: ann
+           , comments :: ApiAnnComments
+           }
+  | ApiAnnNotUsed
+```
+Here you can see
+
+* Every extension field uses `ApiAnn'` to store stuff that every node has in common: an `Anchor` and comments.
+* The `AnnsLet` data type records the locations of the `let` and `in` keywords for `HsLet`.  There is one such data type for each constructor.
+* **Anchors**.  We must be careful about exactly how we store the location. A simple fixed row/column will not do, because a construct might be moved before exact-printing. We thus define a new concept of *anchor*: an anchor is **RAE** finish this sentence **End RAE**. Anchors are stored as **RAE** finish this sentence **End RAE**.
+
+* **Deltas**.   In addition we sometimes must store *deltas*: differences from one location to another. These arise **RAE** finish this sentence **End RAE**.
+
+* **Comments**.  Because we must exact-print with comments intact, we track all comments. These are associated with the innermost enclosing AST node -- that is, the one whose `SrcSpan` is smallest, yet includes the comment. They are stored **RAE** where? **End RAE**.
 
 ## Data structures
 
