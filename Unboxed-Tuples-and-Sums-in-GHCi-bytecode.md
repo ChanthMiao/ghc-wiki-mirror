@@ -254,7 +254,7 @@ See `rts/StgMiscClosures.cmm` for more details of how the data is packed in a si
 
 #### Maximum Tuple Size
 
-The GHC native calling convention makes it necessary to have an `stg_ctoi_tN` "adjustor" procedure for a tuple that has `N` words on the stack. In the current implementation, we provide `stg_ctoi_t1`..`stg_ctoi_t32`, so all tuples that have up to and including 32 words on the stack (with the GHC native calling convention) are supported.
+The GHC native calling convention makes it necessary to have an `stg_ctoi_tN` "adjustor" procedure for a tuple that has `N` words on the stack. In the current implementation, we provide `stg_ctoi_t1`..`stg_ctoi_t62`, so all tuples that have up to and including 32 words on the stack (with the GHC native calling convention) are supported.
 
 It's straightforward to add more `stg_ctoi_tN` helpers for bigger tuples, but it requires recompiling GHC and the RTS. A fully general solution that supports all tuple sizes will likely require a change in the GHC calling convention.
 
