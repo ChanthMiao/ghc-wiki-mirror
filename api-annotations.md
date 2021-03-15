@@ -23,14 +23,70 @@ By definition, exact-printing annotations are used only for exact-printing; they
 
 ## Goals
 
-The reason to include exact-printing annotations is to perform exact-printing, so that a tool can render a program
-exactly as the user wrote it, comments and all, from just the AST.
+The reason to include exact-printing annotations is to perform
+exact-printing, so that a tool can render a program exactly as the
+user wrote it, comments and all, from just the AST.
 
-This becomes particularly useful because it should be possible to preserve much of this layout information
-across refactorings of the AST.  For example, a tool might want to float out a local definition from a `where` clause
-to become a top-level definition. It should be possible to do this without disrupting the user's
-stylistic choices and comments.
+This becomes particularly useful because it should be possible to
+preserve much of this layout information across refactorings of the
+AST.  For example, a tool might want to float out a local definition
+from a `where` clause to become a top-level definition. It should be
+possible to do this without disrupting the user's stylistic choices
+and comments.
 
+## Mechanism
+
+Having the original locations of everything in the original source
+code is necessary for exact-printing the original, but is not
+sufficient for exact-printing an AST that has been manipulated as part
+of a refactoring.
+
+The key to enabling this is to realise that exact-printing is about
+calculating the amount of space *between* things, and printing that
+space when reproducing the source. The EPAs give us the original
+locations, so we can easily calculate spacing from these.
+
+The exact-printing model works on the basis that if we can position
+the "top-left" of a given AST element somewhere on the page, we can
+use the stored original locations to reproduce the original relative
+spacing between the elements, and so print it with the "original"
+spacing, just in a different location.
+
+So if we float out the local definition referred to above, we will use
+its original location as the "top-left" when printing out its
+definition, but need to have a way to capture that the "top-left" is
+now in a different place, from the perspective of the top-level AST.
+
+We achieve this by means of an **Anchor**.
+
+```haskell
+data Anchor = Anchor { anchor :: RealSrcSpan
+                     , anchor_op :: AnchorOperation }
+data AnchorOperation = UnchangedAnchor
+                     | MovedAnchor DeltaPos
+data DeltaPos = DP { deltaLine   :: !Int,
+                   , deltaColumn :: !Int }
+```
+
+The *anchor* field captures the original as-parsed location, and an
+unchanged AST will have an *anchor_op* of `UnchangedAnchor`.
+
+When the local definition is moved, its original *anchor* location
+remains unchanged, as it is used as a reference for the elements
+inside the local definition when printing them, but we provide a
+`MovedAnchor` value for the *anchor_op*.
+
+The spacing between items used when exact-printing is captured in a
+`DeltaPos` with row and column offsets as expected.
+
+So when we print the AST from the top and decide to calculate the
+spacing for the moved definition, instead of calculating a fresh
+`DeltaPos` based on the *anchor*, we make use of the one in the
+*anchor_op* instead.
+
+This allows us to painlessly build up new ASTs based on fragments from
+anywhere, and we only need to worry about spacing where we actually
+fit the new part in.
 
 **RAE:** The current design (as witnessed in !2418 on 12 March 2021) allows exact-printing only
 in the `GhcPs` AST, but not in `GhcRn` or `GhcTc`. Why? Would we never want to exact-print a
@@ -48,7 +104,7 @@ module Language.Haskell.Syntax.Expr where
   -- The client-independent syntax tree
   data HsExpr p = ...
     | HsLet       (XLet p)           -- The extension field
-                  (LHsLocalBinds p)
+                  (HsLocalBinds p)
                   (LHsExpr  p)
 
 module GHC.Hs.Expr where
@@ -59,7 +115,7 @@ module GHC.Hs.Expr where
 
   data AnnsLet = AnnsLet { alLet :: AnnAnchor, alIn :: AnnAnchor }
 
-module GHC.Parser.Annotation where 
+module GHC.Parser.Annotation where
   -- Shared data types relating to API annotations
 data ApiAnn' ann
   = ApiAnn { entry   :: Anchor
@@ -72,11 +128,14 @@ Here you can see
 
 * Every extension field uses `ApiAnn'` to store stuff that every node has in common: an `Anchor` and comments.
 * The `AnnsLet` data type records the locations of the `let` and `in` keywords for `HsLet`.  There is one such data type for each constructor.
-* **Anchors**.  We must be careful about exactly how we store the location. A simple fixed row/column will not do, because a construct might be moved before exact-printing. We thus define a new concept of *anchor*: an anchor is **RAE** finish this sentence **End RAE**. Anchors are stored as **RAE** finish this sentence **End RAE**.
 
-* **Deltas**.   In addition we sometimes must store *deltas*: differences from one location to another. These arise **RAE** finish this sentence **End RAE**.
-
-* **Comments**.  Because we must exact-print with comments intact, we track all comments. These are associated with the innermost enclosing AST node -- that is, the one whose `SrcSpan` is smallest, yet includes the comment. They are stored **RAE** where? **End RAE**.
+* **Comments**.  Because we must exact-print with comments intact, we
+  track all comments. Non-toplevel comments are associated with the
+  innermost enclosing AST node -- that is, the one whose `SrcSpan` is
+  smallest, yet includes the comment.  Top level ones are associated
+  by the parser with the immediately following top level
+  declaration. Details of the `ApiAnnComments` structure and usage are
+  provided below.
 
 ## Data structures
 
@@ -122,10 +181,17 @@ type LAnnotationComment = GenLocated Anchor AnnotationComment
 
 ```
 
-This stores a comment, differentiating between the different comment styles. 
+**AZ**: I am adding some quick answers for now, will be updating properly in time.
+
+This stores a comment, differentiating between the different comment styles.
 **RAE** what's up with `AnnEofComment`? **End RAE**
+**AZ** : `AnnEofComment` is used to keep track of the actual end of the file, so that if there are blank lines at the end we can reproduce them when printing.
+
 **RAE** Why do we need `ac_prior_tok`? The comment is not helpful: *everything* here is about exact-printing. **End RAE**
+**AZ**: We need to calculate a `DeltaPos` between every piece of output when printing.  It is not always clear what the spacing is before a comment, so the lexer now emits the prior token location as well with a comment, so we can calculate this.
+
 **RAE** Why does `LAnnotationComment` get an `Anchor` not a `SrcSpan`? **End RAE**
+**AZ** Everything that can be moved (which is everything) gets an `Anchor`.
 
 ----------------------------------
 
@@ -190,6 +256,7 @@ data AnchorOperation = UnchangedAnchor
 
 **RAE** As I commented on the MR, I find `AR` and `AD` shorter than necessary, and I think `DeltaPos` would be better with two constructors. **End RAE**
 **RAE** Why do we need both of these types? How are they different? **End RAE**
+**AZ**: I am not *sure* that we do. I do know that as explained in **Mechanism** above we need the anchor to have a `RealSrcSpan` and sometimes a `DeltaPos`.  An `AnnAnchor` only needs to provide the one or the other. But perhaps we can come up with a way of harmonising this.
 
 ----------------------------------------
 
@@ -217,6 +284,7 @@ This is the heart of this design: an `ApiAnn'` stores the `Anchor` for an AST no
 In addition, the `anns` field stores the locations for any keywords (like `let` and `in`) associated with an AST
 node. **RAE** Some AST nodes (e.g. `HsLet`) get custom data structures for `ann`. Some (e.g. `LazyPat`) get `[AddApiAnn]`. Why
 the difference? What's the guiding principle? **End RAE**
+**AZ**: The intention is that each gets a custom structure, but this was a big task and I was focusing on making sure the overall approach actually works. Going forward, @int_index has proposed a slightly different mechanism that may make this moot in time.
 **RAE** I don't think it's helpful having a reference to the previous model; that will get stale quickly. **End RAE**
 
 -------------------------------------------------
@@ -274,6 +342,18 @@ data AnnListItem
 ```
 
 **RAE** What is "trailing" about this bit? **End RAE**
+**AZ** when we have things in a list requiring punctuation, the punctuation goes here. so in
+```hs
+let { x = 1; y = 2 } in x+y
+```
+the `;` would be captured in a `TrailingAnn`.
+Similarly, in
+```hs
+data Foo = A | B | C
+```
+the `A` and `B` constructors would have `|` in a `TrailingAnn`.  If we moved the constructor elsewhere, we sould discard the trailing annotations, or add new ones in the new location.
+
+**AZ**: stopping now, will carry on tomorrow (now 2021-03-15).
 
 ---------------------------------
 
