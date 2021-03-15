@@ -43,6 +43,13 @@ Clash compiles Haskell code into a low-level hardware description language.
 
 Clash works from Core. It currently uses unfoldings, using `-fexpose-all-unfoldings`. It can evidently tolerate post-optimization Core, so possibly it doesn't care about "Platform-agnostic Core". I don't know if it cares about "Non-interference".
 
+(Christiaan Baaij:)
+ Some remarks with regards to the considerations:
+- Platform independent: Aside from constant-folding native machine words, where GHC's constant-folding and Clash' own constant folding would behave equivalently, I cannot really see where this would matter for Clash.
+- Non-interference: Not important because Clash has its own driver pipeline in which it calls [GHC API functions](https://github.com/clash-lang/clash-compiler/blob/ab6dd31dc61fc96bb058e57dc117db6f5626d3a9/clash-ghc/src-ghc/Clash/GHC/LoadModules.hs#L328-L373) in the manner it needs to.
+- Completeness: Clash can tolerate the incompleteness that `-fexpose-all-unfoldings` has: bottoming functions do not have to be exported as long as they're marked as bottoming.
+- Precision: Aside from using `-fexpose-all-unfoldings`, Clash also tends to need `-fno-worker-wrapper` because of Clash' "extensible primop" feature where a user can instruct the compiler to take a completely unique code-generation path for a particular function. The issue with the W/W transformation is that the NOINLINE pragma is moved to the worker and removed from the wrapper, where the wrapper has the Clash-identifiable name for the "extensible primop" feature.
+
 ## GRIN
 
 GRIN is an experimental backend for GHC, which converts STG into its own IR. It
@@ -94,6 +101,8 @@ This is something of an odd feature: none of our use cases require this (and the
 I think we should keep this in mind as a goal, and do it if it seems relatively easy.
 
 (Zubin:) This would be very useful for ghcide, since we could skip typechecking/desugaring for files for which we have the iface but need bytecode.
+
+(Christiaan Baaij:) This would be useful for/usable by Clash. Clash actually runs GHCs optimizer when it has access to the code using a curated set of optimizations that it [likes](https://github.com/clash-lang/clash-compiler/blob/ab6dd31dc61fc96bb058e57dc117db6f5626d3a9/clash-ghc/src-ghc/Clash/GHC/LoadModules.hs#L935-L952) and [dislikes](https://github.com/clash-lang/clash-compiler/blob/ab6dd31dc61fc96bb058e57dc117db6f5626d3a9/clash-ghc/src-ghc/Clash/GHC/LoadModules.hs#L865-L893). It would be ideal, though not required, if Clash could run the same optimizations regardless of whether it had access to the source or not.
 
 # GHC API changes
 
