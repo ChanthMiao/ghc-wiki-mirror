@@ -14,7 +14,7 @@ I move stuff here from the different sections that is on our radar at the moment
 
 # Simplifier and occurrence analysis
 
-- #19529
+- #19529: glomming and occurrence analysis
 
 # Exceptions
 
