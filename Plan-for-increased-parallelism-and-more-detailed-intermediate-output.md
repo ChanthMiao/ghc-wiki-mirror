@@ -62,3 +62,10 @@ This wiki page can hopefully serve as a point of reference so that we don't step
 ### Other follow-up improvements we can make
 
  - `-dynamic-too` should be less of a hack. Right now, there is tons of special cases repeating steps. But if we had dependency graph / non-shot steps that were granular enough, this could all fall out of regular caching logic.
+
+
+### Notes about .hi files splitting (for backup, copied from 14095)
+
+The first step is to split `hi` files just as we split `ModDetails`: there should be one file (e.g. `hi-tc` corresponding to `ModDetailsTc`) and another file (Maybe just `hi` for now) corresponding to `ModDetailsCg`. Then, there is the issue of the guts. We need to ge the result of type checking and also serialize it to disk, so the downstream invocation for the same module can pick up the work. It would be really cool if we could actually use `hie` files for this, as they store the whole type-checked AST.
+
+Probably the easier part is splitting the `hi` file, as tracked in #17843. We won't be able to leverage the parallelism without complicated blocking on other files being written (since the `*Guts` can only be conveyed in memory) that I don't think it worth it to write and then throw away, but I think that's OK. It's good to keep up with the `ModDetails` split for sake of code quality and keeping the batch mode and one-shot code from drifting apart further.
