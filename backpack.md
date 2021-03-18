@@ -34,6 +34,8 @@ You might find it useful to find some code using Backpack.  Here are the biggest
 
 - [reflex-backpack](https://github.com/ezyang/reflex-backpack) is a kind of crazy experiment at Backpack'ing Reflex.  Reflex uses a lot of advanced GHC features and it took some coaxing to get Backpack to handle it all, but handle it all it did!
 
+- [Picnic](https://kowainik.github.io/posts/2018-08-19-picnic-put-containers-into-a-backpack) is a comparison of putting a container interface into a typeclass vs. Backpack.
+
 
 Some more out-of-date documents:
 
