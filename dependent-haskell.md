@@ -576,7 +576,7 @@ So, my claim here is that, while possible, this design is unappealing. If the co
 
 False: **Dependent Haskell destroys the phase distinction and/or type erasure.**
 
-Other dependently typed languages (notably, Agda and Idris 1) have a murky notion of what information is kept around at runtime, and what is erased during compilation. For example, I can write this in Agda:
+Other dependently typed languages (notably, earlier versions of Agda and Idris 1) have a murky notion of what information is kept around at runtime, and what is erased during compilation. For example, I can write this in Agda:
 
 ```hs
 quickLength : ∀ {a : Set} {n : ℕ} → Vec a n → ℕ
