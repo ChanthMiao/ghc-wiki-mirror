@@ -79,3 +79,7 @@ in ... f ...
 ## Code Generation
 
 **TODO**
+
+## Formal Semantics
+
+There is an extension to the STG abstract machine (as described in "Implementing lazy functional languages on stock hardware: the STG-machine") that is editable on [Overleaf](https://www.overleaf.com/2445276151rfsrtkwwhmgb).
