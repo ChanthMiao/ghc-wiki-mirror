@@ -33,13 +33,17 @@ The idea of sharing the free variables of closures is not new. This work takes i
 ```
 data GenStgRhs pass = StgRhsEnv [Id] | ...
 ```
-Unlike function applications which accept variable and literal arguments, environments will only every refer to variables since they are there only for free variables.
+Unlike function applications which accept variable and literal arguments, environments will only every refer to variables since they are there only for free variables. `StgRhsEnv`s have runtime representation `BoxedRep Unlifted` and its fields are free to have any monomorphic representation.
 
 `caseenv` is an extension to `GenStgExpr`:
 ```
 data GenStgExpr pass = StgCaseEnv Id [Id] (GenStgExpr pass) | ...
 ```
-The first argument of the constructor is the heap-bound environment that is being opened up; it will always be a variable. The second and third arguments operate like an alternative: the second is the list of variables to be bound in the third expression.
+The first argument of the constructor is the heap-bound environment that is being opened up; it will always be a variable of boxed, unlifted runtime representation. The second and third arguments operate like an alternative: the second is the list of variables to be bound in the third expression.
+
+#### Alternative design without `StgCaseEnv`
+
+SG wondered why we need `StgCaseEnv` when its semantics is identical to a regular `StgCase` on a record of boxed, unlifted representation. Why not reuse `StgCase`? Well, then we'd have to extend `type StgAlt = (AltCon, [Id], StgExpr)` with a new case for `CaseEnv`s, because closure envs don't have a DataCon we can reference in `AltCon`. So either we'd have to make `StgAlt` a sum type or add a new alternative to `AltCon`, which is also used in `Core`, where it'd be very weird having to consider closure envs. Maybe `data StgAltCon = Plain AltCon | CloEnv`? Still a bit weird. Ultimately, it may be simpler to stick to extending STG expression syntax.
 
 ## Analyses
 
