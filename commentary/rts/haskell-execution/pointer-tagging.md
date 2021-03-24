@@ -201,6 +201,7 @@ Fixing this via export of LFInfo would have the following benefits:
 A hot topic (2021)! See
 * #15155
 * #16949
+* #9133
 * !1472, !4742, !5333
 
 One might assume that strict fields by their nature can only contain tagged pointers. This is however not true as they only require to uphold their semantics which allows indirections (or even thunks in theory).
