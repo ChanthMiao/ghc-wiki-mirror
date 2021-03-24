@@ -196,7 +196,12 @@ Fixing this via export of LFInfo would have the following benefits:
 * We can omit entry code for all constructors. If we can ensure all references to constructors are tagged there is never a reason to enter them.
 * We can use a more efficient calling convention in some places, as LFInfo allows us to replace slow calls with more efficient variants.
 
-### Strict fields containing untagged pointers - #15155
+### Strict fields containing untagged pointers
+
+A hot topic (2021)! See
+* #15155
+* #16949
+* !1472, !4742, !5333
 
 One might assume that strict fields by their nature can only contain tagged pointers. This is however not true as they only require to uphold their semantics which allows indirections (or even thunks in theory).
 
