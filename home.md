@@ -11,7 +11,7 @@ You may wish to see the [table of contents](./index) to get a sense for what is 
   * [Mailing Lists & IRC](/mailing-lists-and-irc) Stay up to date and chat to the community.
   * [The GHC Team](/team-ghc) Contributors and who is responsible for what.
 * Documentation
-  * [GHC Status Info](/status#ghc-status) How is the next release coming along?
+  * [GHC Status Info](/GHC-status) How is the next release coming along?
   * [Working conventions](/contributing#contributing-to-ghc) How should I do X?
   * [Building Guide](/building/#building-and-porting-ghc) Build GHC from source.
   * [Debugging](/debugging#debugging) How to debug the GHC.
