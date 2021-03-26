@@ -14,7 +14,7 @@ I think there are two alternative ways to look at fundeps.  Both have validity, 
   ```
   and the constraint `(C2 t1 t2)`, then knowing `t1` complete forces what `t2` must be. That is, `t2` is a function of `t1`.
 
-* **GuidedInference**.  Under the GuidedInference view, fundeps are *only* a means to guide type inference, by doing some extra unifications, thus removing ambiguity.
+* **SingleChoiceInference**.  Under the SingleChoiceInference view, fundeps are *only* a means to guide type inference, by doing some extra unifications, thus removing ambiguity.
 
 GHC's current story on fundeps is an uneasy compromise between these two.  Much of the debate is driven by the competing priorities of the two, which pull in opposite directions.
 
@@ -78,9 +78,9 @@ applications?
 The big problem is, of course, that many uses of fundeps today are simply incompatible with this approach: see [key examples](key-examples).
 
 
-## GuidedInference: fundeps guide type inference
+## SingleChoiceInference: fundeps guide type inference
 
-The GuidedInference approach completely abandons the goal that a fundep is a true functional dependency. Rather, it's a mechanism that gives rise to some extra equality constraints, that in turn guide inference.
+The SingleChoiceInference approach completely abandons the goal that a fundep is a true functional dependency. Rather, it's a mechanism that gives rise to some extra equality constraints, that in turn guide inference.
 
 A classic example is [Example 5](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies-in-GHC/key-examples#example-5-even-lcc-is-too-restrictive).
 ```
@@ -97,7 +97,7 @@ unknown type `p`), but specifically does not want to fully define the field type
 
 This is a bit similar to [the notion of "head dependency" discussed here](https://gitlab.haskell.org/ghc/ghc/-/issues/6018#note_87924).
 
-To make the point very explicitly, I'll describe an extreme design that focuses entirely on GuidedInference.
+To make the point very explicitly, I'll describe an extreme design that focuses entirely on SingleChoiceInference.
 
 * When trying to solve a constraint `(HasField t1 t2 t3)`, if any instances *match* the constraint, just use the existing matching rules for instances.
 
@@ -121,9 +121,9 @@ There are many details to work out. For example: ```
 
 --------------------------
 
-## Examples of GuidedInference
+## Examples of SingleChoiceInference
 
-GuidednInference deals rather straighforwardly with the [Key examples](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies-in-GHC/key-examples):
+SingleChoiceInference deals rather straighforwardly with the [Key examples](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies-in-GHC/key-examples):
 
 In these examples I don't get the class declaration, because the rules apply to all classes (rather simple).
 
@@ -135,7 +135,7 @@ instance {-# LIBERAL #-} Mul a b c => Mul a (Vec b) (Vec c)
 ```
 Try solving `[W] Mul alpha (Vec beta) beta`. This unifies wtih the instance
 with `b := beta, beta := Vec delta, a := alpha` where `delta` is fresh.
-So we get a loop, just as before.  GuidedInference does not have guaranteed termination.
+So we get a loop, just as before.  SingleChoiceInference does not have guaranteed termination.
 
 ### Example 2
 
@@ -153,7 +153,7 @@ instance (q ~ Int)  => D Int  p (Int,q)
 instance (s ~ Bool) => D Bool r (s,Bool)
 ```
 try solving `[W] C alpha beta (gamma, delta)`.
-This unifies with both instances, so we do nothing. GuidedInference is confluent, I believe.
+This unifies with both instances, so we do nothing. SingleChoiceInference is confluent, I believe.
 
 ### Example 4
 ```
