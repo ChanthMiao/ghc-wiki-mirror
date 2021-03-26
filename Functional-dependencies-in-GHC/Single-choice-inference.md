@@ -1,4 +1,4 @@
-## The big fork in the road.
+## Two approaches to fundeps
 
 This page describes some design ideas for functional dependencies.
 
@@ -131,7 +131,7 @@ In these examples I don't get the class declaration, because the rules apply to 
 
 ```
 class Mul a b c | a b -> c
-instance {-# LIBERAL #-} Mul a b c => Mul a (Vec b) (Vec c)
+instance Mul a b c => Mul a (Vec b) (Vec c)
 ```
 Try solving `[W] Mul alpha (Vec beta) beta`. This unifies wtih the instance
 with `b := beta, beta := Vec delta, a := alpha` where `delta` is fresh.
