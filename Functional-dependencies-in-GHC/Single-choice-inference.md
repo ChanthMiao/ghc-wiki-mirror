@@ -1,6 +1,6 @@
 ## Two approaches to fundeps
 
-This page describes some design ideas for functional dependencies.
+This page describes a new design idea for in the functional-dependency space.
 
 Go up to [Functional dependencies in GHC](..)
 
@@ -71,14 +71,14 @@ as true type functions, fully expressed in System FC. The fundep
 syntax is simply convenient syntactic sugar.
 
 **ToDo** I'd love to have compelling examples of when TrueFundeps is
-what we need. Deriving equalites from Givens might be one such --
-but since GHC can't do that today, what are the other compelling
-applications?
+what we need. Deriving equalities from Givens might be one such --
+but since GHC can't do that today, what are the *other* compelling
+applications of TrueFundeps?
 
 The big problem is, of course, that many uses of fundeps today are simply incompatible with this approach: see [key examples](key-examples).
 
 
-## SingleChoiceInference: fundeps guide type inference
+## SingleChoiceInference: guiding type inference
 
 The SingleChoiceInference approach completely abandons the goal that a fundep is a true functional dependency. Rather, it's a mechanism that gives rise to some extra equality constraints, that in turn guide inference.
 
@@ -109,15 +109,41 @@ To make the point very explicitly, I'll describe an extreme design that focuses 
 
 In this design I have not even annotated the class declaration!  It amounts to saying: if there is only one way to solve the constraint, solve it that way.
 
-There are many details to work out. For example: ```
+There are many details to work out. For example:
+
+* What about local Givens?   We could treat them just like local instances, with no quantified variables.   But eg. if we have a Given `Eq a` and a Wanted `Eq alpha`, do we really want to emit `[D] alpha ~ a`?   Maybe so.
+
+* Do we really want to use SingleChoiceInference for every of every class?  Maybe not. Consdier
+  ```
+  module M where
+     data T = MkT { fld :: Int }
+
+     f x = x.fld
+  ```
+  What type would you expect to be inferred for `f`?  There is only one `HasField` instance in
+  scope, so the constraint `[W] HasField "fld" alpha beta` matches it, and we get `alpha := T, beta := Int`,
+  and `f :: T -> Int`.  But if there were *no* `HasField` instances for `"fld"`, or if there were *more than one*,
+  we'd get `f :: HasField "fld" r a => r -> a`.
+
+  Perhaps we want to say that we only want to use SingleChoice on the third field of `HasField`, like this
+  ```
+  class HasField (n :: Symbol) s a | singlechoice(a) where ...
+  ```
+  Now the rule becomes: find all instances that *match* on the non-singlechoice fields, and *unify* on the single-choice fields. If there is just one such, instantiat with fresh variables and emit Derived equalities for the single-choice fields. Otherwise do nothing.
+
+  With no `singlechoice` (syntax TBD) annotations, the behaviour is as today.
+
+* The very same idea would work for type families -- see #19568.  For example
+  ```
+    type family Zip as bs = r | r -> as bs, singlechoice(as,bs) where
+      Zip '[]       '[]       = '[]
+      Zip (a ': as) (b ': bs) = '(a, b) ': Zip as bs
+  ```
+  Now if we have a stuck call `Zip b (c : ds)`, it unifies with exactly one equation, so we pick it and emit `[D] b ~ (a:as)`
 
 * Suppose two
   intances match but one is more general than the other.  Example:
   `instance forall a. C [a]` and `instance C [Int]`. Then, if there is a unique most-general instance (in this case the `C [a]` instance), use it for generating the derived constraints.  The idea is that it summarise what is common among all the unifying instances, one of which may ultimately solve the constraint.
-
-* What about local Givens?   We could treat them just like local instances, with no quantified variables.   But eg. if we have a Given `Eq a` and a Wanted `Eq alpha`, do we really want to emit `[D] alpha ~ a`?   Maybe so.
-
-* Or maybe we want to declare classes as "improvable" and only do this stuff for improvable classes?
 
 --------------------------
 
@@ -165,4 +191,16 @@ Try solving `[W] TypeEq Int Bool alpha`.  This unifies only with the second inst
 Try solving `[W] TypeEq Int Int alpha`.  This unifies with both, but first is most specific, so we pick it, and get `alpha := True`.
 
 
+### Example 5
 
+```
+class HasField (name :: Symbol) s a | name s -> a where
+  getField :: s -> a
+
+data T = MkT { fld :: forall a. [a] -> [a] }
+
+instance {-# DYSFUNCTIONAL #-} HasField "fld" T ([p] -> [p])
+  getField (MkT f) = f
+```
+If we have `[W] HasField "fld" T alpha`, that will unify with only
+one instance, so we will emit `[D] alpha ~ ([beta] -> [beta])`
