@@ -130,7 +130,7 @@ In these examples I don't get the class declaration, because the rules apply to 
 ### Example 1
 
 ```
-class Mul a b c | a b -> c
+class Mul a b c
 instance Mul a b c => Mul a (Vec b) (Vec c)
 ```
 Try solving `[W] Mul alpha (Vec beta) beta`. This unifies wtih the instance
