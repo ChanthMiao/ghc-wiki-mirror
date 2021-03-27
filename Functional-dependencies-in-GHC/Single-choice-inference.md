@@ -75,7 +75,7 @@ what we need. Deriving equalities from Givens might be one such --
 but since GHC can't do that today, what are the *other* compelling
 applications of TrueFundeps?
 
-The big problem is, of course, that many uses of fundeps today are simply incompatible with this approach: see [key examples](key-examples).
+The big problem is, of course, that many uses of fundeps today are simply incompatible with this approach: see [key examples](./key-examples).
 
 
 ## SingleChoiceInference: guiding type inference
@@ -149,7 +149,7 @@ There are many details to work out. For example:
 
 ## Examples of SingleChoiceInference
 
-SingleChoiceInference deals rather straighforwardly with the [Key examples](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies-in-GHC/key-examples):
+SingleChoiceInference deals rather straighforwardly with the [Key examples](./key-examples):
 
 In these examples I don't get the class declaration, because the rules apply to all classes (rather simple).
 
