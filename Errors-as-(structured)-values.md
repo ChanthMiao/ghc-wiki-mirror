@@ -1,8 +1,7 @@
 [[_TOC_]]
 
-# Progress Tracking / Implementation plan
-
-<details><summary> :gear: <b>Current progress</b> (click the arrow to expand!)</summary>
+**Overall progress (estimated)**: ![60%](https://progress-bar.dev/60)
+<details><summary> :gear: <b>Progress Breakdown</b> (click the arrow to expand!)</summary>
 
 As this strand of work touches a lot of modules, doing everything as a single gargantuan MR seems highly impractical. Rather, we are considering breaking things down into atomic chunks which could be reviewed in isolation. A sketch of the plan might be the following:
 
