@@ -1,3 +1,5 @@
+[[_TOC_]]
+
 # Progress Tracking / Implementation plan
 
 <details><summary> :gear: <b>Current progress</b> (click the arrow to expand!)</summary>
