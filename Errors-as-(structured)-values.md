@@ -415,7 +415,9 @@ Once this is done, we should hopefully be able to rid ourselves of `defaultReaso
 This section contains thoughts on improvements to the design to support more uniform suppression of warnings that the
 user does not want. Note that this *builds on* the design above. It does *not* suggest a new alternative to the design above.
 
-**EDIT: Design A triumphed.** 
+**EDIT: Design A triumphed. Expand the arrow to read the original write-up.**
+
+<details><summary> Original write up </summary> 
 
 ## Current design
 
@@ -484,3 +486,4 @@ A good way to approach this is simply to search for any occurrence of `Opt_Warn`
 ## Conclusion
 
 I (Richard) recommend design B, because I'm worried about the performance implications of Design A. Though, it might be worthwhile to implement A first (should be very very easy), then remove the conditionals, and then measure performance before going with the more-involved B.
+</details>
