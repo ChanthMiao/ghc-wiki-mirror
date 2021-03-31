@@ -79,7 +79,7 @@ Finally, we commit the submodule change in the `ghc` repository.
 ```bash
 git commit
 ```
-In the commit message be sure to mention any submodule changes made; a linter in GHC's CI process checks that any commits containing submodule changes mention the word "submodule" to prevent unintentional submodule changes from accidentally being merged.
+In the commit message be sure to mention any submodule changes made; a [linter](https://gitlab.haskell.org/ghc/git-haskell-org-hooks/-/blob/master/src/validate-submod-refs.hs) in GHC's CI process checks that any commits containing submodule changes mention the word "submodule" to prevent unintentional submodule changes from accidentally being merged.
 
 To push the changes, we first push the submodule changes to the GHC mirror repository (e.g. ghc/packages/Cabal>). GHC developers have permission to push branches to these mirrors under the `wip/` branch namespace (if you see encounter a permission denied error, ask someone in `#ghc` to grant you Developer rights in the `ghc` group).
 ```bash
