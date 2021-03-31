@@ -19,6 +19,7 @@ Added LANGUAGE extensions:
 - `GHC2021`
 - `[No]OverloadedRecordDot`
 - `[No]OverloadedRecordUpdate`
+- `[No]UnliftedDatatypes`
 
 ## Changes in GHC 9.0
 
