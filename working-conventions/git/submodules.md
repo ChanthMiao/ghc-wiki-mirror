@@ -45,26 +45,6 @@ rm -rf libraries/parallel
 git submodule update --init
 ```
 
-
-### `git pullall`
-
-A commonly defined Git alias that combines the two commands into one convenient Git alias is:
-
-```
-git config --global alias.pullall '!f(){ git pull --ff-only "$@" && git submodule update --init --recursive; }; f'
-```
-
-(the `--global` flag make this alias persist in the `${HOME}/.gitconfig` file, so this needs to be done only once, the `--recursive` option is not needed for GHC but it's commonly used for the `pullall` alias)
-
-After setting this alias, one can now simply use the single invocation
-
-```
-git pullall --rebase
-```
-
-to update `ghc.git` and all its submodules.
-
-
 ## `git status` and dirty submodules
 
 By default, git will consider your submodule as "dirty" when you do `git status` if it has any changes or any untracked files.  Sometimes this can be inconvenient, especially when using [Phabricator](phabricator) which won't allow you to upload a diff if there are dirty submodules.  Phabricator will let you ignore untracked files in the main GHC repo, but to ignore untracked files in a submodule you'll need a change to `.git/config` in the GHC repo.  For example, to ignore untracked files in the `nofib` repo, add the line `ignore = untracked` to the section for `nofib` in `.git/config`:
@@ -76,94 +56,48 @@ By default, git will consider your submodule as "dirty" when you do `git status`
 ```
 
 
-## Making changes to GHC submodules
+## Making changes to GHC's submodules
 
-It's very important to keep in mind that Git submodules track commits (i.e. not branches!) to avoid getting confused. Therefore, `git submodule update` will result in submodules having checked out a so-called [detached HEAD](http://alblue.bandlem.com/2011/08/git-tip-of-week-detached-heads.html).
+It's very important to keep in mind that Git submodules track commits, not branches. Therefore, `git submodule update` will result in submodules having checked out a so-called [detached HEAD](http://alblue.bandlem.com/2011/08/git-tip-of-week-detached-heads.html).
 
-So, in order to make change to a submodule you can either:
-
-1) Work directly on the detached HEAD in the submodule directory.
-
-2) Checkout the respective branch the commit is supposed to be pointed at from (normally `master`. See the table on [Repositories](repositories) for the full branch/repo summary). 
-
-
-If you merely need to update a submodule to point to the latest upstream commit of that submodule, which also takes care to lookup the proper upstream Git branch (in case it's not `master`) as specified in the `.gitmodules` file.
-For example, to update `libraries/Cabal`, you can run the following commands:
-
-```wiki
-git submodule update --remote libraries/Cabal
-git commit libraries/Cabal
-git push
+To make a change to a submodule (here we use `Cabal` for concreteness), start by ensuring that your tree's submodules are up-to-date:
+```bash
+git submodule update --init
 ```
-
-The example below will demonstrate the latter approach for the `utils/haddock` submodule:
-
+Next, create a branch  for your change, ensuring that the name contains the `wip/` prefix (it is common to name the submodule branches similarly to the GHC branch with which they are associated),
+```bash
+git -C libraries/Cabal checkout -b wip/$BRANCH_NAME
 ```
-# do this *before* making changes to the submodule
-cd utils/haddock
-git checkout ghc-head
-git pull --rebase
-
-# perform modifications and as many `git {add,rm,commit}`s as you deem necessary
-$EDITOR src/somefile.hs
-
-# finally, after you're ready to publish your changes, simply push the changes as for an ordinary Git repo
-git push
-
-# go back to ghc.git top-level
-cd ../..
+We can now proceed with making the desired changes in the submodule and commit them as usual:
 ```
-
-At this point, the remote `haddock.git` contains newer commits in the `ghc-head` branch, which still need to be registered with `ghc.git`:
-
+# perform modifications and as many `git {add,rm}`s as you deem necessary
+$EDITOR libraries/Cabal/src/somefile.hs
+# commit
+git -C libraries/Cabal commit
 ```
-# if you want, you can inspect with `git submodule` and/or `git status`
-# if there are submodules needing attention;
-# specifically, the commands below should report new commits in `util/haddock`
-git submodule
-git submodule summary
-git status
-
-# Register the submodule update for the next `git commit` as you would any other file
-# Note: You can think of submodule-references as virtual files which 
-#       contain a SHA1 string pointing to the submodule's commit.
-git add util/haddock
-
-# you can also add other changes in `ghc.git` (e.g. testsuite changes) and/or other submodules 
-# you need to update atomically with the next commit
-git add testsuite/...
-
-# prepare a commit, and make sure to mention the string `submodule` in the commit message
-git commit -m 'update haddock submodule ... blablabla'
-
-# for the paranoid, inspect your commit one last time, including the submodule's commit headings
-git show --submodule
-
-# finally, push the commit to the remote `ghc.git` repo
-git push
+Finally, we commit the submodule change in the `ghc` repository.
+```bash
+git commit
 ```
+In the commit message be sure to mention any submodule changes made; a linter in GHC's CI process checks that any commits containing submodule changes mention the word "submodule" to prevent unintentional submodule changes from accidentally being merged.
 
-Git supports a recursive `git push` operation. If you issue a
-
-```wiki
-git push --recurse-submodules=on-demand
+To push the changes, we first push the submodule changes to the GHC mirror repository (e.g. ghc/packages/Cabal>). GHC developers have permission to push branches to these mirrors under the `wip/` branch namespace (if you see encounter a permission denied error, ask someone in `#ghc` to grant you Developer rights in the `ghc` group).
+```bash
+git -C libraries/Cabal remote add gitlab git@gitlab.haskell.org:ghc/packages/Cabal
+git -C libraries/Cabal push gitlab wip/$BRANCH_NAME
 ```
+Now create a draft merge request against the upstream projeect (e.g. <https://github.com/haskell/Cabal>) proposing to merge your branch into the branch being tracked by GHC (typically `master`).
 
-this will cause Git to push all submodules changes that have been registered in the revisions
-to be pushed to the super repository.
+Finally, we can push the GHC branch as well:
+```bash
+git push origin wip/$BRANCH_NAME
+```
+We can now open a GHC merge request [as usual](https://gitlab.haskell.org/ghc/ghc/-/wikis/Contributing-a-Patch#merge-request-workflow). When doing so, include a list of the associated upstream merge requests for any submodule changes made in the MR.
 
-TODO show how to define a `git pushall` alias in the style of the `git pullall` alias
+### Merging an MR containing submodule changes
 
+When an MR containing submodule changes has passed review, it is important that any upstream submodule MRs have been merged *before* the MR is added to the merge queue. While the submodule linting job will catch any MRs which refer to submodule commits not reachable via a persistent branch (e.g. not a `wip/` branch), this will cause @marge-bot jobs to fail, stalling the merge process.
 
-### Validation hooks
-
-GHC's CI infrastructure includes a submodule lint job which ensures that:
-
-1. If you update a submodule pointer,
-
-2. You had to have pushed it upstream already,
-
-3. And you have to say the word 'submodule' in the commit.
 
 ## Upstream repositories
 
@@ -172,7 +106,7 @@ Check out the [Repositories](repositories) page for a full breakdown of all the 
 
 ## TODO
 
-- Describe darcs mirroring for `transformers`
+- Sort out what to do about `transformers`
 - Describe status of `pretty` which is one-off at the moment and doesn't exactly track upstream.
 
 
@@ -192,20 +126,6 @@ To accomplish this we configure the submodule projects as follows:
 
 This ensures that commits can only be pushed to `wip/.*`, which the submodule check linter does not consider as roots.
 
-## Testing submodule changes
-
-The submodule references in the GHC tree pull from a set of mirrors maintained at <https://gitlab.haskell.org/ghc/packages> (except for Haddock, which is at `https://gitlab.haskell.org/ghc/haddock` directly; no `packages`). Members of the `ghc` [group](https://gitlab.haskell.org/ghc) (i.e. most GHC developers; if you are not currently a member you can request membership by clicking on the "Request Access" link at the [top of the group page](https://gitlab.haskell.org/groups/ghc)) can push branches with the prefix `wip/` to these mirrors to test their changes without merging them upstream. For instance, one might test changes in the `haddock` submodule via,
-```
-$ cd utils/contain
-$ git checkout -b wip/my-changes
-$ git remote add origin-push git@gitlab.haskell.org:ghc/haddock
-$ git push origin-push wip/my-changes
-```
-One can then push a GHC branch needing `wip/my-changes` and CI will find the commits. Note, however, that this is only for testing purposing. Before the GHC branch can be merged any submodule updates much be first merged upstream.
-
-## Merging submodule changes
-
-The CI pipeline of GHC includes a linting step to ensure that all submodules refer only to "persistent" commits of the upstream repositories (e.g. not `wip/` branches, which may disappear in the future). Specifically, the linter checks that any submodules refer to commits that are reachable by at least one branch that doesn't begin with the prefix `wip/`. The linter is allowed to fail for merge requests but must pass in the final pipeline before the merge request is added to the merge queue.
 
 ## Submodule-specific policies
 
