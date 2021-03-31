@@ -43,7 +43,7 @@ To open a merge request:
 5. In the right drop-down of the *Source branch* pane select the name of your branch.
 6. Click on the green *Compare branches and continue* button.
 7. Give your merge request a title. Suffix with the issue number e.g "Fix some bug #12345"
-8. Write a description of your change. This should be ideally at very least a few sentences to help reviewers understand what you have done.
+8. Write a description of your change. This should be ideally at very least a few sentences to help reviewers understand what you have done. If your change requires any changes to [submodules](https://gitlab.haskell.org/ghc/ghc/-/wikis/working-conventions/git/submodules), please be sure to include links to the upstream merge requests in your description.
 9. Click on the green *Submit merge request* button.
 
 ## Working with your merge request
