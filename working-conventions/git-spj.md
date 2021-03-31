@@ -215,6 +215,16 @@ If you have pushed, you make a commit that exactly undoes what you did, and push
 
 See [the Git manual](http://www.kernel.org/pub/software/scm/git/docs/user-manual.html#fixing-mistakes) and [ the Git Book](http://book.git-scm.com/4_undoing_in_git_-_reset,_checkout_and_revert.html) on this topic.
 
+### Rebase
+
+`git rebase <base>` 
+* Takes `A`, the nearest common ancestor of `HEAD` and `base`
+* Transfers commits `A..HEAD` to the tip of `base`
+
+`git rebase --onto <newbase> <base>
+* Takes `A`, the nearest common ancestor of `HEAD` and `base`
+* Transfers commits `A..HEAD` to the tip of `newbase`
+
 ### Using someone else's GHC repo
 
 
