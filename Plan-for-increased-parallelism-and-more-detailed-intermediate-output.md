@@ -1,6 +1,6 @@
 ## Overview
 
-There is a plan at https://gitlab.haskell.org/ghc/ghc/-/issues/14095 to improve the incrementality and parallelism of compilation by splitting the compilation of each module between typechecking and desugaring. This would provide faster feedback to programmers about what went wrong with their build, and hopefully improve compile times. MIRI in conjunction with Obsidian Systems would like to see this happen.
+There is a plan at https://gitlab.haskell.org/ghc/ghc/-/issues/14095 to improve the incrementality of compilation by splitting the compilation of each module between typechecking and desugaring. This would provide faster feedback to programmers about what went wrong with their build, and hopefully improve compile times.
 
 Simultaneously, IOHK would like to have more useful intermediate files in order to resume compilation after typechecking with a separate compiler backend.
 
@@ -10,7 +10,9 @@ This wiki page can hopefully serve as a point of reference so that we don't step
 
 ### Phase 1: Parallelise `--make` alone, don't worry about `.hi` files, use existing in-memory data structures
 
-   1. Clean up existing code so subsequent refactors are easier to review and understand:
+This Phase is being implemented as detailed in https://gitlab.haskell.org/ghc/ghc/-/issues/14095
+
+#### Some ideas for cleanup of Recompilation avoidance code
  
       1. https://gitlab.haskell.org/ghc/ghc/-/merge_requests/3204 We get rid of `(RecompRequired, Maybe ModIface)` and replace it with a new datatype to ensure that when recompilation is not required, we do in fact have an iface.
 
@@ -24,13 +26,9 @@ This wiki page can hopefully serve as a point of reference so that we don't step
 
       4. Loading in one place. `GHC.Iface.Recomp.*` currently loads interfaces based on things changing, i.e. it's somewhat push-based. Other code loads interfaces on demand - fully pull based. Should we make sense of this in a more consistent way? @Ericson2314 hopes so, which is why `checkOldIface` !3204 still returns the whole interface even though it's one caller just needs the fingerprint. Maybe it will make sense to revisit that, but John didn't want to change it in !3204.
 
-   2. Actually split the main driver functions so one could have separate steps to assign to different notes in the finer-grained batch-mode dependency graphs. https://gitlab.haskell.org/ghc/ghc/-/merge_requests/2603 does this.
+ 
 
-   3. Modify `--make` to take advantage of the split phases/driver functions
-
-      - This is spiritually related to !1823, where we also gave a preexisting task its own proper nodes in the make work graph.
-
-   4. Future work that can be done currently with the next top level step:
+#### Future work that can be done
 
       - Backpack? Backpack already does something akin to split type checking and codegen today, and we should integrate with that.
         - https://gitlab.haskell.org/ghc/ghc/-/issues/10871 is the original phase 2 "richer hi files" issue. Directly solving it is a phase two thing, but perhaps we can anticipate it in the all in-memory case.
@@ -58,10 +56,6 @@ This wiki page can hopefully serve as a point of reference so that we don't step
       - The IDE work, with it's experimentation with shake-ifying the driver, might derived the most benefit from this work, as the separated concerns and fine-grained building blocks from the "cleanup" stage should make this experimentation easier and more fruitful.
 
    2. Come up with a workflow for external tools (e.g. plugins) to write and read their own extra data into the interface directory (or whatever it is).
-
-### Other follow-up improvements we can make
-
- - `-dynamic-too` should be less of a hack. Right now, there is tons of special cases repeating steps. But if we had dependency graph / non-shot steps that were granular enough, this could all fall out of regular caching logic.
 
 
 ### Notes about .hi files splitting (for backup, copied from 14095)
