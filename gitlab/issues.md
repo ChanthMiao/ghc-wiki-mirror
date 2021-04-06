@@ -4,7 +4,7 @@ A few notes about GHC's issue tracker:
 
  * Our labels are documented [here](gitlab/labels) and broadly fall into a few categories:
     * the **priority** labels (e.g. ~"P::low", ~"P::normal", ~"P::high", ~"P::highest"
-    * the **type of issue** labels (e.g. ~bug, ~"feature request", ~task)
+    * the **type of issue** labels (e.g. ~"T::bug", ~"T::feature request", ~"T::task")
     * the **topic** labels (e.g. ~BangPatterns, ~simplifier, ~"typed holes")
     * the **status** labels (e.g. ~upstream, ~"backport needed")
  * We define one milestone for every minor release. However, issue targetting a milestone does not necessarily mean that the issue will be fixed in that release. New tickets are generally milestoned to the next major release. If a ticket remained unfixed when that milestone arrives, it is kicked to the next major release. If after three releases the ticket is still unfixed, its milestone is unset.
@@ -21,8 +21,8 @@ Triaging a new issue typically proceeds as follows:
 
 1. Apply the appropriate **labels** to the ticket. See the [labels list](labels) for the full listing of valid labels. Generally a ticket should always have the following labels:
 
-   * one of ~bug, ~"feature request", or ~"task"; generally this will be taken care of by the template.
-   * if a ~bug, one of the [bug types labels](gitlab/labels#types-of-bugs).
+   * one of ~"T::bug", ~"T::feature request", ~"T::question", or ~"T::task"; generally this will be taken care of by the template.
+   * if a ~"T::bug", one of the [bug types labels](gitlab/labels#types-of-bugs).
    * if the bug looks to be operating-system-dependent, one of the [operating system labels](gitlab/labels#operating-systems). If no operating system label is present the default is assumed to be Linux.
    * if the bug looks to be architecture-dependent, one of the [architecture labels](gitlab/labels#architecture). If no architecture label is present the default is assumed to be x86-64.
    * any appropriate [language extension](gitlab/labels#language-extensions) or [compiler subsystem](gitlab/labels#subsystems) labels
