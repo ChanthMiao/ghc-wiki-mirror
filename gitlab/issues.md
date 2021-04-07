@@ -36,6 +36,7 @@ Triaging a new issue typically proceeds as follows:
    * if an issue is a regression in a recent release then the issue is likely ~"P::high" or ~"P::highest"
    * if an issue renders a commonly used workflow difficult or impossible then the issue is likely ~"P::high"
    * if the issue not a crash or incorrect result and is unlikely to affect a large number of users, set to priority ~"P::low"
+   * otherwise the priority should be ~"P::normal"
 
 1. Check that the ticket includes **sufficient detail** to be reproducible. If something is missing then kindly the reporter for clarification and apply the ~"info needed" label (don't forget to remove this when the reporter responds).
 
@@ -43,7 +44,7 @@ Triaging a new issue typically proceeds as follows:
 
    * if the issue is a regression from the previous major release, set milestone to the next minor release
    * if the issue is of high severity, set milestone to the next minor release
-   * if the issue is not important (e.g. weight of 3 or less) and unlikely to see attention in the next six months, set milestone to %"⊥"
+   * if the issue is not important and unlikely to see attention in the next six months, set milestone to %"⊥"
    * otherwise set milestone to the next major release
 
 1. Is there anyone who is particularly qualified to comment on the ticket? If so, leaving a comment mentioning them to ensure they see it.
