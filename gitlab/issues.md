@@ -14,9 +14,15 @@ A few notes about GHC's issue tracker:
 
 The current triage rota is split between @andreask, @mpickering and @bgamari.
 
-Sat, Sun, Mon: @bgamari
-Tues, Weds: @andreask
-Thurs, Fri: @mpickering
+| Day | Triager |
+| ------ | ------ |
+| Monday | @bgamari |
+| Tuesday | @andreask |
+| Wednesday | @andreask |
+| Thursday | @mpickering |
+| Friday | @mpickering |
+| Saturday | @bgamari |
+| Sunday | @bgamari |
 
 ## Triage protocol
 
