@@ -1,5 +1,3 @@
-## Delayed substitutions
-
 A big shortcoming of GHC is that it does not support sharing in types,
 in any way, shape, or form.  That can lead to exponentially large
 types in exotic situtions.  This page explores a design that would
