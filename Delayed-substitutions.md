@@ -3,6 +3,9 @@ in any way, shape, or form.  That can lead to exponentially large
 types in exotic situtions.  This page explores a design that would
 address this problem.
 
+See also
+* #19538 Idea: Annotating Core to avoid unnecessary traversal of large subexpressions
+
 ### Let-bindings in types
 
 A starting point might be to allow let-bindings in types
