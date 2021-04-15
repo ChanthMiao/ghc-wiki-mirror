@@ -124,6 +124,7 @@ Code-size blowup when using `deriving`; see tickets with keyword `deriving-perf`
 
 ## Urgent or in-flight
 
+- #19704: delayed substitution in types
 - #12088: phase ordering for type-in-type
 - #11371: bogus in-scope set for substitution
 - #10844, #10845, #10846: implicit call stacks
