@@ -488,3 +488,36 @@ A good way to approach this is simply to search for any occurrence of `Opt_Warn`
 
 I (Richard) recommend design B, because I'm worried about the performance implications of Design A. Though, it might be worthwhile to implement A first (should be very very easy), then remove the conditionals, and then measure performance before going with the more-involved B.
 </details>
+
+# Integrating Parser diagnostics into the new infrastructure
+
+<details>
+Before starting this refactoring work, the `Parser` subcomponent already provided warnings and
+error messages in the form of proper Haskell types, with pretty-printers to turn them into something renderable. Example:
+
+```hs
+data PsWarning
+   = PsWarnTab ..
+   | PsWarnTransitionalLayout !SrcSpan !TransLayoutReason
+...
+data PsError = PsError
+   { errDesc  :: !PsErrorDesc   -- ^ Error description
+   , errHints :: ![PsHint]      -- ^ Hints
+   , errLoc   :: !SrcSpan       -- ^ Error position
+   }
+
+data PsErrorDesc
+   = PsErrLambdaCase
+...
+``` 
+
+Even more remarkably, it also offers a `PsHint` type which gives the users hints on how to resolve the problem.
+
+While this formulation makes sense "standalone", it doesn't integrate very tightly with this refactoring work, for a number of reasons:
+
+1. It's keeping the warnings and errors separated. We (me, Richard, Simon et al) already discussed the "split" situation [here](https://gitlab.haskell.org/ghc/ghc/-/issues/18516#note_318209) and concluded that given the fluid relationship _and_ the fact the `Severity` can change due to the `DynFlags` settings, it makes more sense to talk about a single `PsMessage` type rather than two disjointed ones;
+
+2. Both the `PsWarning` and the `PsError` are duplicating the `SrcSpan`, which belongs to a `MsgEnvelope`: there is no need to duplicate this info in the types;
+
+3. The `[PsHint]` are present for _all_ errors, but there are cases where we can't meaningfully provide any hint (apart from the obvious "fix your parsing error").
+</details>
