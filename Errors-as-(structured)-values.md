@@ -491,7 +491,6 @@ I (Richard) recommend design B, because I'm worried about the performance implic
 
 # Integrating Parser diagnostics into the new infrastructure
 
-<details>
 Before starting this refactoring work, the `Parser` subcomponent already provided warnings and
 error messages in the form of proper Haskell types, with pretty-printers to turn them into something renderable. Example:
 
@@ -519,5 +518,37 @@ While this formulation makes sense "standalone", it doesn't integrate very tight
 
 2. Both the `PsWarning` and the `PsError` are duplicating the `SrcSpan`, which belongs to a `MsgEnvelope`: there is no need to duplicate this info in the types;
 
-3. The `[PsHint]` are present for _all_ errors, but there are cases where we can't meaningfully provide any hint (apart from the obvious "fix your parsing error").
-</details>
+3. The `[PsHint]` are present for _all_ errors, but there are cases where we can't meaningfully provide any hint (apart from the obvious "fix your parsing error"). In particular, there are also cases where there is only one potential hint to return (i.e. use this extension).
+
+This suggests the following design: let's merge the `PsWarning` and `PsError` into a single umbrella `PsMessage`. Only certain type constructors would gain the `[PsHint]` field, or even just a `PsHint` field:
+
+```hs
+
+data PsMessage
+  = PsUnknownMessage [PsHint] !DiagnosticMessage
+  | PsTabulationFound !Word
+  | PsLexerError !LexErr !LexErrKind
+  | PsMultiWayIfWithoutExtension !PsHint
+...
+
+let hint = PsSuggestExtension MultiWayIfExtension
+in throwErrors $ GhcPsMessage $ ghcPsMessage srcLoc $ PsMultipWayIfWithoutExtension hint
+
+```
+
+Note that I have added to `PsUnknownMessage` a `[PsHint]`, to allow plugin/library authors to embed their custom messages and hints.
+
+Open questions:
+
+* Should we group messages into categories, to make pattern matching on the big `PsMessage` ADT a 
+  bit more manageable? e.g.:
+
+```hs
+data PsMessage
+  = PsUnknownMessage [PsHint] !DiagnosticMessage
+  | PsHaddockMessage HaddockMessage
+  | PsLayoutParsingMessage ...
+  | PsExtensionParsingMessage ...
+```
+
+I (Alfredo) don't have yet a good intuition on which should be these categories, and which group of messages they should contain.
