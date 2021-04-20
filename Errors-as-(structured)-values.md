@@ -520,7 +520,7 @@ While this formulation makes sense "standalone", it doesn't integrate very tight
 
 3. The `[PsHint]` are present for _all_ errors, but there are cases where we can't meaningfully provide any hint (apart from the obvious "fix your parsing error"). In particular, there are also cases where there is only one potential hint to return (i.e. use this extension).
 
-This suggests the following design: let's merge the `PsWarning` and `PsError` into a single umbrella `PsMessage`. Only certain type constructors would gain the `[PsHint]` field, or even just a `PsHint` field:
+This suggests the following design: let's merge the `PsWarning` and `PsError` into a single umbrella `PsMessage`. Only certain type constructors would gain the `[PsHint]` field (**NOTE** I (Alfredo) changed my mind of this, see "Addendum on the hints"), or even just a `PsHint` field:
 
 ```hs
 
