@@ -651,15 +651,15 @@ making the pretty-printing more uniform, as currently GHC is very liberal when i
          text "Perhaps you intended to use RankNTypes or a similar language"
          text "extension to enable explicit-forall syntax:" <+>
 
+```
+
 2. IDE authors won't have to pattern match on a potentially big ADT in order to extract the
 hints (or the lack thereof). Given a diagnostic, they would simply call `diagnosticHint` and off they go.
 
 3. Plugin authors can now embed their own hints. Due to the fact `GhcUnknownMessage` has
    a `Diagnostic` type equality witness, plugin authors could define their own diagnostics
    messages which will ship with their own set of hints, and GHC would be able to print them
-   uniformly. 
-
-```
+   uniformly.
 
 ### Possible disadvantages of this approach
 
