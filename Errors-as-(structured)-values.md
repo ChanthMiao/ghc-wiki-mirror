@@ -608,7 +608,7 @@ class Diagnostic a where
   data family Hint a :: *
   diagnosticMessage :: a -> DecoratedSDoc
   diagnosticReason  :: a -> DiagnosticReason
-  diagnosticHints   :: a -> [Hint]
+  diagnosticHints   :: a -> [Hint a]
 ...
 
 instance Diagnostic DiagnosticMessage where
