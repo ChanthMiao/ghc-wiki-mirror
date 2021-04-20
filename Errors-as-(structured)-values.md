@@ -552,3 +552,104 @@ data PsMessage
 ```
 
 I (Alfredo) don't have yet a good intuition on which should be these categories, and which group of messages they should contain.
+
+## Addendum on the hints
+
+While working on a proof-of-concept for the PsMessage unification, I'm (Alfredo) starting to think if hints should really belong to the `Diagnostic` typeclass. Let's take as an example
+the `PsWarnImportPreQualified` (in HEAD): currently its pretty printing is as such:
+
+```
+   PsWarnImportPreQualified loc
+      -> mk_parser_warn df Opt_WarnPrepositiveQualifiedModule loc $
+            text "Found" <+> quotes (text "qualified")
+             <+> text "in prepositive position"
+         $$ text "Suggested fix: place " <+> quotes (text "qualified")
+             <+> text "after the module name instead."
+         $$ text "To allow this, enable language extension 'ImportQualifiedPost'"
+```
+
+Here GHC is also giving us a hint ("Suggested fix .."). If we wanted to translate this diagnostic using the new scheme, we would define `PsWarnImportPreQualified` to be:
+
+```hs
+... | PsImportPreQualified [PsHint]
+
+data PsHint
+  = ..
+  | PlaceQualifiedAfterModuleName
+  | UseExtension Extension
+```
+
+and at construction:
+
+```hs
+... let hints = [PlaceQualifiedAfterModuleName, UseExtension ImportQualifiedPost]
+        msg   = PsImportPreQualified hints
+     in addDiagnostic msg 
+```
+
+And finally, in the pretty-printer something along the lines of:
+
+```hs
+   PsWarnImportPreQualified hints
+      -> mk_parser_warn df Opt_WarnPrepositiveQualifiedModule loc $
+            text "Found" <+> quotes (text "qualified")
+             <+> text "in prepositive position"
+         $$ text "Suggested fix:" $ vcat [map pp_hint hints]
+```
+
+This would work, but it feels redundant: the hints are (always??) statically determined
+given the particular diagnostic, so a typeclass encoding feels natural. Plus, there is no
+dependency with any information from the construction site _and_, if there is, we can always
+pass more data to the type constructor so that the hints can be calculated.
+
+This suggests an extension to the `Diagnostic` typeclass as such:
+
+```hs
+class Diagnostic a where
+  data family Hint a :: *
+  diagnosticMessage :: a -> DecoratedSDoc
+  diagnosticReason  :: a -> DiagnosticReason
+
+...
+
+instance Diagnostic DiagnosticMessage where
+  newtype Hint DiagnosticMessage = DiagnosticHint DecoratedSDoc
+  diagnosticMessage = diagMessage
+  diagnosticReason  = diagReason
+
+```
+
+I am not sure if a simple type family would suffice, it would be worth trying this out.
+
+### Possible advantages of this approach
+
+1. Now given any `Diagnostic` we can compute the hints, potentially completely decoupling the pretty printing of the error with the one of the hint, i.e. `putLogMsg`
+might be extended to conceptually break down printing of messages' body first and hints later,
+making the pretty-printing more uniform, as currently GHC is very liberal when it comes to printing hints. Some real world examples:
+
+```
+         $$ text "Suggested fix: place " <+> quotes (text "qualified")
+             <+> text "after the module name instead."
+         $$ text "To allow this, enable language extension 'ImportQualifiedPost'"
+..
+
+"Use NumericUnderscores to allow underscores in integer literals"
+
+..
+
+"Illegal lambda-case (use LambdaCase)"
+
+..
+         text "Perhaps you intended to use RankNTypes or a similar language"
+         text "extension to enable explicit-forall syntax:" <+>
+
+2. IDE authors won't have to pattern match on a potentially big ADT in order to extract the
+hints (or the lack thereof). Given a diagnostic, they would simply call `diagnosticHint` and off they go.
+
+```
+
+### Possible disadvantages of this approach
+
+1. Unknown "winning ratio" until we implement it;
+2. The use of a data/type family complicates the typeclass ever so slightly and might not be
+   everyone's cup of tea.
