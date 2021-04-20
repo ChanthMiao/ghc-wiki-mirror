@@ -590,17 +590,16 @@ and at construction:
 And finally, in the pretty-printer something along the lines of:
 
 ```hs
-   PsWarnImportPreQualified hints
-      -> mk_parser_warn df Opt_WarnPrepositiveQualifiedModule loc $
+   PsImportPreQualified hints
+      -> mkSimpleDecorated $
             text "Found" <+> quotes (text "qualified")
              <+> text "in prepositive position"
          $$ text "Suggested fix:" $ vcat $ map pp_hint hints
 ```
 
-This would work, but it feels redundant: the hints are (always??) statically determined
-given the particular diagnostic, so a typeclass encoding feels natural. Plus, there is no
-dependency with any information from the construction site _and_, if there is, we can always
-pass more data to the type constructor so that the hints can be calculated.
+This would work, but it feels redundant: the hints are (always?) statically determined
+given the particular diagnostic, so a typeclass encoding feels natural. To say it differently, 
+there is no dependency with any information from the construction site _and_, if there is, we can always pass more data to the type constructor so that the hints can be computed out of it.
 
 This suggests an extension to the `Diagnostic` typeclass as such:
 
@@ -609,14 +608,23 @@ class Diagnostic a where
   data family Hint a :: *
   diagnosticMessage :: a -> DecoratedSDoc
   diagnosticReason  :: a -> DiagnosticReason
-
+  diagnosticHints   :: a -> [Hint]
 ...
 
 instance Diagnostic DiagnosticMessage where
   newtype Hint DiagnosticMessage = DiagnosticHint DecoratedSDoc
   diagnosticMessage = diagMessage
   diagnosticReason  = diagReason
+  diagnosticHints   = diagHints    -- DiagnosticMessage would gain this extra field 
+..
 
+instance Diagnostic PsMessage where
+  data Hint PsMessage = PsHint ..
+  ..
+  diagnosticHints = \case
+    ...
+    PsImportPreQualified -> [PlaceQualifiedAfterModuleName, UseExtension ImportQualifiedPost]
+    ...
 ```
 
 I am not sure if a simple type family would suffice, it would be worth trying this out.
