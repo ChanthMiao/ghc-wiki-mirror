@@ -16,7 +16,7 @@ We use the term *Exact-Printing Annotations* (EPAs) to refer to the extra bits o
 only for the purposes of exact-printing.  For example:
 * An if-then-else node in the syntax tree will include the precise location of the `if`, `then`, and `else` keywords
 * An list-comprehension node such as `[ f x | x <- xs, x > 3 ]` will include the locations of the `[`, `|`, and `]` punctuation; its statements will include the location of the comma separators.
-* Every node will contain the locations and content of "nearby" comment (see XXX for what "nearby" means)
+* Every node will contain the locations and content of "nearby" comments (see XXX for what "nearby" means)
 In total, every visible part of the original program will be represented somewhere in the AST.
 
 By definition, exact-printing annotations are used only for exact-printing; they are not otherwise consulted during compilation.
@@ -57,85 +57,143 @@ its original location as the "top-left" when printing out its
 definition, but need to have a way to capture that the "top-left" is
 now in a different place, from the perspective of the top-level AST.
 
-We achieve this by means of an **Anchor**.
+The location of this "top-left" position is stored in an **Anchor**.
 
 ```haskell
 data Anchor = Anchor { anchor :: RealSrcSpan
                      , anchor_op :: AnchorOperation }
 data AnchorOperation = UnchangedAnchor
                      | MovedAnchor DeltaPos
-data DeltaPos = DP { deltaLine   :: !Int,
-                   , deltaColumn :: !Int }
+data DeltaPos
+  = SameLine { deltaColumn :: !Int }
+  | DifferentLine
+      { deltaLine   :: !Int, deltaColumn :: !Int }
 ```
 
-The *anchor* field captures the original as-parsed location, and an
-unchanged AST will have an *anchor_op* of `UnchangedAnchor`.
+An **Anchor** is in fact used in two different ways
 
-When the local definition is moved, its original *anchor* location
+* Firstly, it provides the reference point for the anchored item
+  relative to its superior context.
+
+  So for the code fragment
+
+     `where x = 1`
+
+  The **Anchor** belonging to `x = 1` would be used to calculate the
+  spacing from the `where` keyword to where the local definition starts.
+
+* Secondly, it serves as a reference point for the parts *inside* `x =
+  1`.  So the distance to the `=` will be based on it.
+
+The **DeltaPos** is what is actually used for the final exact printing
+step. It captures the spacing from the current print position on the
+page, to the position required for the thing about to be printed.
+This is either on the same line in which case is is simply the number
+of spaces to emit, or it is some number of lines down, with a given
+column offset.  The exact printing algorithm keeps track of the column
+offset pertaining to the anchor position, so the `deltaColumn` is the
+additional spaces to add in this case.  The details are presented
+below in **TBD**.
+
+The **anchor_op** is used to facilitate moving an entire AST subtree
+into a new location.  If it is not moved, the normal case, it will be
+`UnchangedAnchor`.
+
+If it has been moved, the actual span captured in the `anchor` field
+will no longer be relevant for spacing relative to its context, and
+the spacing is provided directly by the `DeltaPos` in the
+`MovedAnchor` variant.  But its original `anchor` location
 remains unchanged, as it is used as a reference for the elements
-inside the local definition when printing them, but we provide a
-`MovedAnchor` value for the *anchor_op*.
-
-The spacing between items used when exact-printing is captured in a
-`DeltaPos` with row and column offsets as expected.
-
-So when we print the AST from the top and decide to calculate the
-spacing for the moved definition, instead of calculating a fresh
-`DeltaPos` based on the *anchor*, we make use of the one in the
-*anchor_op* instead.
+inside the local definition when printing them.
 
 This allows us to painlessly build up new ASTs based on fragments from
 anywhere, and we only need to worry about spacing where we actually
 fit the new part in.
 
-**RAE:** The current design (as witnessed in !2418 on 12 March 2021) allows exact-printing only
-in the `GhcPs` AST, but not in `GhcRn` or `GhcTc`. Why? Would we never want to exact-print a
-type-checked AST? **End RAE**
+## Limitations
+
+The exact printing approach described here is fine-tuned to the
+`GhcPs` AST, and is not expected to work for the `GhcRn` or `GhcTc`
+variants.
+
+This is because there is information loss as the AST is transformed by
+the renamer and typechecker, meaning it cannot be supported without
+additional engineering work to track the lost information.
+
+In practical usage, the main requirement is to be able to look up the
+`Name` and less often the `Id` equivalent of a given `RdrName` in the
+`GhcPs` AST.  This is facilitated by ensuring that every `RdrName` in
+the `GhcPs` occurs with its own `SrcSpan`, which can be used to tie it
+up to its matching version in the `GhcRn` AST, and hence ascertain the
+corresponding `Name`.
 
 ## General approach
 
-The general approach is to store extra information in the Trees-That-Grow extension points to
-each constructor. This extra information includes locations of any keywords used in a construct.
-For example, in a `HsLet`, we need to store the location of the `let` and the `in`.
+The general approach is to store extra information in the
+Trees-That-Grow extension points to each constructor. This extra
+information includes locations of any keywords used in a construct.
+For example, in a `HsLet`, we need to store the location of the `let`
+and the `in`.
 
 The general pattern is this:
-```
+
+The base AST is captured in the `Language.Haskell.Syntax` hierarchy.
+
+```haskell
 module Language.Haskell.Syntax.Expr where
   -- The client-independent syntax tree
   data HsExpr p = ...
     | HsLet       (XLet p)           -- The extension field
                   (HsLocalBinds p)
                   (LHsExpr  p)
+```
 
+The usage of the TTG extension field (`XLet`) in this example is
+specified in the `GHC.Hs` hierarchy.
+
+
+```haskell
 module GHC.Hs.Expr where
   -- The GHC specific stuff about HsExpr
-  type instance XLet GhcPs = ApiAnn' AnnsLet
+  type instance XLet GhcPs = EpAnn AnnsLet
   type instance XLet GhcRn = ...
   type instance XLet GHcTc = ...
 
-  data AnnsLet = AnnsLet { alLet :: AnnAnchor, alIn :: AnnAnchor }
-
-module GHC.Parser.Annotation where
-  -- Shared data types relating to API annotations
-data ApiAnn' ann
-  = ApiAnn { entry   :: Anchor
-           , anns     :: ann
-           , comments :: ApiAnnComments
-           }
-  | ApiAnnNotUsed
+  data AnnsLet = AnnsLet { alLet :: EpaLocation, alIn :: EpaLocation }
 ```
+
+The `AnnsLet` structure is specific to the `HsLet` constructor, but
+`EpAnn` is a general purpose structure to manage the exact print
+annotations for a given AST element.
+
+```haskell
+module GHC.Parser.Annotation where
+  -- Shared data types relating to exact print annotations
+data EpAnn ann
+  = EpAnn { entry   :: Anchor
+          , anns     :: ann
+          , comments :: EpAnnComments
+          }
+  | EpAnnNotUsed
+```
+
 Here you can see
 
-* Every extension field uses `ApiAnn'` to store stuff that every node has in common: an `Anchor` and comments.
-* The `AnnsLet` data type records the locations of the `let` and `in` keywords for `HsLet`.  There is one such data type for each constructor.
+* Every extension field uses `EpAnn'` to store stuff that every node
+  has in common: an `Anchor` and comments.
+* The `AnnsLet` data type records the locations of the `let` and `in`
+  keywords for `HsLet`.  There is one such data type for each
+  constructor.
 
 * **Comments**.  Because we must exact-print with comments intact, we
   track all comments. Non-toplevel comments are associated with the
   innermost enclosing AST node -- that is, the one whose `SrcSpan` is
   smallest, yet includes the comment.  Top level ones are associated
   by the parser with the immediately following top level
-  declaration. Details of the `ApiAnnComments` structure and usage are
+  declaration. Details of the `EpAnnComments` structure and usage are
   provided below.
+
+***AZ stopping now 2021-04-20*** will carry on tomorrow.
 
 ## Data structures
 
@@ -145,23 +203,21 @@ symbolic keywords (such as `->` or `;`), and symbolic pseudo-keywords (such as `
 
 ---------------------------
 
-```hs
-data AnnotationComment = AnnComment { ac_tok :: AnnotationCommentTok
-                                    , ac_prior_tok :: RealSrcSpan
-                                    -- ^ The location of the prior
-                                    -- token, used for exact printing
-                                    }
+```haskell
+data EpaComment = EpaComment { ac_tok :: EpaCommentTok
+                             , ac_prior_tok :: RealSrcSpan
+                             }
 
-data AnnotationCommentTok =
+data EpaCommentTok =
   -- Documentation annotations
-    AnnDocCommentNext  String     -- ^ something beginning '-- |'
-  | AnnDocCommentPrev  String     -- ^ something beginning '-- ^'
-  | AnnDocCommentNamed String     -- ^ something beginning '-- $'
-  | AnnDocSection      Int String -- ^ a section heading
-  | AnnDocOptions      String     -- ^ doc options (prune, ignore-exports, etc)
-  | AnnLineComment     String     -- ^ comment starting by "--"
-  | AnnBlockComment    String     -- ^ comment in {- -}
-  | AnnEofComment                 -- ^ empty comment, capturing
+    EpaDocCommentNext  String     -- ^ something beginning '-- |'
+  | EpaDocCommentPrev  String     -- ^ something beginning '-- ^'
+  | EpaDocCommentNamed String     -- ^ something beginning '-- $'
+  | EpaDocSection      Int String -- ^ a section heading
+  | EpaDocOptions      String     -- ^ doc options (prune, ignore-exports, etc)
+  | EpaLineComment     String     -- ^ comment starting by "--"
+  | EpaBlockComment    String     -- ^ comment in {- -}
+  | EpaEofComment                 -- ^ empty comment, capturing
                                   -- location of EOF
 
 -- | When we are parsing we add comments that belong a particular AST
@@ -169,19 +225,17 @@ data AnnotationCommentTok =
 -- them into the output stream.  But when editin the AST, to move
 -- fragments around, it is useful to be able to first separate the
 -- comments into those occuring before the AST element and those
--- following it.  The 'AnnCommentsBalanced' constructor is used to do
--- this. The GHC parser will only insert the 'AnnComments' form.
-data ApiAnnComments = AnnComments
-                        { priorComments :: ![LAnnotationComment] }
-                    | AnnCommentsBalanced
-                        { priorComments :: ![LAnnotationComment]
-                        , followingComments :: ![LAnnotationComment] }
+-- following it.  The 'EpaCommentsBalanced' constructor is used to do
+-- this. The GHC parser will only insert the 'EpaComments' form.
+data EpAnnComments = EpaComments
+                        { priorComments :: ![LEpaComment] }
+                    | EpaCommentsBalanced
+                        { priorComments :: ![LEpaComment]
+                        , followingComments :: ![LEpaComment] }
+        deriving (Data, Eq)
 
-type LAnnotationComment = GenLocated Anchor AnnotationComment
-
+type LEpaComment = GenLocated Anchor EpaComment
 ```
-
-**AZ**: I am adding some quick answers for now, will be updating properly in time.
 
 This stores a comment, differentiating between the different comment styles.
 **RAE** what's up with `AnnEofComment`? **End RAE**
@@ -197,15 +251,15 @@ This stores a comment, differentiating between the different comment styles.
 
 ```hs
 -- | Captures an annotation, storing the @'AnnKeywordId'@ and its
--- location.  The parser only ever inserts @'AnnAnchor'@ fields with a
+-- location.  The parser only ever inserts @'EpaLocation'@ fields with a
 -- RealSrcSpan being the original location of the annotation in the
 -- source file.
--- The @'AnnAnchor'@ can also store a delta position if the AST has been
+-- The @'EpaLocation'@ can also store a delta position if the AST has been
 -- modified and needs to be pretty printed again.
 -- The usual way an 'AddApiAnn' is created is using the 'mj' ("make
 -- jump") function, and then it can be inserted into the appropriate
 -- annotation.
-data AddApiAnn = AddApiAnn AnnKeywordId AnnAnchor
+data AddApiAnn = AddApiAnn AnnKeywordId EpaLocation
 ```
 
 -------------------------------------
@@ -217,7 +271,7 @@ data AddApiAnn = AddApiAnn AnnKeywordId AnnAnchor
 -- provide a position for the item relative to the end of the previous
 -- item in the source.  This is useful when editing an AST prior to
 -- exact printing the changed one.
-data AnnAnchor = AR RealSrcSpan
+data EpaLocation = AR RealSrcSpan
                | AD DeltaPos
 
 -- | Relative position, line then column.  If 'deltaLine' is zero then
@@ -256,7 +310,7 @@ data AnchorOperation = UnchangedAnchor
 
 **RAE** As I commented on the MR, I find `AR` and `AD` shorter than necessary, and I think `DeltaPos` would be better with two constructors. **End RAE**
 **RAE** Why do we need both of these types? How are they different? **End RAE**
-**AZ**: I am not *sure* that we do. I do know that as explained in **Mechanism** above we need the anchor to have a `RealSrcSpan` and sometimes a `DeltaPos`.  An `AnnAnchor` only needs to provide the one or the other. But perhaps we can come up with a way of harmonising this.
+**AZ**: I am not *sure* that we do. I do know that as explained in **Mechanism** above we need the anchor to have a `RealSrcSpan` and sometimes a `DeltaPos`.  An `EpaLocation` only needs to provide the one or the other. But perhaps we can come up with a way of harmonising this.
 
 ----------------------------------------
 
@@ -327,11 +381,11 @@ of concrete user-written syntax that would necessitate this design. **End RAE**
 -- | Captures the location of punctuation occuring between items,
 -- normally in a list.  It is captured as a trailing annotation.
 data TrailingAnn
-  = AddSemiAnn AnnAnchor    -- ^ Trailing ';'
-  | AddCommaAnn AnnAnchor   -- ^ Trailing ','
-  | AddVbarAnn AnnAnchor    -- ^ Trailing '|'
-  | AddRarrowAnn AnnAnchor  -- ^ Trailing '->'
-  | AddRarrowAnnU AnnAnchor -- ^ Trailing '->', unicode variant
+  = AddSemiAnn EpaLocation    -- ^ Trailing ';'
+  | AddCommaAnn EpaLocation   -- ^ Trailing ','
+  | AddVbarAnn EpaLocation    -- ^ Trailing '|'
+  | AddRarrowAnn EpaLocation  -- ^ Trailing '->'
+  | AddRarrowAnnU EpaLocation -- ^ Trailing '->', unicode variant
 
 -- | Annotation for items appearing in a list. They can have one or
 -- more trailing punctuations items, such as commas or semicolons.
@@ -369,35 +423,35 @@ data NameAnn
   -- | Used for a name with an adornment, so '`foo`', '(bar)'
   = NameAnn {
       nann_adornment :: NameAdornment,
-      nann_open      :: AnnAnchor,
-      nann_name      :: AnnAnchor,
-      nann_close     :: AnnAnchor,
+      nann_open      :: EpaLocation,
+      nann_name      :: EpaLocation,
+      nann_close     :: EpaLocation,
       nann_trailing  :: [TrailingAnn]
       }
   -- | Used for @(,,,)@, or @(#,,,#)#
   | NameAnnCommas {
       nann_adornment :: NameAdornment,
-      nann_open      :: AnnAnchor,
-      nann_commas    :: [AnnAnchor],
-      nann_close     :: AnnAnchor,
+      nann_open      :: EpaLocation,
+      nann_commas    :: [EpaLocation],
+      nann_close     :: EpaLocation,
       nann_trailing  :: [TrailingAnn]
       }
   -- | Used for @()@, @(##)@, @[]@
   | NameAnnOnly {
       nann_adornment :: NameAdornment,
-      nann_open      :: AnnAnchor,
-      nann_close     :: AnnAnchor,
+      nann_open      :: EpaLocation,
+      nann_close     :: EpaLocation,
       nann_trailing  :: [TrailingAnn]
       }
   -- | Used for @->@, as an identifier
   | NameAnnRArrow {
-      nann_name      :: AnnAnchor,
+      nann_name      :: EpaLocation,
       nann_trailing  :: [TrailingAnn]
       }
   -- | Used for an item with a leading @'@. The annotation for
   -- unquoted item is stored in 'nann_quoted'.
   | NameAnnQuote {
-      nann_quote     :: AnnAnchor,
+      nann_quote     :: EpaLocation,
       nann_quoted    :: SrcSpanAnnN,
       nann_trailing  :: [TrailingAnn]
       }
