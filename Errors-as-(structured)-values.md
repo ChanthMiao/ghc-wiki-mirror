@@ -558,7 +558,7 @@ I (Alfredo) don't have yet a good intuition on which should be these categories,
 While working on a proof-of-concept for the PsMessage unification, I'm (Alfredo) starting to think if hints should really belong to the `Diagnostic` typeclass. Let's take as an example
 the `PsWarnImportPreQualified` (in HEAD): currently its pretty printing is as such:
 
-```
+```hs
    PsWarnImportPreQualified loc
       -> mk_parser_warn df Opt_WarnPrepositiveQualifiedModule loc $
             text "Found" <+> quotes (text "qualified")
@@ -594,7 +594,7 @@ And finally, in the pretty-printer something along the lines of:
       -> mk_parser_warn df Opt_WarnPrepositiveQualifiedModule loc $
             text "Found" <+> quotes (text "qualified")
              <+> text "in prepositive position"
-         $$ text "Suggested fix:" $ vcat [map pp_hint hints]
+         $$ text "Suggested fix:" $ vcat $ map pp_hint hints
 ```
 
 This would work, but it feels redundant: the hints are (always??) statically determined
