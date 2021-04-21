@@ -47,9 +47,13 @@ SG wondered why we need `StgCaseEnv` when its semantics is identical to a regula
 
 ## Analyses
 
-Appel and Trevor in "Optimizing Closure Environment Representations" compare a number of different ways of representing closures which may share free variables. The example above is just one of many. Therein, we create shared environments for closures declared in the same let-block.
+Appel and Trevor in "Optimizing Closure Environment Representations" compare a number of different ways of representing closures which may share free variables. The example above is just one of many (that particular instance creates shared environments for closures declared in the same let-block). Because there are so many ways that we may choose to share closures, the transformation is structured so that we may decide (perhaps, by some unimplemented meta-analysis) whether or not to apply a shared environment once it has been found.
 
-Another example of a shared closure structure is found in the discussion of [#14461](https://gitlab.haskell.org/ghc/ghc/-/issues/14461) and is also found in [Appel and Trevor. 1988.] referred to as path compression. For example:
+As a general rule, it does not appear wise to share a closure environment with less than 2 variables. This is because there is the addition of an info_pointer in the shared environment and a pointer to the shared environment in every closure that makes use of it.
+
+### Analysis 1 (Unimplemented):
+
+Another example of a shared closure structure is found in the discussion of [#14461](https://gitlab.haskell.org/ghc/ghc/-/issues/14461) and which notices where:
 ```
 let f = {a,b,c,d} \n {x} ->
                  case d + x > 42 of
@@ -80,10 +84,28 @@ let f = {e,d} \n {x} -> caseenv e of {a,b,c} ->
 in ... f ...
 ```
 
-**TODO**
+### Analysis 2:
+
+Given the current set of free variable that we may want to create a shared environment for, if a subexpression allocates an environment with a superset of those variable, then it is safe to use a shared environment. For instance,
+```
+let f = {a,b,c} \n [] -> M in
+...
+let g = {a,b,c,d,f} \n [] -> N in
+...
+```
+will construct the following shared environment:
+```
+let e = env {a,b,c} in
+let f = {e} \n [] -> case-env e of {a,b,c} -> M in
+...
+let g = {e,d,f} \n [] -> case-env e of {a,b,c} -> N in
+...
+```
+
+This appears to be too conservative as it does not create shared environments for most of nofib.
+
 
 ## Code Generation
-
 
 In generating code for first class environments, we treat them in much the same
 way as thunks and function closures. That is, we construct them by allocating
