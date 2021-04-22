@@ -45,13 +45,34 @@ The first argument of the constructor is the heap-bound environment that is bein
 
 SG wondered why we need `StgCaseEnv` when its semantics is identical to a regular `StgCase` on a record of boxed, unlifted representation. Why not reuse `StgCase`? Well, then we'd have to extend `type StgAlt = (AltCon, [Id], StgExpr)` with a new case for `CaseEnv`s, because closure envs don't have a DataCon we can reference in `AltCon`. So either we'd have to make `StgAlt` a sum type or add a new alternative to `AltCon`, which is also used in `Core`, where it'd be very weird having to consider closure envs. Maybe `data StgAltCon = Plain AltCon | CloEnv`? Still a bit weird. Ultimately, it may be simpler to stick to extending STG expression syntax.
 
-## Analyses
+## Analyses (How We Choose Introduce Shared Closure Environments)
 
 Appel and Trevor in "Optimizing Closure Environment Representations" compare a number of different ways of representing closures which may share free variables. The example above is just one of many (that particular instance creates shared environments for closures declared in the same let-block). Because there are so many ways that we may choose to share closures, the transformation is structured so that we may decide (perhaps, by some unimplemented meta-analysis) whether or not to apply a shared environment once it has been found.
 
-As a general rule, it does not appear wise to share a closure environment with less than 2 variables. This is because there is the addition of an info_pointer in the shared environment and a pointer to the shared environment in every closure that makes use of it.
+### General Rules for Closure Sharing
 
-### Analysis 1 (Unimplemented):
+1. It does not appear wise to share a closure environment with less than 2 variables. This is because there is the addition of an info_pointer in the shared environment and a pointer to the shared environment in every closure that makes use of it.
+
+2. Adding shared environments may result in *space leaks* if a closure makes use of a shared environment with variables that it doesn't need. For instance, consider the following program where `f` does not appear free in `Q` but `g` does:
+```
+let f = {a,b,c,d} \n [x] -> M in
+let g = {a,b,c} \n [x] -> N in
+... 
+case f 3 of 
+  z -> Q
+```
+If we create a shared environment for all of the variables of `f`, then we have the following:
+```
+let e = env {a,b,c,d} in
+let f = {e} \n [x] -> case-env e of {a,b,c,d} -> M in
+let g = {e} \n [x] -> case-env e of {a,b,c} -> N in
+... 
+case f 3 of 
+  z -> Q
+```
+Since `f` does not appear free in `Q`, we could garbage collect its environment after it is used in the case-expression. However, using this particular shared closure we must keep around all of `f`'s environment following the case. `d` is not required by `g` but we cannot garbage collect it; therefore, we have a space leak.
+
+### Analysis 1 (Unimplemented)
 
 Another example of a shared closure structure is found in the discussion of [#14461](https://gitlab.haskell.org/ghc/ghc/-/issues/14461) and which notices where:
 ```
