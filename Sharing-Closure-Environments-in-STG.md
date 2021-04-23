@@ -1,12 +1,13 @@
 Motivation: see #14461
-Development Branch: `wip/stg-clos-env-share`
+
+Development Branch: `wip/stg-clos-env-share`. To activate the transformation give the `-fstg-clos-env-share` flag.
 
 # Overview
 
 Consider the following STG program:
 ```
-let f = {w,y,z,a,b,c} \n {x} -> M
-    g = {y,z,a,q} \n {x} -> N
+let f = {w,y,z,a,b,c} \n [x] -> M
+    g = {y,z,a,q} \n [x] -> N
 in ... f ... g ...
 ```
 When this let-expression is evaluated, a closure for `f` containing the values
@@ -15,9 +16,9 @@ constructed for `g` containing many of the same variables, i.e. `y`, `z`, and `a
 copies of the variables, this document proposes that the STG program above is
 translated into the following program:
 ```
-letenv e = {y,z,a} in
-let f = {w,e,b} \n {x} -> caseenv e of {y,z} -> M
-    g = {e,q} \n {x} -> caseenv e of {y,z} -> N
+let e = env {y,z,a} in
+let f = {w,e,b} \n {x} -> case-env e of {y,z} -> M
+    g = {e,q} \n {x} -> case-env e of {y,z} -> N
 in ... f ... g ...
 ```
 The variables `y`, `z`, and `a`, which are both needed in the closures for `f` and `g`, are placed in a new environment object in the heap via the new `letenv` binder. The definitions of `f` and `g` are changed so that `e` replaces the shared free variables. And lastly, the new heap object is deconstructed with `caseenv` which adds the bindings of `y`, `z`, and `a` back into the environments for `M` and `N`.
@@ -30,15 +31,15 @@ The idea of sharing the free variables of closures is not new. This work takes i
 
 ## STG Language Extension
 
-`letenv` and `caseenv` just form the pretty syntax for examples. In the implementation, `GenStgRhs` must be extended with a new constructor for binding environments:
+`env {...}` and `case-env` just form the pretty syntax for examples. In the implementation, `GenStgRhs` must be extended with a new constructor for binding environments:
 ```
-data GenStgRhs pass = StgRhsEnv [Id] | ...
+data GenStgRhs pass = StgRhsEnv DIdSet | ...
 ```
 Unlike function applications which accept variable and literal arguments, environments will only every refer to variables since they are there only for free variables. `StgRhsEnv`s have runtime representation `BoxedRep Unlifted` and its fields are free to have any monomorphic representation.
 
-`caseenv` is an extension to `GenStgExpr`:
+`case-env` is an extension to `GenStgExpr`:
 ```
-data GenStgExpr pass = StgCaseEnv Id [Id] (GenStgExpr pass) | ...
+data GenStgExpr pass = StgCaseEnv Id DIdSet (GenStgExpr pass) | ...
 ```
 The first argument of the constructor is the heap-bound environment that is being opened up; it will always be a variable of boxed, unlifted runtime representation. The second and third arguments operate like an alternative: the second is the list of variables to be bound in the third expression.
 
@@ -85,30 +86,30 @@ in ... f ...
 ```
 Here the inner closures make use of the free variables of an outer closure for a total of 10 cells. We could share the closures as the following:
 ```
-letenv e = {a,b} in
-let f = {e,c,d} \n {x} -> caseenv e of {a,b} ->
+let e = env {a,b} in
+let f = {e,c,d} \n {x} -> case-env e of {a,b} ->
                  case d + x > 42 of
-                   True  -> let g = {e,c,x} \n {y} -> caseenv e of {a,b} -> M
+                   True  -> let g = {e,c,x} \n {y} -> case-env e of {a,b} -> M
                             in ... g ...
-                   False -> let h = {e} \n {z} -> caseenv e of {a,b} -> N
+                   False -> let h = {e} \n {z} -> case-env e of {a,b} -> N
                             in ... h ...
 in ... f ...
 ```
 which allocates a total of 9 cells. It could also be structured as the following for the same number of cells:
 ```
-letenv e = {a,b,c} in
-let f = {e,d} \n {x} -> caseenv e of {a,b,c} ->
+let e = env {a,b,c} in
+let f = {e,d} \n {x} -> case-env e of {a,b,c} ->
                  case d + x > 42 of
-                   True  -> let g = {e,x} \n {y} -> caseenv e of {a,b} -> M
+                   True  -> let g = {e,x} \n {y} -> case-env e of {a,b} -> M
                             in ... g ...
-                   False -> let h = {a,b} \n {z} -> caseenv e of {a,b} -> N
+                   False -> let h = {a,b} \n {z} -> case-env e of {a,b} -> N
                             in ... h ...
 in ... f ...
 ```
 
 ### Analysis 2:
 
-Given the current set of free variable that we may want to create a shared environment for, if a subexpression allocates an environment with a superset of those variable, then it is safe to use a shared environment. For instance,
+Given the current set of free variable that we may want to create a shared environment for, if a sub-expression allocates an environment with a superset of those variable, then it is safe to use a shared environment. For instance,
 ```
 let f = {a,b,c} \n [] -> M in
 ...
@@ -124,21 +125,16 @@ let g = {e,d,f} \n [] -> case-env e of {a,b,c} -> N in
 ...
 ```
 
-This appears to be too conservative as it does not create shared environments for most of nofib.
+This appears to be too conservative as it does not create shared environments for most of nofib. It increases allocation by 1.6% for `solid` and <1% on a few other tests. It improves on `ida` and `mate` decreasing their allocations by 1.3 and 3.3 percent, respectively.
 
 
 ## Code Generation
 
-In generating code for first class environments, we treat them in much the same
-way as thunks and function closures. That is, we construct them by allocating
-space in the heap and placing the values of the free variables at that
-location. They are eliminated in a manner similar to entering a function closure
-in that we pull the free variables out and bind them to the correct
-registers. However, there are somethings that are not the same as the function
-and thunk closures which the GHC heap is not used to managing. Currently, we lie
-to GHC about them.
+In generating code for first class environments, we treat them in much the same way as the environment part of thunks and function closures. That is, we construct them by allocating space in the heap and placing the values of the free variables---which may be pointers and non-pointers---at that location. This means that we need an info pointer like thunks and function closures. For their elimination (case-env), we simply pull the free variables out and bind them to the correct
+registers. Note that no entry or evaluation of the case-env scrutinee need take place.
 
-Consider this STG program with a first class environment:
+However, there are somethings that are not the same as the function
+and thunk closures which the GHC heap is not used to managing. Currently, we lie to GHC about them. Consider this STG program with a first class environment:
 
 ```
 main =
@@ -152,8 +148,7 @@ main =
   in f 34 2
 ```
 
-The first lie is with the type of an environment which must be given when an
-environment is generated by the analysis.
+The first lie is with the type of an environment which must be given when an environment is generated by the analysis. **TODO: SB recommends adding a new type `Env :: TYPE (BoxedRep Unlifted)**
 
 ```
   let {
@@ -162,13 +157,9 @@ environment is generated by the analysis.
         env {a,b,c}; } in
 ```
 
-We introduce these objects into the untyped STG language so the only important
-thing here is that the type we use has the correct representation: a pointer to
-a heap object.
+We introduce these objects into the untyped STG language so the only important thing here is that the type we use has the correct representation: a pointer to a heap object.
 
-The second place we lie is the static information that is compiled with a first
-class environment. We tell Cmm that an environment has as a thunk heap
-representation:
+The second place we lie is the static information that is compiled with a first class environment. We tell Cmm that an environment has as a thunk heap representation:
 
 ```
  env_e_entry() { //  []
@@ -185,12 +176,9 @@ representation:
  },
 ```
 
-Of course, first class environments are ~never~ entered, so this entry code is
-useless as well. Since, GHC's heap is used to dealing with closures it was
-easiest to provide useless entry code.
+Of course, first class environments are *never* entered, so this entry code is useless as well. Since, GHC's heap is used to dealing with closures it was easiest to provide useless entry code.
 
-This should suffice for now as we experiment with the performance effects of
-different closure environment sharing analyses.
+This should suffice for now as we experiment with the performance effects of different closure environment sharing analyses.
 
 
 ## Formal Semantics
