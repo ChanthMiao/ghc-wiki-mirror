@@ -666,3 +666,30 @@ hints (or the lack thereof). Given a diagnostic, they would simply call `diagnos
 1. Unknown "winning ratio" until we implement it;
 2. The use of a data/type family complicates the typeclass ever so slightly and might not be
    everyone's cup of tea.
+
+# Hints
+
+After reading the sections above on parser hints, it's inspired me (Richard) to think more broadly about hints in error messages, to see what design we should have here.
+
+* **Definition:** A *hint* is a source code transformation that may fix an error/warning.
+* **Definition:** We can *apply* a hint to perform the transformation to source code.
+* **Definition:** We can *render* a hint to produce user-friendly text describing the transformation.
+
+Hints include steps like adding an import, adding an extension, adding/removing punctuation, etc. Hints are good: they help developers think less. Hints are great, in particular, for IDEs, who might extract the transformation from the hint and then allow users to apply the hint automatically. We can imagine classifying hints by whether or not they are guaranteed to work and whether or not they are guaranteed to be benign, but let's not do that yet.
+
+The fact that a hint is a source code transformation (never something local to one particular subsystem), combined with the fact that different subsystems may want to suggest similar transformations (e.g. add an extension) suggests that we should have one `Hint` type, used by all subsystems. There may be import issues with this, but let's fight that challenge when we hit it. I don't expect import issues, because hints are really just code transformations and should be expressible in terms of the `Language.Haskell.Xyz` API.
+
+Any diagnostic message may come with hints, but not all will. This might suggest storing hints with the specific message constructors (e.g. of `TcRnMessage`). However, a particular message will come with only a tiny subset of the possible hints, and so storing the hint with the message leads to a great deal of impossible representable states -- bad. Instead, I think this suggests a change to the `Diagnostic` class:
+
+```hs
+data Hint = AddExtension Extension | AddImport ... | ...
+
+class Diagnostic e where
+  diagnosticMessage :: e -> DecoratedSDoc
+  diagnosticReason  :: e -> DiagnosticReason
+  diagnosticHints   :: e -> [Hint]
+```
+
+Then, when we render diagnostic messages (which seems to be in both `pprLocMsgEnvelope` and `printMessages` -- these should probably be de-duplicated), we render hints after the `diagnosticMessage`. This will *change* current output, but perhaps for the better. Alternatively, the `diagnosticMessage` could be computed inclusive of the hints, but I prefer to keep the hints separated -- seems much cleaner. Otherwise, we end up duplicating logic in `diagnosticMessage` and `diagnosticHints`.
+
+Taking this idea to specific message types, we would produce hints by pattern-matching, just as we expect to produce messages.
