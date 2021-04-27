@@ -85,26 +85,29 @@ An **Anchor** is in fact used in two different ways
 * Secondly, it serves as a reference point for the parts *inside* `x =
   1`.  So the distance to the `=` will be based on it.
 
-The **DeltaPos** is what is actually used for the final exact printing
-step. It captures the spacing from the current print position on the
-page, to the position required for the thing about to be printed.
-This is either on the same line in which case is is simply the number
-of spaces to emit, or it is some number of lines down, with a given
-column offset.  The exact printing algorithm keeps track of the column
-offset pertaining to the anchor position, so the `deltaColumn` is the
-additional spaces to add in this case.  The details are presented
-below in **TBD**.
+When performing exact-printing, the spacing between all elements is
+first converted to a series of **DeltaPos**, and printing occurs based
+on these delta positions.
+
+The **DeltaPos** captures the spacing from the current print position
+on the page to the position required for the thing about to be
+printed.  This is either on the same line in which case is is simply
+the number of spaces to emit, or it is some number of lines down, with
+a given column offset.  The exact printing algorithm keeps track of
+the column offset pertaining to the *current* anchor position, so the
+`deltaColumn` is the additional spaces to add in this case.  The
+details are presented below in **TBD**.
 
 The **anchor_op** is used to facilitate moving an entire AST subtree
 into a new location.  If it is not moved, the normal case, it will be
 `UnchangedAnchor`.
 
 If it has been moved, the actual span captured in the `anchor` field
-will no longer be relevant for spacing relative to its context, and
-the spacing is provided directly by the `DeltaPos` in the
-`MovedAnchor` variant.  But its original `anchor` location
-remains unchanged, as it is used as a reference for the elements
-inside the local definition when printing them.
+will no longer be relevant for spacing relative to its parent context,
+and the spacing is provided directly by the `DeltaPos` in the
+`MovedAnchor` variant.  But its original `anchor` location remains
+unchanged, as it is used as a reference for the elements inside the
+local definition when printing them.
 
 This allows us to painlessly build up new ASTs based on fragments from
 anywhere, and we only need to worry about spacing where we actually
@@ -126,6 +129,10 @@ In practical usage, the main requirement is to be able to look up the
 the `GhcPs` occurs with its own `SrcSpan`, which can be used to tie it
 up to its matching version in the `GhcRn` AST, and hence ascertain the
 corresponding `Name`.
+
+Note: it may be possible to retain some of the original ordering of
+declarations by using `AnnSortKey` fields in the `GhcRn` and `GhcTc`
+ASTs.
 
 ## General approach
 
@@ -193,7 +200,6 @@ Here you can see
   declaration. Details of the `EpAnnComments` structure and usage are
   provided below.
 
-***AZ stopping now 2021-04-20*** will carry on tomorrow.
 
 ## Data structures
 
@@ -201,145 +207,56 @@ Here you can see
 keywords (such as `let` or `data`), alphanumeric pseudo-keywords (such as `family` or `qualified`),
 symbolic keywords (such as `->` or `;`), and symbolic pseudo-keywords (such as `-<` and `!`).
 
----------------------------
+`EpaComment` : Keeps an original comment together with the RealSrcSpan
+of the token preceding it, for calculating the spacing when exact printing it.
+
+`EpAnnComments` : Keeps a list of comments associated with a specific
+AST element. Initially this just keeps all comments, but functions
+exist in the exact printing library to split this into ones that occur
+before and after the AST element, and to move them between elements,
+prior to modifying the AST.  This facilitates keeping comments
+attached to the corrent AST element if the element is moved.  See
+`balanceComments` and `balanceCommentsList` in the check-exact
+Transform module.
+
+`AddEpAnn` : a container structure tying together an `AnnKeywordId`
+with its corresponding `EpaLocation`.
+
+An `EpaLocation` is used by the parser to store the original
+`RealSrcSpan` belonging to the keyword identified by the
+`AnnKeywordId` in an `AddEpAnn`.  If tools are used to modify an AST,
+the `EpaLocation` can alternatively store a `DeltaPos` directly.
+
+## Anchor and EpaLocation
+
+At first blush there seems to be overlap between the `Anchor` and
+`EpaLocation` types, and one of them could be redundant.
 
 ```haskell
-data EpaComment = EpaComment { ac_tok :: EpaCommentTok
-                             , ac_prior_tok :: RealSrcSpan
-                             }
+data EpaLocation = EpaSpan RealSrcSpan
+                 | EpaDelta DeltaPos
 
-data EpaCommentTok =
-  -- Documentation annotations
-    EpaDocCommentNext  String     -- ^ something beginning '-- |'
-  | EpaDocCommentPrev  String     -- ^ something beginning '-- ^'
-  | EpaDocCommentNamed String     -- ^ something beginning '-- $'
-  | EpaDocSection      Int String -- ^ a section heading
-  | EpaDocOptions      String     -- ^ doc options (prune, ignore-exports, etc)
-  | EpaLineComment     String     -- ^ comment starting by "--"
-  | EpaBlockComment    String     -- ^ comment in {- -}
-  | EpaEofComment                 -- ^ empty comment, capturing
-                                  -- location of EOF
-
--- | When we are parsing we add comments that belong a particular AST
--- element, and print them together with the element, interleaving
--- them into the output stream.  But when editin the AST, to move
--- fragments around, it is useful to be able to first separate the
--- comments into those occuring before the AST element and those
--- following it.  The 'EpaCommentsBalanced' constructor is used to do
--- this. The GHC parser will only insert the 'EpaComments' form.
-data EpAnnComments = EpaComments
-                        { priorComments :: ![LEpaComment] }
-                    | EpaCommentsBalanced
-                        { priorComments :: ![LEpaComment]
-                        , followingComments :: ![LEpaComment] }
-        deriving (Data, Eq)
-
-type LEpaComment = GenLocated Anchor EpaComment
-```
-
-This stores a comment, differentiating between the different comment styles.
-**RAE** what's up with `AnnEofComment`? **End RAE**
-**AZ** : `AnnEofComment` is used to keep track of the actual end of the file, so that if there are blank lines at the end we can reproduce them when printing.
-
-**RAE** Why do we need `ac_prior_tok`? The comment is not helpful: *everything* here is about exact-printing. **End RAE**
-**AZ**: We need to calculate a `DeltaPos` between every piece of output when printing.  It is not always clear what the spacing is before a comment, so the lexer now emits the prior token location as well with a comment, so we can calculate this.
-
-**RAE** Why does `LAnnotationComment` get an `Anchor` not a `SrcSpan`? **End RAE**
-**AZ** Everything that can be moved (which is everything) gets an `Anchor`.
-
-----------------------------------
-
-```hs
--- | Captures an annotation, storing the @'AnnKeywordId'@ and its
--- location.  The parser only ever inserts @'EpaLocation'@ fields with a
--- RealSrcSpan being the original location of the annotation in the
--- source file.
--- The @'EpaLocation'@ can also store a delta position if the AST has been
--- modified and needs to be pretty printed again.
--- The usual way an 'AddApiAnn' is created is using the 'mj' ("make
--- jump") function, and then it can be inserted into the appropriate
--- annotation.
-data AddApiAnn = AddApiAnn AnnKeywordId EpaLocation
-```
-
--------------------------------------
-
-```hs
--- | The anchor for an @'AnnKeywordId'@. The Parser inserts the @'AR'@
--- variant, giving the exact location of the original item in the
--- parsed source.  This can be replace by the @'AD'@ version, to
--- provide a position for the item relative to the end of the previous
--- item in the source.  This is useful when editing an AST prior to
--- exact printing the changed one.
-data EpaLocation = AR RealSrcSpan
-               | AD DeltaPos
-
--- | Relative position, line then column.  If 'deltaLine' is zero then
--- 'deltaColumn' gives the number of spaces between the end of the
--- preceding output element and the start of the one this is attached
--- to, on the same line.  If 'deltaLine' is > 0, then it is the number
--- of lines to advance, and 'deltaColumn' is the start column on the
--- new line.
-data DeltaPos =
-  DP
-    { deltaLine   :: !Int,
-      deltaColumn :: !Int
-    } deriving (Show,Eq,Ord,Data)
-
--- | An 'Anchor' records the base location for the start of the
--- syntactic element holding the annotations, and is used as the point
--- of reference for calculating delta positions for contained
--- annotations.  If an AST element is moved or deleted, the original
--- location is also tracked, for printing the source without gaps.
-data Anchor = Anchor        { anchor :: RealSrcSpan
-                                 -- ^ Base location for the start of
-                                 -- the syntactic element holding
-                                 -- the annotations.
-                            , anchor_op :: AnchorOperation }
-        deriving (Data, Eq, Show)
-
--- | If tools modify the parsed source, the 'MovedAnchor' variant can
--- directly provide the spacing for this item relative to the previous
--- one when printing. This allows AST fragments with a particular
--- anchor to be freely moved, without worrying about recalculating the
--- appropriate anchor span.
+data Anchor = Anchor { anchor :: RealSrcSpan, anchor_op :: AnchorOperation }
 data AnchorOperation = UnchangedAnchor
                      | MovedAnchor DeltaPos
-        deriving (Data, Eq, Show)
 ```
 
-**RAE** As I commented on the MR, I find `AR` and `AD` shorter than necessary, and I think `DeltaPos` would be better with two constructors. **End RAE**
-**RAE** Why do we need both of these types? How are they different? **End RAE**
-**AZ**: I am not *sure* that we do. I do know that as explained in **Mechanism** above we need the anchor to have a `RealSrcSpan` and sometimes a `DeltaPos`.  An `EpaLocation` only needs to provide the one or the other. But perhaps we can come up with a way of harmonising this.
+The difference is that `EpaLocation` is only used for calculating a
+`DeltaPos` for a given item in an AST element.  As such it needs only
+provide the original `RealSrcSpan` for calculating it from the prior
+position, or the `Deltapos` directly.
 
-----------------------------------------
+An `Anchor` is used both to calculate the `DeltaPos` of the AST
+fragment when printing its containing element, and also as a basis for
+calculating the elements within it.  So the original `RealSrcSpan` is
+always required for an `Anchor`, and it optional for the
+`EpaLocation`.
 
-```hs
-data ApiAnn' ann
-  = ApiAnn { entry   :: Anchor
-           -- ^ Base location for the start of the syntactic element
-           -- holding the annotations.
-           , anns     :: ann -- ^ Annotations added by the Parser
-           , comments :: ApiAnnComments
-              -- ^ Comments enclosed in the SrcSpan of the element
-              -- this `ApiAnn'` is attached to
-           }
-  | ApiAnnNotUsed -- ^ No Annotation for generated code,
-                  -- e.g. from TH, deriving, etc.
+**AZ** once the dust settles, I must check in the exact print
+algorithm that this is in fact necessary. It is used this way at
+present, but perhaps we can make things work with `EpaLocation` only.
 
--- | This type is the most direct mapping of the previous API
--- Annotations model. It captures the containing `SrcSpan' in its
--- `entry` `Anchor`, has a list of `AddApiAnn` as before, and keeps
--- track of the comments associated with the anchor.
-type ApiAnn = ApiAnn' [AddApiAnn]
-```
-
-This is the heart of this design: an `ApiAnn'` stores the `Anchor` for an AST node, along with any contained comments.
-In addition, the `anns` field stores the locations for any keywords (like `let` and `in`) associated with an AST
-node. **RAE** Some AST nodes (e.g. `HsLet`) get custom data structures for `ann`. Some (e.g. `LazyPat`) get `[AddApiAnn]`. Why
-the difference? What's the guiding principle? **End RAE**
-**AZ**: The intention is that each gets a custom structure, but this was a big task and I was focusing on making sure the overall approach actually works. Going forward, @int_index has proposed a slightly different mechanism that may make this moot in time.
-**RAE** I don't think it's helpful having a reference to the previous model; that will get stale quickly. **End RAE**
+**AZ** 2021-04-27 up to here.
 
 -------------------------------------------------
 
