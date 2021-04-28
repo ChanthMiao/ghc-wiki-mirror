@@ -74,6 +74,8 @@ case f 3 of
 ```
 Since `f` does not appear free in `Q`, we could garbage collect its environment after it is used in the case-expression. However, using this particular shared closure we must keep around all of `f`'s environment following the case. `d` is not required by `g` but we cannot garbage collect it; therefore, we have a space leak.
 
+3. Should we share an environment with a closure created in a particular branch of a case-expression? This is not so clear. If we do, then with Analysis 2 (below) we can get a 4.1% decrease in allocations in the `event` test from nofib; however, we see a 0.8% increase in the programs `last-piece` and `solid`. If we do not, then the best we have is a 3.3% decrease in allocations for `mate`.
+
 ### Analysis 1 (Unimplemented)
 
 Another example of a shared closure structure is found in the discussion of [#14461](https://gitlab.haskell.org/ghc/ghc/-/issues/14461) and which notices where:
@@ -125,7 +127,36 @@ let g = {e,d,f} \n [] -> case-env e of {a,b,c} -> N in
 ...
 ```
 
-This appears to be too conservative as it does not create shared environments for most of nofib. It increases allocation by 1.6% for `solid` and <1% on a few other tests. It improves on `ida` and `mate` decreasing their allocations by 1.3 and 3.3 percent, respectively.
+This appears to be rather conservative as it does not create shared environments for most of nofib. Below is the table of non-zero results for the version of this analysis which will share inside of case-expressions:
+
+| Program       |   Alloc-diff|
+|---------------|-------|
+|   constraints | -1.1% |
+|  cryptarithm2 | +0.1% |
+|         event | -4.1% |
+|   exact-reals | -0.7% |
+|        expert | +0.1% |
+|fannkuch-redux | -0.4% |
+|           fem | +0.3% |
+|           fft | +0.1% |
+|          fish | -0.7% |
+|         fluid | -0.5% |
+|        gamteb | -0.1% |
+|           hpg | +0.3% |
+|           ida | -1.3% |
+|       knights | -0.6% |
+|    last-piece | -0.9% |
+|          lift | +0.1% |
+|        mandel | -1.6% |
+|          mate | -3.3% |
+|        parser | +0.1% |
+|        simple | -0.5% |
+|         solid | +0.9% |
+|     wave4main | -0.9% |
+|       -1 s.d. | -0.7% |
+|       +1 s.d. | +0.4% |
+|       Average | -0.1% |
+
 
 
 ## Code Generation
