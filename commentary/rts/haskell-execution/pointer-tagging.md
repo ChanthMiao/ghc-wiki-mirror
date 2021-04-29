@@ -203,6 +203,7 @@ A hot topic (2021)! See
 * #16949
 * #9133
 * !1472, !4742, !5333
+* #15696, esp [this note](https://gitlab.haskell.org/ghc/ghc/-/issues/15696#note_160950) which explains how an untagged pointer can sneak into a strict field.
 
 One might assume that strict fields by their nature can only contain tagged pointers. This is however not true as they only require to uphold their semantics which allows indirections (or even thunks in theory).
 
