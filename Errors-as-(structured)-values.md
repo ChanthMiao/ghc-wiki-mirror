@@ -1,6 +1,6 @@
 [[_TOC_]]
 
-**Overall progress (estimated)**: ![65%](https://progress-bar.dev/65)
+**Overall progress (estimated)**: ![75%](https://progress-bar.dev/75)
 <details><summary> :gear: <b>Progress Breakdown</b> (click the arrow to expand!)</summary>
 
 As this strand of work touches a lot of modules, doing everything as a single gargantuan MR seems highly impractical. Rather, we are considering breaking things down into atomic chunks which could be reviewed in isolation. A sketch of the plan might be the following:
@@ -44,16 +44,21 @@ As this strand of work touches a lot of modules, doing everything as a single ga
 - [X] Remove redundant checks when emitting some warnings (Design A);
   **Implemented**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/5207
 
-- [ ] Introduce proper diagnostic types for the different phases of 
+- [X] Introduce proper diagnostic types for the different phases of 
   the compilation pipeline (i.e. `TcRnMessage`, `PsMessage` etc). Initially these
   can also contain a selection of all the GHC-emitted messages, and "filled" later, to minimise
   breakages. Introduce also an umbrella `GhcMessage` type which will be used in the
   driver, at the top level, to report diagnostics. At this stage we won't yet
   make use of any of the new types;
-  **Waiting CI/review**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/5509
+  **Implemented**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/5509
+
+- [ ] Design and implement a flexible hint architecture to provide suggestions
+  on diagnostic messages.
+  **In Progress**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/5569
 
 - [ ] Extend the parser error types to adhere to the new error-messages
   architecture, and port the codebase to use these new format of errors.
+  **In Progress**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/5580
 
 - [ ] Convert the `TcRn` error types to adhere to the new error-messages
   architecture. We will also try to make use of the new `Suggestion` API
@@ -64,6 +69,7 @@ As this strand of work touches a lot of modules, doing everything as a single ga
 
 - [ ] Convert the `Driver` error types to adhere to the new error-messages
   architecture.
+  **In Progress**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/5533
 </details>
 
 
