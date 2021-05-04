@@ -820,7 +820,7 @@ applyRefactoring (Located e pm) r = (Located e apply)
             -- but stored as annotations.
 ```
 
-## Example B: Remove unused import
+### Example B: Remove unused import
 
 **Let's assume the design in Example A**. 
 
@@ -840,3 +840,8 @@ And later in the pattern match for `apply`:
          -- `ParsedSource` will have a list of *located* `ImportDecl`
          -- then delete the import from `hsmodImports`
 ```
+
+### Example C: Adding a missing do block
+
+This is the hardest refactoring to apply (in my mind), because this would arise in the parser,
+and at that stage we might not have a valid Haskell expression at hand, because the parsing failed. What to do? Perhaps we should not emit the `Refactoring` in that case?
