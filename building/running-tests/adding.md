@@ -214,6 +214,7 @@ There are many pre-defined functions which can be used in this field:
 
 - **set_stdin(file)**       use a different file for stdin
 - **no_stdin**              use no stdin at all (otherwise use `/dev/null`)
+- **copy_files**            copy the test files to the temporary directory rather than using symlinks, this is useful when the test script modifies a source file
 
 - **exit_code(n)**          expect an exit code of 'n' from the prog
 
