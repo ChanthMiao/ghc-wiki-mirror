@@ -699,3 +699,56 @@ class Diagnostic e where
 Then, when we render diagnostic messages (which seems to be in both `pprLocMsgEnvelope` and `printMessages` -- these should probably be de-duplicated), we render hints after the `diagnosticMessage`. This will *change* current output, but perhaps for the better. Alternatively, the `diagnosticMessage` could be computed inclusive of the hints, but I prefer to keep the hints separated -- seems much cleaner. Otherwise, we end up duplicating logic in `diagnosticMessage` and `diagnosticHints`.
 
 Taking this idea to specific message types, we would produce hints by pattern-matching, just as we expect to produce messages.
+
+## Applying Hints
+
+Of course, hints in isolation are not that useful. A hint is, conceptually, an _actionable_ suggestion on how to deal with a diagnostic and, as such, we need to be able to express the "action" part in the types. On top of that, we also need plugins to emit custom hints. This suggests the following design:
+
+```hs
+data Refactoring
+  = MkRefactoring SrcSpan      -- ^ where the current code to be replaced lives
+                  Replacement  -- ^ replacement for that code
+
+-- | A mechanical transformation returned as part of a 'Refactoring',
+-- which can be applied to the AST.
+data Replacement
+  = ReplaceExpr (HsExpr GhcPs)
+  | ReplaceType (HsType GhcPs)
+  | ReplaceMatch (Match GhcPs (HsExpr GhcPs))
+  -- [..] more replacements
+
+-- | A typeclass for /hints/, emitted by GHC together with diagnostics. A /hint/
+-- is a program transformation which suggests a possible way to deal with a particular
+-- warning or error.
+class Outputable a => IsHint a where
+  hintRefactoring :: a -> Maybe Refactoring
+
+-- | A type for hints emitted by GHC.
+data Hint where
+  -- | An \"unknown\" hint. This type constructor allows arbitrary
+  -- hints to be embedded. The typical use case would be GHC plugins
+  -- willing to emit hints alonside their custom diagnostics.
+  UnknownHint :: (IsHint a, Typeable a) => a -> Hint
+  -- | Suggests adding a particular language extension.
+  SuggestExtension :: !Extension -> Hint
+  -- | Suggests that a particular statement should be written within a \"do\"
+  -- block.
+  SuggestDo :: Hint
+  -- | Suggests that a missing \"do\" block.
+  SuggestMissingDo :: Hint
+  -- | Suggests that a \"let\" expression is needed in a \"do\" block.
+  SuggestLetInDo :: Hint
+  -- [..] more hints
+```
+
+The `IsHint` typeclass serves two purposes: from one side it allows us to introduce a
+meaningful `UnknownHint` type constructor, and at the same time it allows us to yield an
+optional `Refactoring` to be applied to the input program.
+
+A `Refactoring` is a fairly simply type which gives us a `Replacement` together with a
+`SrcSpan` that tells us where the replacement needs to take place.
+
+## Musings on Refactorings and Replacements
+
+This section contains a bunch of ruminations that me (Alfredo) is doing on the `Replacement` type.
+
