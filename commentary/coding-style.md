@@ -30,6 +30,8 @@ It's much better to write code that is transparent than to write code that is sh
 
 Often it's better to write out the code longhand than to reuse a generic abstraction (not always, of course).  Sometimes it's better to duplicate some similar code than to try to construct an elaborate generalisation with only two instances.  Remember: other people have to be able to quickly understand what you've done, and overuse of abstractions just serves to obscure the *really* tricky stuff, and there's no shortage of that in GHC.
 
+As such, we prefer using monomorphic operators and functions to have more readability, and predictable performance.
+
 ### Commit messages
 
 Please do not use commit messages to describe how something works, or give examples, *even if the patch is devoted to a single change*.  The information is harder to find in a commit message, and (much worse) there is no explicit indication in the code that there is carefully-written information available about that particular line of code.  Instead, you can refer to the Note from the commit message.
