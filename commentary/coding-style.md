@@ -3,6 +3,22 @@
 
 This is a rough description of some of the coding practices and style that we use for Haskell code inside `compiler`.  For run-time system code see the [Coding Style Guidelines for RTS C code](commentary/rts/conventions).  Also see the wiki page on [Contributing](contributing) for issues related to version control, workflow, testing, bug tracking and other miscellany.
 
+**Table of contents** 
+
+
+- [General Style](#general-style)
+  * [Commit messages](#commit-messages)
+- [Warnings](#warnings)
+- [Exports and Imports](#exports-and-imports)
+  * [Exports](#exports)
+  * [Imports](#imports)
+- [Compiler versions and language extensions](#compiler-versions-and-language-extensions)
+  * [`HsVersions.h`](#-hsversionsh-)
+  * [Literate Haskell](#literate-haskell)
+  * [The C Preprocessor (CPP)](#the-c-preprocessor--cpp-)
+  * [Platform tests](#platform-tests)
+- [Tabs vs Spaces](#tabs-vs-spaces)
+
 ## General Style
 
 
