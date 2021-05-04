@@ -773,7 +773,7 @@ instance IsHint Hint where
     -> Just $ MkReplacement _srcSpan _replacement
 ```
 
-Here we have immediately two problems in filling the holes. The `_srcSpan_ hole cannot be easily
+Here we have immediately two problems in filling the holes. The `_srcSpan_` hole cannot be easily
 filled, because the information about where the error originated (i.e. the `SrcSpan`) is embedded
 into a `MsgEnvelope`, but all we have here in scope is `SuggestExtension ext`, and duplicating
 the `SrcSpan` in every hint is just wasteful. This could suggest we need to modify our `IsHint` typeclass to be:
@@ -783,12 +783,60 @@ class Outputable a => IsHint a where
   hintRefactoring :: a -> SrcSpan -> Maybe Refactoring
 ```
 
-Where I (Alfredo) think `Replacement` should be renamed `Refactoring` (killing the latter type),
-because we might not want to _just_ replace things, but also adding them, like the missing lang pragma.
+Then the input `SrcSpan` will be used to fill the `_srcSpan` hole. This might feel like
+duplication but I feel it's not: now a `Refactoring` is self-contained and it can be used
+as an atomic unit (see below in `applyHint`).
 
 Note something **interesting**: Even though with this formulation we now have in scope a
-`SrcSpan`, for this particular hint it would be of no use to us. Why? Because when GHC discovers that we are using, say `\case`, this might be int the middle of a file, and the `SrcSpan` would
-reflect that. However, in terms of _refactoring_, we do want to add pragmas at the beginning of
-the file!
+`SrcSpan`, for this particular hint it would be of no use to us. Why? Because when GHC discovers that we are using, say `\case`, this might be in the middle of a module, and the `SrcSpan` would
+reflect that. However, in terms of _refactoring_, we do want to add language extensions at the beginning of the file!
 
-Having said that, let's continue our example and let's talk about the second hole, `_replacement`. 
+Having said that, let's continue our example and let's talk about the second hole, `_replacement`. Our end goal (I guess?) would be to be able to write a function like:
+
+```hs
+applyRefactoring :: ?? -> Refactoring -> ??  
+```
+
+Note this is not in contradiction with the goals of #18516, because one of the goals was for GHC to offer some stock hints, which IDEs are then free to ignore or use, and I think this also applies for functions like `applyRefactoring`. IDE authors are free to use this function directly
+or simply bin it and write custom functions which goes from a `Refactoring` to some `refact`
+types, `HaRe`, or whatever.
+
+But writing a function like `applyRefactoring` would be a strong case that we can do something
+useful with the `Refactoring` type!
+
+
+Back to the function, what should be `??` here? We have a bunch of options but I guess this would be something like a `Located (HsModule GhcPs)` (aka a `ParsedModule`):  
+
+```hs
+applyRefactoring :: ParsedModule -> Refactoring -> ParsedModule
+applyRefactoring (Located e pm) r = (Located e apply)
+  where
+    apply :: HsModule GhcPs -> HsModule GhcPs
+    apply m = case r of
+       ..
+       AddLanguageExtension ext
+         -> -- Add the pretty-printed extension to the annotations,
+            -- because, AFAIK, they are not represented in the AST,
+            -- but stored as annotations.
+```
+
+## Example B: Remove unused import
+
+**Let's assume the design in Example A**. 
+
+Dealing with a removed import should be easy enough. We could have a new type constructor for `Replacement`:
+
+```hs
+  | RemoveImport -- no need for any extra data, see below
+``` 
+
+And later in the pattern match for `apply`:
+
+```hs
+    apply m = case r of
+       ..
+       RemoveImport i ->
+         -- somehow find the import based on the `SrcSpan`, as
+         -- `ParsedSource` will have a list of *located* `ImportDecl`
+         -- then delete the import from `hsmodImports`
+```
