@@ -750,5 +750,45 @@ A `Refactoring` is a fairly simply type which gives us a `Replacement` together 
 
 ## Musings on Refactorings and Replacements
 
-This section contains a bunch of ruminations that me (Alfredo) is doing on the `Replacement` type.
+This section contains a bunch of ruminations that me (Alfredo) is doing on the `Replacement` type. Let's start with the current (sketched) type for `Replacement`:
 
+```hs
+data Replacement
+  = ReplaceExpr (HsExpr GhcPs)
+  | ReplaceType (HsType GhcPs)
+  | ReplaceMatch (Match GhcPs (HsExpr GhcPs))
+```
+
+The question now becomes: how would an IDE author be able to actually leverage this replacement?
+Let's analyse two examples.
+
+### Example A: Adding a missing language pragma
+
+Let's image we have the hint `SuggestExtension LambdaCase`. We would then need to write the following:
+
+```hs
+instance IsHint Hint where
+  ...
+  hintRefactoring (SuggestExtension ext) 
+    -> Just $ MkReplacement _srcSpan _replacement
+```
+
+Here we have immediately two problems in filling the holes. The `_srcSpan_ hole cannot be easily
+filled, because the information about where the error originated (i.e. the `SrcSpan`) is embedded
+into a `MsgEnvelope`, but all we have here in scope is `SuggestExtension ext`, and duplicating
+the `SrcSpan` in every hint is just wasteful. This could suggest we need to modify our `IsHint` typeclass to be:
+
+```hs
+class Outputable a => IsHint a where
+  hintRefactoring :: a -> SrcSpan -> Maybe Refactoring
+```
+
+Where I (Alfredo) think `Replacement` should be renamed `Refactoring` (killing the latter type),
+because we might not want to _just_ replace things, but also adding them, like the missing lang pragma.
+
+Note something **interesting**: Even though with this formulation we now have in scope a
+`SrcSpan`, for this particular hint it would be of no use to us. Why? Because when GHC discovers that we are using, say `\case`, this might be int the middle of a file, and the `SrcSpan` would
+reflect that. However, in terms of _refactoring_, we do want to add pragmas at the beginning of
+the file!
+
+Having said that, let's continue our example and let's talk about the second hole, `_replacement`. 
