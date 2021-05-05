@@ -15,7 +15,7 @@ existing object code and interface are still valid.  In GHCi and
 `--make`, we must generate the `ModDetails` from the `ModIface`, but
 this is easily done by calling `MkIface.typecheckIface`.
 
-The recompilation check is **entirely** implemented in `checkRecompile`. This is the **only** place in the compiler where we make any decision about recompilation. 
+The recompilation check is **entirely** implemented in `checkRecompile`. This is the **only** place in the compiler where we make any decision about recompilation.
 
 ## Example
 
@@ -109,10 +109,10 @@ systems.
   - The *ABI hash*, which depends on everything that the module
     exposes about its implementation: think of this as a hash of
     *export-list hash* and *decls*.
-  - The *export-list hash*, which depends on 
+  - The *export-list hash*, which depends on
 
     - The export list itself.  The export-list hash only depends on the *names* of the exports for the modules. The *types* of these exports are ignored in calculating the hash. Only a change of name or removal or addition of an export will change the hash. Not a type change of definition change.
-    - the *orphan hash*, which depends on all the orphan instances/rules in the, and the orphan hashes of all orphan modules below this module in the dependency tree (see [Orphans](commentary/compiler/recompilation-avoidance#orphans)). 
+    - the *orphan hash*, which depends on all the orphan instances/rules in the, and the orphan hashes of all orphan modules below this module in the dependency tree (see [Orphans](commentary/compiler/recompilation-avoidance#orphans)).
     - the **direct** package dependencies (see [Package Version Changes](commentary/compiler/recompilation-avoidance#package-version-changes)).
 - *exports*: what the module exports
 - *dependencies*: modules and packages that this module **directly** depends on
@@ -158,12 +158,11 @@ the decls.
 ### Deciding whether to recompile
 
 
-If we already have an object file and interface file for a module, we
+If we already have all the compilation results for a module, we
 might not have to recompile it, if we can be sure the results will be
 the same as last time.
 
-- If the source file has changed since the object file was created,
-  we better recompile.
+- If the hash of the source file has changed then we must recompile it.
 
 - If anything else has changed in a way that would affect the results
   of compiling this module, we must recompile.
@@ -173,12 +172,10 @@ In order to determine the second point, we look at the
 *dependencies* and *usages* fields of the old interface file.  The
 dependencies contains:
 
-- *dep_mods*: Transitive closure of home-package modules that are
-  imported by this module.  That is, all modules below the current
-  one in the dependency graph.
+- *dep_direct_mods*: Direct dependencies of home-package modules that are
+  imported by this module.
 
-- *dep_pkgs*: Transitive closure of packages depended on by this
-  module, or by any module in *dep_mods*.
+- *dep_direct_pkgs*: Direct packages depended on by this module.
 
 - other less important stuff.
 
@@ -226,8 +223,6 @@ Often the interface file in not touched in order to avoid unnecessary recompilat
 
 - Interface files have an up to date ABI hash for the corresponding module
   - A changed ABI hash is a necessary but not sufficient condition for recompilation of modules that depend on this module.
-- With !931 Interface files have an up to date list of home model dependencies (see `dep_mods` of `HscTypes.Dependencies`.
-  - This is important for ghci's linker to load all necessary modules (see #16511).
 
 ### Example
 
@@ -240,7 +235,7 @@ Assume optimizations are *not* enabled. If we add a new export `D.g` from module
 - `C` is considered; it imports all of `D`, so gets recompiled, and now its interface has a different interface hash, but its ABI hash has not changed as it doesn't expose any change from the newly imported `D.g`.
 - `A` is considered (if we're using make, this is because `B.hi` changed); Though `D`'s ABI has changed, the only import `D.f` (via B) has not changed, so `A` is not recompiled and `A.hi` is not updated
 
-Since `A.hi` was not updated, it now contains an outdated ABI hash for module `D`, but the ABI hash for `A` itself has not changed so is till up to date.
+Since `A.hi` was not updated, it now contains an outdated ABI hash for module `D`, but the ABI hash for `A` itself has not changed so is still up to date.
 
 Now assume optimization *are* enabled. Suppose we change the definition of `D.f` in the example, and make it
 
@@ -248,12 +243,12 @@ Now assume optimization *are* enabled. Suppose we change the definition of `D.f`
 f x = h x + 1
 ```
 
-Assuming optimizations are disabled, A.hi will not be updated 
+Assuming optimizations are disabled, A.hi will not be updated
 
 Now, ultimately we need to recompile `A`, because it might (assuming optimizations are on) be using
 an inlined copy of the old `D.f`, which it got via `B`.
 
-It works like this: 
+It works like this:
 
 - `D` is recompiled; the fingerprint of `D.f` changes
 - `B` is considered; it recorded a usage on the old `D.f`, so
@@ -471,7 +466,7 @@ So if we add, delete, or modify an orphan instance, the orphan hash of
 the current module will change, and so will the export hash of the
 current module.  This will trigger recompilation of modules that
 import the current module, which will cause their export hashes to
-change, and so on up the dependency tree.  
+change, and so on up the dependency tree.
 
 
 This means a lot of recompilation, but it is at least safe.  The trick
@@ -544,6 +539,76 @@ For recompilation avoidance to be really effective, we need to ensure that finge
 
 - There are still some cases where an interface can change without changing the source code.  The ones we know about are listed in #4012
 
+## Template Haskell and Plugins
+
+Template Haskell and Plugins add different kinds of dependencies to normal
+module imports. If a module uses a Template Haskell splice then the result of
+compiling the module can depend on the implementation of a modules imports rather than just their interface. Therefore, a modules ABI can remain the same but not trigger recompilation which can lead to stale results.
+
+There is a similar problem for plugins. If a module uses a plugin then
+depending on the ABI of a plugin is usually not enough. Modules defining
+plugins expose one identifier `plugin :: Plugin` and so the ABI does not often
+change. However, we still want to recompile a module if the implementation of
+the plugin changes as we expect the new modifications to the plugin to effect the module we are currently compiling.
+
+The solution is the same in both cases -- rather than just depending on the
+interface file, we also depend on the hash of the resulting object files. Ifthe
+hash of the object file changes, then the module is recompiled.
+
+The dependencies are calculated using the `getLinkDeps`, which is also
+used to calculate dependencies when loading modules for execution
+using the internal or external interpreter.
+
+* Object file creation is non-deterministic, so sometimes the object files hash will change despite the implementation not changing. This will cause slightly more recompilation but is still safe.
+
+
+
+
+## Only storing direct information
+
+It is important to only store direct information in interface files for two reasons:
+
+* The interface file invariants state that, if you store any transitive information
+  then if anything in the transtive closure changes then you have to recompile the module.
+* Recompilation checking can get very slow in big projects due to checking the whole
+  transitive closure to see if it's the same as before.
+
+See #16885 for some examples where more recompilation is performed than necessary.
+
+Removing transitive information from the interface files means that anywhere in
+the compiler where we need information about transitive dependencies we need to compute
+the transitive closure rather than simply looking at the interface file. It turns out,
+there are not so many places which are called so often.
+
+### Computing the transitive closure for home packages
+
+* In `--make` mode, the transitive closure can be computed by traversing the HPT.
+For example see `hptSomeThingsBelow`.
+
+* In `-c` mode, the transitive closure has to be computed by recursively loading interface
+  files below the current module. Note that this is no worse than before because
+  a similar traversal was already necessary in `checkDependencies` to verify the
+  information in the `dep_mods` field was up-to-date.
+  In the future it would be good to unify `--make` and `-c` by also
+  populating the HPT in `-c` mode (#19795)
+
+### Where is the transitive closure of home module imports needed
+
+* Backpack: Computing `mi_free_holes` -- TODO: Need to fix this usage still
+* Linker: getLinkDeps - find the object files which we need to link when loading a module into ghci, this function already computed the transitive closure!
+* Instances/Rules/Annotations - Just for `--make` mode, computed by `hptSomeThingsBelow` which now performs a traversal.
+* `eps_is_boot` field - Used in `-c` mode to determine whether we should be loading a boot interface or a normal interface. This is now prepopulated by doing a traversal which looks at the transitive closure of interface files.
+
+### Where is the transitive closure of package imports needed
+
+* SafeHaskell: `-fpackage-trust` check has some strange rules about transitively I don't understand yet. TODO Test `Check01` and `[Note Tracking Trust Transitively]`
+* Linking: We actually only *need* to link against directly depended upon packages.
+
+
+
+
+
+
 ### `make`
 
 `make` works by checking the timestamps on dependencies and
@@ -567,7 +632,7 @@ A.o : B.hi
 Only the `.hi` files of the *direct imports* of a module are listed.
 For example, `A.o` depends on `C.hi` and `B.hi`, but not `D.hi`.
 Nevertheless, if D is modified, we might need to recompile A.  How
-does this happen?  
+does this happen?
 
 - first, make will recompile D because its source file has changed,
   generating a new `D.o` and `D.hi`.
@@ -583,7 +648,7 @@ does this happen?
   `B` and `C`.  Suppose that the interfaces to `B` and `C`
   remain the same: B's interface says only that it re-exports `D.f`,
   so the fact that `f` has a new type does not affect `B`'s
-  interface.  
+  interface.
 
 - Now, `A`'s dependencies are unchanged, so `A` will not be
   recompiled.  But this is wrong: `A` might depend on something from
@@ -603,7 +668,7 @@ GHC currently does (2), more about that in a minute.
 
 Why not do (1)?  Well, then *every* time `D.hi` changed, GHC would be
 invoked on `A` again.  But `A` doesn't depend directly on `D`: it
-imports `B`, and it might be therefore be insensitive to changes in `D`.  
+imports `B`, and it might be therefore be insensitive to changes in `D`.
 By telling make only about direct dependencies, we gain the ability to
 avoid recompiling modules further up the dependency graph, by not touching
 interface files when they don't change.
