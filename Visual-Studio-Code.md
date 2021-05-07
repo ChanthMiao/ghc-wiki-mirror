@@ -4,6 +4,8 @@ If all dependencies to build GHC (with Hadrian) are installed, the [Haskell plug
 
 ## C
 
+**Please note:** The latest `bear` version didn't work with `hadrian` on my machine (Sven). So, this step might fail / might be outdated.
+
 I (Sven) got the best results with the [clangd plugin](https://marketplace.visualstudio.com/items?itemName=llvm-vs-code-extensions.vscode-clangd). It requires `clangd` to be installed and a `compile_commands.json` file to be in place.
 
 `compile_commands.json` contains all build parameters for all C files. It can easily be generated with [bear](https://github.com/rizsotto/Bear). You just have to prefix your build command with `bear`, e.g.
