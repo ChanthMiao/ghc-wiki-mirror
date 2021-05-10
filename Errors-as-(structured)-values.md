@@ -845,3 +845,16 @@ And later in the pattern match for `apply`:
 
 This is the hardest refactoring to apply (in my mind), because this would arise in the parser,
 and at that stage we might not have a valid Haskell expression at hand, because the parsing failed. What to do? Perhaps we should not emit the `Refactoring` in that case?
+
+## Conclusion on applying hints
+
+After some more pondering of the musing above from both Alfredo and Richard, the drawn conclusion is that GHC should *not* emit refactorings. The main reason is given by Richard [here](https://gitlab.haskell.org/ghc/ghc/-/merge_requests/5569#note_350146), which is worth reporting verbatim in this Wiki:
+
+> I don't think GHC should be in the business of creating `Refactoring`s or sending them out to clients. Coming up with a concrete change to source code is hard, and has many arbitrary qualities. As a simple example, suppose we identify the need to add an extension. We now need to answer many questions:
+>
+>* Is there a LANGUAGE pragma already? If not, where should we add one? Before top-of-file comments or afterwards?
+>* Assuming there is a pragma, how does the new extension fit in with existing ones? Go alphabetically? Make a separate pragma? Before or after or among existing ones?
+
+>There are many styles out there for LANGUAGE pragmas, and we should not be in the business of choosing among them or, say, analyzing what style the source code already has and trying to continue it.
+>
+>Bottom line for me: I don't think we can do a better (that is, more concrete) job in describing refactorings than the original `Hint` type. It will be up to IDEs to figure out how to turn that `Hint` type into a refactoring, using whatever means it wants.
