@@ -14,22 +14,23 @@ GHC is a BSD-licensed open-source project, and we welcome your help in making it
 - **Using Git**: read [how to use git with GHC](working-conventions/git). Information about our submodule setup is in [WorkingConventions/Git/Submodules](working-conventions/git/submodules), and some useful Git tricks are in [WorkingConventions/Git/Tricks](working-conventions/git/tricks).
 
 - **GitLab conventions**:
-   - [Label usage](gitlab/labels)
-   - [Issue tracker conventions](gitlab/issues)
-   - [Merge request conventions](gitlab/merge-requests)
+    - [Label usage](gitlab/labels)
+    - [Issue tracker conventions](gitlab/issues)
+    - [Merge request conventions](gitlab/merge-requests)
 
-- **Releases and branches**: Our conventions for making releases and how the branches are managed: [Releases](working-conventions/releases)
+- **Releases and branches**:
+    - Our conventions for making releases and how the branches are managed: [Releases](working-conventions/releases)
+    - Instructions for [backporting](contributing/Backporting)
 
 - **Useful tools**: [Various tools](working-conventions/useful-tools) which exist to make working on GHC more pleasant.
 
 - **Coding style**: When you are editing GHC's source code, please follow our coding guidelines:
-
-  - [Coding style in the compiler](commentary/coding-style)
-  - [Coding style in the runtime system](commentary/rts/conventions)
+    - [Coding style in the compiler](commentary/coding-style)
+    - [Coding style in the runtime system](commentary/rts/conventions)
 
 - **Linting in the CI process**: Here are listed the Hadrian rules that run HLint on your patch.
-  - `lint:base`: This runs HLint on the `base` library
-  - `lint:compiler`: This runs HLint on the `./compiler` codebase
+    - `lint:base`: This runs HLint on the `base` library
+    - `lint:compiler`: This runs HLint on the `./compiler` codebase
 
 
 - **Licensing**: make sure you are familiar with GHC's [Licensing](licensing).  Unless you say otherwise, we will assume that if you submit a contribution to GHC, then you intend to supply it to us under the same license as the existing code. However, we do not ask for copyright attribution; you retain copyright on any contributions you make, so feel free to add your copyright to the top of any file in which you make non-trivial changes.
