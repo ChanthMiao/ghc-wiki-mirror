@@ -14,6 +14,8 @@ The basic copying scheme is [Cheney's Algorithm](http://en.wikipedia.org/wiki/Ch
 - We scan objects that have been evacuated, and *scavenge* each one.  Scavenging involves evacuating each of the pointers
   in the object, replacing each pointer with a pointer to the evacuated copy.
 
+- Menmonic: Scavenging reads in to space, evacuation reads in from space.
+
 - When there are no more objects to be scavenged, the algorithm is complete.  The memory containing the evacuated objects is retained, all the memory containing the old objects and forwarding pointers is discarded.
 
 
