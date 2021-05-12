@@ -9,5 +9,9 @@ MRs are typically labelled with *~"backport needed:x.xx"*, like [~"backport need
 Open the MR as you would do with any other MR, except for the target branch. Do not forget the following points:
 
 1. MRs should be milestoned to the appropriate version (backports for 9.0.2 should be milestoned %9.0.2)
-2. The MR should have the *~backport* label
+2. The MR should have the ~backport label
 3. After the MR is merged, leave a comment on each of the backported MRs mentioning the backport with a reference to the backport MR 
+4. Remain true to the backported patch:
+    * Do **not** drop comments
+    * Do **not** change the meaning of the patch
+5. When cherry-picking, be sure to use the -x flag to ensure that the commit message contains a reference to the cherry-picked commit (for example: `git cherry-pick -x d670460b4b4aece5915caf5c68d12f560a9fe3e4`)
