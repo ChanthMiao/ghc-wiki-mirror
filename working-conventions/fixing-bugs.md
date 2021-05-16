@@ -45,6 +45,6 @@ Here's how to submit a bug fix to GHC. For [changing the documentation](working-
      git config --global core.autocrlf false
      ```
 
-1. **Test your commits** using the [validation script or Travis](testing-patches).
+1. **Test your commits** using the [validation script](testing-patches); or using CI on gitlab after creating a merge request (see next step). A pipeline job for your branch will start automatically once you open a merge request.
 
 1. **Create a Merge Request** follow the [merge request workflow](/Contributing-a-Patch#merge-request-workflow).
