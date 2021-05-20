@@ -32,6 +32,7 @@ I move stuff here from the different sections that is on our radar at the moment
 # Demand Analysis
 
 - #19871 boxity analysis
+- #19874 kill `mkWWargs`
 
 - #19224, !4833: evaluate thunks eagerly if exprOkForSpec.
 
