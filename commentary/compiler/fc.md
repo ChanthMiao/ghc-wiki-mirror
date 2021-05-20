@@ -225,3 +225,6 @@ Roles specify what nature of equality a coercion is proving. See [Roles](roles) 
 - exprIsConApp_maybe
 
 - simplExpr
+
+## Related Lectures
+- https://www.youtube.com/watch?v=2IZQx7WNOMs&list=TLPQMTMwNTIwMjGbmPzQCvHwyQ&index=3
