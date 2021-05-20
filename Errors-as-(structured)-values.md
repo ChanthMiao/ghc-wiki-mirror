@@ -1,6 +1,6 @@
 [[_TOC_]]
 
-**Overall progress (estimated)**: ![80%](https://progress-bar.dev/80)
+**Overall progress (estimated)**: ![85%](https://progress-bar.dev/80)
 <details><summary> :gear: <b>Progress Breakdown</b> (click the arrow to expand!)</summary>
 
 As this strand of work touches a lot of modules, doing everything as a single gargantuan MR seems highly impractical. Rather, we are considering breaking things down into atomic chunks which could be reviewed in isolation. A sketch of the plan might be the following:
@@ -63,9 +63,11 @@ As this strand of work touches a lot of modules, doing everything as a single ga
 - [ ] Convert the `TcRn` error types to adhere to the new error-messages
   architecture. We will also try to make use of the new `Suggestion` API
   when reporting suggestions to users.
+  **Partially done**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/5528
 
 - [ ] Convert the `Ds` error types to adhere to the new error-messages
   architecture;
+  **In Progress**: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/5719
 
 - [X] Convert the `Driver` error types to adhere to the new error-messages
   architecture.
