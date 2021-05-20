@@ -29,21 +29,9 @@ I move stuff here from the different sections that is on our radar at the moment
   - On hold again, no clear wins and even regressions. Prbobably loses too much thunk sharing.
 - #16335 return pattern specialisation
 
-# SAT
-
-- #18962, !4553, #9374: Only SAT unfoldings
-  - Works as follows:
-    1. Do SA transform in Simplifier by attaching the SAT'd defn as an unfolding
-    2. Then do callSiteInline that unfolding
-    3. SA analysis just before OccurAnal. Pretty simple stuff (150loc)
-  - But INLINABLE will override the unfolding with a stable one (I think?). Should we SAT that unfolding? See for example `GHC.Utils.FV.mapUnionFV`. It seems that INLINABLE is quite useless, it doesn't even specialise or anything. But zapping SA info for now.
-  - We can try to "solve" stream fusion this way. See [the stream-fusion paper, section 7.2 "Static Argument Transformation"](http://fun.cs.tufts.edu/stream-fusion.pdf). The key missing features:
-    - Managed to optimise that example, simply by SA analysing each binding of the mutually recursive group in isolation and then taking care not make specialisable functions loop-breakers
-    - But running into tick-exhaustions on `>>=` on `CmdM`, so I opened some unwanted back door. How to debug?
-
-# Join points
-
 # Demand Analysis
+
+- #19871 boxity analysis
 
 - #19224, !4833: evaluate thunks eagerly if exprOkForSpec.
 
@@ -71,6 +59,22 @@ I move stuff here from the different sections that is on our radar at the moment
     for a summary.
 
 - #18983, !5145: RubbishLits for all reps to have absent unlifted coercions
+
+# SAT
+
+- #18962, !4553, #9374: Only SAT unfoldings
+  - Works as follows:
+    1. Do SA transform in Simplifier by attaching the SAT'd defn as an unfolding
+    2. Then do callSiteInline that unfolding
+    3. SA analysis just before OccurAnal. Pretty simple stuff (150loc)
+  - But INLINABLE will override the unfolding with a stable one (I think?). Should we SAT that unfolding? See for example `GHC.Utils.FV.mapUnionFV`. It seems that INLINABLE is quite useless, it doesn't even specialise or anything. But zapping SA info for now.
+  - We can try to "solve" stream fusion this way. See [the stream-fusion paper, section 7.2 "Static Argument Transformation"](http://fun.cs.tufts.edu/stream-fusion.pdf). The key missing features:
+    - Managed to optimise that example, simply by SA analysing each binding of the mutually recursive group in isolation and then taking care not make specialisable functions loop-breakers
+    - But running into tick-exhaustions on `>>=` on `CmdM`, so I opened some unwanted back door. How to debug?
+
+# Join points
+
+
 
 # Eta expansion
 
