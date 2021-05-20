@@ -32,7 +32,11 @@ I move stuff here from the different sections that is on our radar at the moment
 # Demand Analysis
 
 - #19871, !5790 boxity analysis
-- #19874 kill `mkWWargs`
+
+- Worker/wrapper
+  * #19874 kill `mkWWargs`
+  * #19833 kill `zapUsedOnceInfo`
+  * #17917 fix this, which was accidentally undone
 
 - #19224, !4833: evaluate thunks eagerly if exprOkForSpec.
 
