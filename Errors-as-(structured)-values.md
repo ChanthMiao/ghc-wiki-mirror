@@ -1,6 +1,6 @@
 [[_TOC_]]
 
-**Overall progress (estimated)**: ![85%](https://progress-bar.dev/80)
+**Overall progress (estimated)**: ![85%](https://progress-bar.dev/85)
 <details><summary> :gear: <b>Progress Breakdown</b> (click the arrow to expand!)</summary>
 
 As this strand of work touches a lot of modules, doing everything as a single gargantuan MR seems highly impractical. Rather, we are considering breaking things down into atomic chunks which could be reviewed in isolation. A sketch of the plan might be the following:
