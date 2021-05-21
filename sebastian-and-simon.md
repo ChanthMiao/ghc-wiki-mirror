@@ -35,7 +35,7 @@ I move stuff here from the different sections that is on our radar at the moment
 - #19871, !5790 boxity analysis
 
 - Worker/wrapper
-  * #19874 kill `mkWWargs`
+  * #19874, !5814 kill `mkWWargs`
   * #19833 kill `zapUsedOnceInfo`
   * #17917 fix this, which was accidentally undone
 
