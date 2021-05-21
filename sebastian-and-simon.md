@@ -22,6 +22,7 @@ I move stuff here from the different sections that is on our radar at the moment
 
 # CPR
 
+- !5667: Nested CPR light
 - #19309: conditional CPR and free variables
 - #19240: Don't pass constants/free variables in unboxed tuple
 - #19309: Do CPR even if not all code paths construct products by returning an unboxed sum
