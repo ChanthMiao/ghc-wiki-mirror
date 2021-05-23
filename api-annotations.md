@@ -34,7 +34,11 @@ from a `where` clause to become a top-level definition. It should be
 possible to do this without disrupting the user's stylistic choices
 and comments.
 
-## Mechanism
+## Annotations in TTG Extension Points (Plan A)
+
+As of May 2021, the mechanism implemented in master stores EPA annotation in TTG extension points, which we call Plan A. The alternative is to record the necessary information in the AST directly (rather than in extension points), see Plan B below. To avoid confusion, all subsections below are marked as either (A) or (B).
+
+### Mechanism (A)
 
 Having the original locations of everything in the original source
 code is necessary for exact-printing the original, but is not
@@ -113,7 +117,7 @@ This allows us to painlessly build up new ASTs based on fragments from
 anywhere, and we only need to worry about spacing where we actually
 fit the new part in.
 
-## Limitations
+### Limitations (A)
 
 The exact printing approach described here is fine-tuned to the
 `GhcPs` AST, and is not expected to work for the `GhcRn` or `GhcTc`
@@ -134,7 +138,7 @@ Note: it may be possible to retain some of the original ordering of
 declarations by using `AnnSortKey` fields in the `GhcRn` and `GhcTc`
 ASTs.
 
-## General approach
+### General approach (A)
 
 The general approach is to store extra information in the
 Trees-That-Grow extension points to each constructor. This extra
@@ -201,7 +205,7 @@ Here you can see
   provided below.
 
 
-## Data structures
+### Data structures (A)
 
 `AnnKeywordId`: This is a simple enumeration of all keywords in Haskell, including alphanumeric
 keywords (such as `let` or `data`), alphanumeric pseudo-keywords (such as `family` or `qualified`),
@@ -227,7 +231,7 @@ An `EpaLocation` is used by the parser to store the original
 `AnnKeywordId` in an `AddEpAnn`.  If tools are used to modify an AST,
 the `EpaLocation` can alternatively store a `DeltaPos` directly.
 
-## Anchor and EpaLocation
+### Anchor and EpaLocation (A)
 
 At first blush there seems to be overlap between the `Anchor` and
 `EpaLocation` types, and one of them could be redundant.
@@ -396,8 +400,96 @@ data NameAdornment
 * `NameAdornment` always seems too big. That is, I don't think there's an occurrence that could use all four of its constructors.
 ** End RAE **
 
-# This is a decription of the API Annotations introduced with GHC 7.10 RC2
 
+## Token information in the syntax tree (Plan B)
+
+[#19623](https://gitlab.haskell.org/ghc/ghc/-/issues/19623) proposes a more direct encoding of the information necessary for exact printing.
+
+The idea is to introduce a new data type, `HsToken`, defined as follows:
+
+```
+type LHsToken tok p = XRec p (HsToken tok)
+
+data HsToken (tok :: Symbol) = HsTok
+```
+
+Then we record token information directly in the syntax tree:
+
+```diff
+  data HsExpr p
+    = ...
+      ...
+    | HsLet       (XLet p)
++                 (XRec p (LHsToken "let"))
+                  (LHsLocalBinds p)
++                 (XRec p (LHsToken "in"))
+                  (LHsExpr  p)
+```
+
+One might argue that this makes our AST less abstract, so it’s actually a concrete syntax tree. But we already retain certain information uncharacteristic of a proper AST, such as parentheses (with `HsPar`), so adding token information seems also appropriate.
+
+### Comparison between A and B
+
+* Plan A, using TTG extension fields:
+
+  ```
+  -- In the shared code base, Language.Haskell.Syntax.Expr
+     data HsExpr p = HsLet (XLet p) (HsLocalBinds p) (HsExpr p) | ...
+
+  -- In the GHC-specific code base, GHC.Hs.Expr
+     type instance XLet (GHC p) = LetKeywords
+     data LetKeywords = LK { lkLet :: AnnAnchor, lkIn :: AnnAnchor }
+  ```
+
+* Plan B, directly storing info in the syntax tree:
+
+  ```
+  -- In the shared code base, Language.Haskell.Syntax.Expr
+     data HsExpr p = HsLet (XLet p)
+                           (LHsToken "let" p) (HsLocalBinds p)
+                           (LHsToken "in" p)  (HsExpr p)
+                   | ...
+  ```
+
+  Here the "let" parameter to LHsToken is entirely phantom, present mostly for documentation reasons.
+
+Let's see the pros and cons (Simon’s analysis):
+
+* The big change is that the tokens become part of the (client-independent) syntax tree, in 
+  Language.Haskell.Syntax.
+
+* With Plan A, clients can completely ignore all the exact-print
+  stuff.  With Plan B they have to handle those fields, if only to
+  pass them on.
+
+* With Plan B we can do exact-print in an almost GHC-free way,
+  provided only that we can extract enough info from the `XRec` thing.
+  With Plan A, exact-print is deeply tied to GHC.
+
+* Plan B has many, many fewer data types.  And interspersing the
+  tokens in the "right" place in the record (e.g. "let" then binds
+  then "in" then expression) is very perspicuous, much more so than a
+  `lkLet` field in `LetKeywords`.
+
+* Many GHC passes use those extension fields.  With Plan A GHC will need
+  to pair up that pass-specific info with the LetKeywords stuff.  Possible,
+  but pretty tiresome.
+
+### Dealing with UnicodeSyntax (B)
+
+How will this approach deal with tokens that have unicode variants? Define `HsUniToken` as follows:
+
+```
+data HsUniToken (tok :: Symbol) (utok :: Symbol) = HsUTok IsUnicodeSyntax
+```
+
+and then e.g. `HsUTok u :: HsUniToken "->" "→"`, where `u` is either `UnicodeSyntax` or `NormalSyntax`.
+
+
+
+
+
+# (Old) This is a description of the API Annotations introduced with GHC 7.10 RC2
 
 The hsSyn AST does not directly capture the locations of certain keywords and
 punctuation, such as 'let', 'in', 'do', etc.
