@@ -12,7 +12,7 @@ The traffic levels vary quite a bit depending on how much activity there is.
 ## IRC
 
 
-GHC developers also hang out on `#ghc` channel on [FreeNode](http://freenode.net/). This is a good place to ask questions related to working on GHC itself; if you have more general questions then `#haskell` is probably more appropriate.
+GHC developers also hang out on `#ghc` channel on [libera.chat](https://libera.chat/) (not freenode). This is a good place to ask questions related to working on GHC itself; if you have more general questions then `#haskell` is probably more appropriate.
 
 
 Chatlogs can be found at ???(~~[http://ircbrowse.net/browse/ghc](http://ircbrowse.net/browse/ghc)~~ currently serves irrelevant ads)
