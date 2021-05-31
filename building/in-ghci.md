@@ -8,6 +8,8 @@ With one command you can load GHC into GHCi (assuming a configured source tree: 
 
 `ghcid` should also work without any further modifications.
 
+If you run into unexpected error messages, you may need to remove and rebuild the `.hadrian_ghci` directory.
+
 :warning: If your `~/.ghci` configuration file enables extensions like TemplateHaskell or OverloadedStrings, they will interfere with the loading, and **will** produce compilation errors. In order to skip `~/.ghci`, start GHCi with
 
 ```
