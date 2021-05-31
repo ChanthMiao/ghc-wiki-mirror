@@ -12,12 +12,12 @@ A few notes about GHC's issue tracker:
 
 ## Triage Rota
 
-The current triage rota is split between @andreask, @mpickering and @bgamari.
+The current triage rota is split between @andreask, @mpickering, @wz1000 and @bgamari.
 
 | Day | Triager |
 | ------ | ------ |
-| Monday | @bgamari |
-| Tuesday | @andreask |
+| Monday | @wz1000 |
+| Tuesday | @wz1000 |
 | Wednesday | @andreask |
 | Thursday | @mpickering |
 | Friday | @mpickering |
