@@ -14,7 +14,7 @@ Unfortunately, there isn't a single paper (yet) that describes demand analysis a
 
 ## Demand signatures
 
-See the info in the [user's guide entry on `-fstrictness`](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/using-optimisation.html?highlight=demand#ghc-flag--fstrictness).
+See the info in the [user's guide entry on `-fstrictness`](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/using-optimisation.html#ghc-flag--fstrictness).
 
 ## Worker-Wrapper split
 
