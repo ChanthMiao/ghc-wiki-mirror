@@ -1,3 +1,3 @@
 # Visualizing module dependency graphs
 
-Foo, bar, baz.
+[README](https://gitlab.haskell.org/ghc/ghc/-/blob/master/utils/count-deps/README.md)
