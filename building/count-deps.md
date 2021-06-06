@@ -6,4 +6,4 @@ The image below shows a slice of a graph of the import dependencies of `GHC.Pars
 
 Using the program `count-deps` from [`ghc/utils`](https://gitlab.haskell.org/ghc/ghc/-/tree/master/utils/),  it's possible to generate graphs like these for any module in the `ghc` package.
 
-It's easy! This [README](https://gitlab.haskell.org/ghc/ghc/-/blob/master/utils/count-deps/README.md) details all you need to know.
+It's easy! This [README](https://gitlab.haskell.org/ghc/ghc/-/blob/master/utils/count-deps/README.md) details ought to tell you ally you need to know.
