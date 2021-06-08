@@ -48,6 +48,12 @@ The `./validate` script uses Hadrian by default and can be used to build GHC, pr
 
 To speed up subsequent builds, you will often want to avoid rebuilding the stage 1 compiler by passing `--freeze1` to `build`.
 
+A good compromise between a fast compiler which passes most the testsuite and fast rebuilds is building with the following options.
+
+```
+ ./hadrian/build --flavour=default+no_profiled_libs+omit_pragmas --freeze1 -j
+```
+
 After pulling upstream changes, you may need to update the submodules via `git submodule update --init --recursive`. Alternatively you can configure git to do this for you automatically: `git config --local submodule.recurse true`.
 
 ## Going further
@@ -114,4 +120,3 @@ Note how this even allows for a Ticky-enabled build through creation of a `hadri
 - `hb..` for `hadrian/build`
 - `..{q,v,t,...}.` for quick, validate and ticky (similarly prof and devel2) flavours
 - `...{s,f,}` for a build where we only want to rebuild the stage1 compiler (takes ~10s instead of 30s on my machine), where we only want to rebuild the stage2 compiler without recompiling stage1 or the RTS, or a complete rebuild.
-
