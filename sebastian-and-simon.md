@@ -32,7 +32,7 @@ I move stuff here from the different sections that is on our radar at the moment
 
 # Demand Analysis
 
-- #19871, !5790 boxity analysis
+- #19871, !5790 boxity analysis.  See also https://gitlab.haskell.org/ghc/ghc/-/issues/19824#note_353112
 
 - Worker/wrapper
   * #19874, !5814 kill `mkWWargs`
@@ -167,4 +167,3 @@ I move stuff here from the different sections that is on our radar at the moment
   - Also how much? Whole pattern language or just enough of a fragment to explain or patterns?
   - I see there is https://gitlab.haskell.org/rae/haskell as a starting point, but it seems to focus entirely on static semantics. But probably the document to complete?
   - We talked about it; it's a matter of pushing the proposal forward rather than investing actual elbow grease into an impl.
-
