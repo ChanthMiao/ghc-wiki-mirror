@@ -251,7 +251,7 @@ In order to see emails below, **you must login**.
 
 - Krzysztof Gogolewski
 
-  - University of Warsaw - Poland
+  - Tweag I/O
   - **Trac**: monoidal; **email**: krz.gogolewski@…
   - **Committer since**: September, 2013.
   - **Main areas of interest**: type checker
