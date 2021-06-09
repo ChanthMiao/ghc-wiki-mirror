@@ -16,6 +16,10 @@ can extend it, modify it, and use it to build your code.
 - [Getting ready to contribute (i.e. forking GHC)](building/fork)
 - Newcomers should also go to [Contributing](contributing).
 
+### Visualisation
+
+- [How to generate a visualisations of the module dependencies in all or part of GHC](https://gitlab.haskell.org/ghc/ghc/-/wikis/building/count-deps)
+
 ### Using the new Hadrian build system
 
 - [Building GHC with Hadrian](building/hadrian)
