@@ -2,45 +2,50 @@
 
 I move stuff here from the different sections that is on our radar at the moment.
 
-- #19529: Dependency analysis of IMP-RULEs
-- #14461: Closure sharing
-- #19398, !5054: Nested CPR light
-- #13331, #19276, #19326: CPR, free variables,and loss of sharing
-- #16335 return pattern specialisation
-  - Exploring this since CPR turned out to suffer too much from loss of sharing
-  - As part of SpecConstr or as a separate pass?
+- !5814: Remove mkWWargs. Should be easy going now
+- !5667: Nested CPR light, part 2
+  - some nice ghc/alloc wins
+- #5075, !4229: CPR for sum types
+  - Maybe we have a shot at fixing this after !5667 lands; I feel like most of
+    its woes were due to CPR'ing lists.
+- TrieMaps
+  - Tests
+  - Paper comments
+  - Related Work
+- #19871, !5790 boxity analysis.  See also https://gitlab.haskell.org/ghc/ghc/-/issues/19824#note_353112
 - #19181 Semantics of exceptions: Is there a tex file for the JFP paper?
-- Ultimately pick up the SAT work again #18962, but I feel like we need a better story for derived unfoldings here.
+- Ultimately pick up the SAT work again #18962, but I feel like we need a better story for derived unfoldings here
+  - Maybe new unfolding source? Or attach unfolding deriving strategy to
+    InlineRHS. On the other hand, it would also be useful for stable unfoldings..
 
 # Simplifier and occurrence analysis
 
-- #19529: glomming and occurrence analysis
+- #19529: glomming and occurrence analysis, Dependency analysis of IMP-RULEs
 
 # Exceptions
 
 - #19181 Semantics of exceptions
 
+# Closure representation
+
+- #14461: Closure sharing
+  - Zack is on it, but results aren't particularly enlightening.
+
 # CPR
 
-- !5667: Nested CPR light
-- !4229: CPR for sum types
+- #13331, #19276, #19326: CPR, free variables, and loss of sharing
 - #19309: conditional CPR and free variables
 - #19240: Don't pass constants/free variables in unboxed tuple
 - #19309: Do CPR even if not all code paths construct products by returning an unboxed sum
 - #18174, !1866: Nested CPR
   - On hold again, no clear wins and even regressions. Prbobably loses too much thunk sharing.
-- #16335 return pattern specialisation
+  - Probably related to not doing CPR for recursive data cons. !5667 does much better because of it.
 
 # Demand Analysis
 
-- #19871, !5790 boxity analysis.  See also https://gitlab.haskell.org/ghc/ghc/-/issues/19824#note_353112
-
 - Worker/wrapper
   * #19874, !5814 kill `mkWWargs`
-  * #19833 kill `zapUsedOnceInfo`
   * #17917 fix this, which was accidentally undone
-
-- #19224, !4833: evaluate thunks eagerly if exprOkForSpec.
 
 - #18907 Product demands
 
@@ -66,6 +71,12 @@ I move stuff here from the different sections that is on our radar at the moment
     for a summary.
 
 - #18983, !5145: RubbishLits for all reps to have absent unlifted coercions
+
+# Return-pattern specialisation
+
+- #16335 return pattern specialisation
+  - Exploring this since CPR turned out to suffer too much from loss of sharing
+  - As part of SpecConstr or as a separate pass?
 
 # SAT
 
