@@ -13,7 +13,6 @@ I move stuff here from the different sections that is on our radar at the moment
   - Paper comments
   - Related Work
 - #19871, !5790 boxity analysis.  See also https://gitlab.haskell.org/ghc/ghc/-/issues/19824#note_353112
-- #19181 Semantics of exceptions: Is there a tex file for the JFP paper?
 - Ultimately pick up the SAT work again #18962, but I feel like we need a better story for derived unfoldings here
   - Maybe new unfolding source? Or attach unfolding deriving strategy to
     InlineRHS. On the other hand, it would also be useful for stable unfoldings..
