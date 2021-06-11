@@ -46,6 +46,7 @@ I move stuff here from the different sections that is on our radar at the moment
   * #9917: better w/w for bottoming functions
   * #19874, !5814 kill `mkWWargs`
   * #17917 fix this, which was accidentally undone
+  * #19833 zapping used-once info
 
 - #18907 Product demands
 
