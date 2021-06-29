@@ -2,7 +2,7 @@
 
 This wiki page focuses on information that GHC devs need to know about demand analysis and the corresponding worker/wrapper transformation that feeds on strictness and absence info.
 
-As a first step, it is recommended to get up to speed on demand analysis and notation of demand signatures that is relevant to *users* of GHC, as explained in the [user's guide entry on `-fstrictness`](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/using-optimisation.html?highlight=demand#ghc-flag--fstrictness).
+As a first step, it is recommended to get up to speed on demand analysis and notation of demand signatures that is relevant to *users* of GHC, as explained in the [user's guide entry on `-fstrictness`](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/using-optimisation.html#ghc-flag--fstrictness).
 
 Unfortunately, there isn't a single paper (yet) that describes demand analysis as a whole. The relevant sources are:
 
