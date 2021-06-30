@@ -33,18 +33,3 @@ If anyone has any idea how to fix this it would be appreciated. Do I need to add
 
 thanks,
 m
-
-*Update*
-I solved this by adding more memory to the RTS param:
-`cabal install --ghc-options="+RTS -M1000M" -j1 cabal-install`
-
-Now I have this issue, where 3.4 installs but I'm still stuck using 2.4:
-```
-Warning: could not create a symlink in /root/.cabal/bin for cabal because the
-
-file exists there already but is not managed by cabal. You can create a
-
-symlink for this executable manually if you wish. The executable file has been
-
-installed at /root/.cabal/bin/cabal
-```
