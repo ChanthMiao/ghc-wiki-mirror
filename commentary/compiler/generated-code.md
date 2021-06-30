@@ -41,7 +41,7 @@ Core language. It differs in the following main respects:
 
 1. In its current incarnation, it isn't typed in the Haskell sense,
    though it does know about *representation* types
-1. It is in administrative normal form (ANF), which is where every
+1. It is in A-normal form (ANF), which is where every
    subexpression is given a name
 1. Every $`\lambda`$, constructor application, and primitive operator
    is $`\eta`$-expanded
