@@ -2,8 +2,6 @@
 
 I move stuff here from the different sections that is on our radar at the moment.
 
-- #19050, !5982 demand representation
-  - Discuss design
 - #19871, !5790 boxity analysis.  See also https://gitlab.haskell.org/ghc/ghc/-/issues/19824#note_353112
   - Nice idea for a paper: DmdAnal, then CprAnal, both record boxity constraints
     and possibly insert variables. Then Boxity Anal solves those equations,
