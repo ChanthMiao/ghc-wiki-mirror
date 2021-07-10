@@ -22,7 +22,7 @@
     discussion.
 
 *** Status
-    Unconfirmed. In progress, working on [[*Courses of Action][novel intmap implementation]]
+    Unconfirmed. In progress, working on (2) in courses of action
 
 *** Evidence
     To gather evidence that the unbalancing is happening we need to either
@@ -60,6 +60,14 @@
        The implementation is unfinished and there are no benchmarks. We could
        finish the implementation, benchmark it against the standard ~IntMap~, if
        it looks good then patch it into the compiler and benchmark.
+
+*** What was learned
+    - ~Not worth the cost~: From (3) in Courses of Action we saw that the
+      ~bounded-intmap~ implementation as a drop in replacement for the current
+      intmaps results in significant slowdowns (as much as 70%) in certain
+      phases for certain packages. Furthermore the max speedup observed was 12%.
+      Furthermore the nofib results only showed degradation's in compile time
+      performance. See my analysis [[https://gitlab.haskell.org/ghc/ghc/-/issues/19820#note_364086][here]] for more details and data.
 
 ** IntMap ~lookup~ performs allocation
 
