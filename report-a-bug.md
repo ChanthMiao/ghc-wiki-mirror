@@ -17,9 +17,7 @@ To report a bug, either:
 
   - register an account on this GitLab instance
   - Create a [new bug](https://gitlab.haskell.org/ghc/ghc/issues), and enter your bug report. You can also search the bug database here to make sure your bug hasn't already been reported (if it has, it might still help to add information from your experience to the existing report).
-- Less preferred:
 
-  - To submit an anonymous bug: use login "guest", password "guest"
 
 ## How do I tell if I should report my bug?
 
