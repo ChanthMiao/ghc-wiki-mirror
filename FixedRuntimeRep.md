@@ -17,7 +17,7 @@ class FixedRuntimeRep rep where
 Whenever a situation arises in which a `RuntimeRep` must be monomorphic, we emit a `FixedRuntimeRep rep` Wanted constraint. The constraint solver attempts to solve these Wanted constraints; if it can't, a type error is reported that tells the user that a representation-polymorphic type isn't allowed. Otherwise, it produces evidence: the `RuntimeRep` that is used. This evidence is then used by the code generator.
 
 # Details
-## Emitting the FixedRuntimeRep constraint
+## Emitting FixedRuntimeRep constraints
 
 The whole point of emitting a `RuntimeRep` constraint is to allow the typechecker to determine whether the `RuntimeRep` is actually fixed (e.g. performing type-family reduction if necessary). When encountering a type `ty :: k`, one has several options to ensure it is representation-monomorphic:
   1. require that `k` be of the form `TYPE r` for a specific `RuntimeRep` `r`. This is no good: we might have `TYPE (Id IntRep)` which requires a type family reduction.
@@ -26,6 +26,14 @@ The whole point of emitting a `RuntimeRep` constraint is to allow the typechecke
 
 The third option would lead to more programs being accepted, as it would allow programs in which type-family reduction is necessary to discover that the kind `k` is of the form `TYPE r`.    
 I (@sheaf) have chosen (3.) for the moment, but if it turns out to cause problems it will be very easy to pivot back to (2.).
+
+### Where specifically are we emitting these constraints?
+
+Under the `GHC.Tc.Gen` module hierarchy:
+  - `GHC.Tc.Gen.App` for function applications,
+  - `GHC.Tc.Gen.Bind` for bindings,
+  - `GHC.Tc.Gen.Pat` for patterns,
+  - ...
 
 ## Solving FixedRuntimeRep constraints
 
