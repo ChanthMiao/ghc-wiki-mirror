@@ -67,7 +67,7 @@ and thereby avoid the necessity for the supporting library.
 Here is a check-list of things to cover in your description:
 
 1. The source code of the program that shows the bug.  You can give the code inline, or attach a file, or attach a tarball.
-1. \[Only if you think the bug is platform dependent\]: what kind of machine are you running on, and exactly what version of the operating system are you using? (on a Unix system, `uname -a` or `cat /etc/motd` will show the desired information.) In the bug tracker, this information can be given in the "Architecture" and "Operating system" fields.
+1. (Only if you think the bug is platform dependent): what kind of machine are you running on, and exactly what version of the operating system are you using? (on a Unix system, `uname -a` or `cat /etc/motd` will show the desired information.) In the bug tracker, this information can be given in the "Architecture" and "Operating system" fields.
 1. What version of GCC are you using? `gcc -v` will tell you.
 1. Run the sequence of compiles/runs that caused the offending behaviour, cut-and-paste the whole session into the bug report. We'd prefer to see the whole thing.
 1. Add the `-v` flag when running GHC, so we can see exactly what was run, what versions of things you have, etc.
