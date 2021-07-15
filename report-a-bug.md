@@ -28,17 +28,17 @@ To report a bug:
 
 - **RTS bugs**.  However, if you encounter a crash from the runtime system, then don't bother searching for existing tickets - just create a new ticket.  These indicate a general RTS failure of some kind, and can arise due to a wide range of causes, so it is easier for us to track each failure in a separate ticket.  
 
->
->
-> Runtime system errors usually manifest as one of the following error messages:
->
->
-> ```wiki
-> internal error: evacuate: strange closure type ...
-> internal error: scavenge: unimplemented/strange closure type ...
-> internal error: update_fwd: unknown/strange object ...
-> internal error: stg_ap_v_ret
-> ```
+  >
+  >
+  > Runtime system errors usually manifest as one of the following error messages:   
+  >
+  >
+  > ```wiki
+  > internal error: evacuate: strange closure type ...
+  > internal error: scavenge: unimplemented/strange closure type ...
+  > internal error: update_fwd: unknown/strange object ...
+  > internal error: stg_ap_v_ret
+  > ```
 
 - **If in doubt, just report your bug**.
 
