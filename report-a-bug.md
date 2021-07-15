@@ -9,7 +9,7 @@ See also [Issue conventions](https://gitlab.haskell.org/ghc/ghc/wikis/gitlab/iss
 GHC is a changing system so there are sure to be bugs in it.
 
 
-To report a bug, either:
+To report a bug:
 
  - register an account on this GitLab instance
  - Create a [new bug](https://gitlab.haskell.org/ghc/ghc/issues), and enter your bug report. Make a new ticket for your bug unless you are 100% sure there is a ticket for your exact problem.
