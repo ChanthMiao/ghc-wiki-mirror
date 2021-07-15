@@ -65,7 +65,7 @@ This is the terminology for the entities only used inside the compiler.
 
 1. [G0] UnitEnv is not self-sufficient: DynFlags are queried to detect one-shot mode here and there and to bypass the HPT in this case. We should make the HPT optional in UnitEnv instead. One-shot would then imply `ue_hpt = Nothing`.
 
-1. [G1] Support optional HomeUnit optional in interface loading API. The UnitEnv for plugins won't have a home unit in cross-compilers. `ue_home_unit` has already type `Maybe HomeUnit` but we need to ensure that setting it to `Nothing` doesn't panic in our use cases (i.e. remove uses of `unsafeGetHomeUnit`).
+1. [G1] Support optional HomeUnit in interface loading API. The UnitEnv for plugins won't have a home unit in cross-compilers. `ue_home_unit` has already type `Maybe HomeUnit` but we need to ensure that setting it to `Nothing` doesn't panic in our use cases (i.e. remove uses of `unsafeGetHomeUnit`).
 
 1. [G2] Support a graph of HomeUnit in UnitEnv. Each HomeUnit would need its own view of external units (see ExternalUnitView below) and of other home-units.
 
