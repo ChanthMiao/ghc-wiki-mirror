@@ -1,8 +1,20 @@
 This page outlines a plan to move the representation polymorphism checks that currently occur in the zonker and the desugarer to the typechecker.
 
+* Tickets: #17201 #17113 #13105 #17536
+* Merge request: !6164
+
 # Motivation
 
 There are several downsides to checking representation polymorphism in the desugarer, as evidenced by the tickets #17201 #17113 #13105 #17536. For instance, one might need to do type-family reduction in order to determine the `RuntimeRep`. So it seems more natural to do these checks in the typechecker instead, where one has access to all this information.
+
+There are a bunch of related tickets, generally called "TypeLike"; see e.g.
+
+* #17201(FixedRuntimeRep ie. not levity-polymorphic) (will also fix #17536, #18170) Maybe #13105
+* #15979 (TypeLike)
+* #18756 Something about linearity
+* #19573
+
+and [this comment](https://gitlab.haskell.org/ghc/ghc/-/issues/15979#note_213564).
 
 # Broad outline
 
