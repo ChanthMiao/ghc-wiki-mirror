@@ -381,10 +381,10 @@
       In the stg we see a reduction in ~case~ expressions from 11 to 7! However,
       the change doesn't show up in /any/ benchmarking as a positive. IntMap
       benchmarks are unchanged, allocations of ~lookup~ are unchanged in a ticky
-      of ~spectral/simple/Main.hs~ with a patched ~GHC~. We compiling packages
+      of ~spectral/simple/Main.hs~ with a patched ~GHC~. When compiling packages
       with the patched GHC allocations were actually found to /get worse/! The
       reason is in the ~Cmm~ code. Essentially the patched version produces
-      better ~stg~ but these get optimized away at ~Cmm~ anyway. Furthermore
+      better ~stg~ but gets optimized away at ~Cmm~ anyway. Furthermore
       because we allocate for ~k~ in the closure of the patched version the
       patched ~Cmm~ code maintains an additional register, whereas the
       un-patched version doesn't. Thus we have another promising lead but a
