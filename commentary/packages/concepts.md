@@ -1,4 +1,3 @@
-
 Package keys, installed package IDs, ABI hashes, package names and
 versions, Nix-style hashes, ... there's so many different identifiers,
 what do they all mean?  I think the biggest source of confusion (for
@@ -14,7 +13,7 @@ The content here overlaps with [wiki:Commentary/Packages](commentary/packages) b
 See also `Note [The identifier lexicon]` in `compiler/basicTypes/Module.hs`.
 
 
-Some relevant tickets: #10622
+Some relevant tickets and pages: #10622 [wiki:Commentary/Compiler/Units](commentary/compiler/units)
 
 ## What problems do we need to solve?
 
