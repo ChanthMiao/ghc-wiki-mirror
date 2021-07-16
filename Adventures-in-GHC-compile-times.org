@@ -69,6 +69,289 @@
       Furthermore the nofib results only showed degradation's in compile time
       performance. See my analysis [[https://gitlab.haskell.org/ghc/ghc/-/issues/19820#note_364086][here]] for more details and data.
 
+    - I took a deep dive into the core, stg of the lookup. First thing to notice
+      is the core:
+       #+begin_src
+       $wlookup
+         = \ @a_s5OwJ ww_s5OwO w_s5OwL ->
+             join {
+               exit_X9 dt_d5E7p x_a5sqR
+                 = case ==# ww_s5OwO dt_d5E7p of {
+                     __DEFAULT -> Nothing;
+                     1# -> Just x_a5sqR
+                   } } in
+             joinrec {
+               go3_s5GTZ ds_d5zfo
+                 = case ds_d5zfo of {
+                     Bin dt_d5E7n dt1_d5E7o l_a5sqO r_a5sqP ->
+                       let { m_s5GU1 = int2Word# dt1_d5E7o } in
+                       case /=#
+                              (word2Int#
+                                 (and#
+                                    (int2Word# ww_s5OwO)
+                                    (xor# (int2Word# (negateInt# (word2Int# m_s5GU1))) m_s5GU1)))
+                              dt_d5E7n
+                       of {
+                         __DEFAULT ->
+                           case and# (int2Word# ww_s5OwO) m_s5GU1 of {
+                             __DEFAULT -> jump go3_s5GTZ r_a5sqP;
+                             0## -> jump go3_s5GTZ l_a5sqO
+                           };
+                         1# -> Nothing
+                       };
+                     Tip dt_d5E7p x_a5sqR -> jump exit_X9 dt_d5E7p x_a5sqR;
+                     Nil -> Nothing
+                   }; } in
+             jump go3_s5GTZ w_s5OwL
+       #+end_src
+       Notice all those ~word2Int~ and ~int2Word~'s? The hypothesis here is that
+      these are allocating. Even if they aren't they waste time in the
+      conversion. You can see it more clearly in the stg:
+       #+begin_src
+       $wlookup =
+           \r [ww_s5Wim w_s5Win]
+               let-no-escape {
+                 exit_s5Wio =
+                     \r [dt_s5Wip x_s5Wiq]
+                         case ==# [ww_s5Wim dt_s5Wip] of {
+                           __DEFAULT -> Nothing [];
+                           1# -> Just [x_s5Wiq];
+                         };
+               } in
+                 let-no-escape {
+                   Rec {
+                   go3_s5Wis =
+                       \r [ds_s5Wit]
+                           case ds_s5Wit of {
+                             Bin dt_s5Wiv dt1_s5Wiw l_s5Wix r_s5Wiy ->
+                                 case int2Word# [dt1_s5Wiw] of m_s5Wiz {
+                                 __DEFAULT ->
+                                 case word2Int# [m_s5Wiz] of sat_s5WiB {
+                                 __DEFAULT ->
+                                 case negateInt# [sat_s5WiB] of sat_s5WiC {
+                                 __DEFAULT ->
+                                 case int2Word# [sat_s5WiC] of sat_s5WiD {
+                                 __DEFAULT ->
+                                 case xor# [sat_s5WiD m_s5Wiz] of sat_s5WiE {
+                                 __DEFAULT ->
+                                 case int2Word# [ww_s5Wim] of sat_s5WiA {
+                                 __DEFAULT ->
+                                 case and# [sat_s5WiA sat_s5WiE] of sat_s5WiF {
+                                 __DEFAULT ->
+                                 case word2Int# [sat_s5WiF] of sat_s5WiG {
+                                 __DEFAULT ->
+                                 case /=# [sat_s5WiG dt_s5Wiv] of {
+                                   __DEFAULT ->
+                                       case int2Word# [ww_s5Wim] of sat_s5WiI {
+                                       __DEFAULT ->
+                                       case and# [sat_s5WiI m_s5Wiz] of {
+                                         __DEFAULT -> go3_s5Wis r_s5Wiy;
+                                         0## -> go3_s5Wis l_s5Wix;
+                                       };
+                                       };
+                                   1# -> Nothing [];
+                                 };
+                                 };
+                                 };
+                                 };
+                                 };
+                                 };
+                                 };
+                                 };
+                                 };
+                             Tip dt_s5WiK x_s5WiL -> exit_s5Wio dt_s5WiK x_s5WiL;
+                             Nil -> Nothing [];
+                           };
+                   end Rec }
+                 } in  go3_s5Wis w_s5Win;
+       #+end_src
+       In the stg there are a lot of temporary fully evaluated variables like
+      ~sat_s5WiB~ which is just the result of ~word2Int~ applied to the result
+      of ~int2Word~ on variable ~m~, clearly what a waste!
+
+      We can see why in the source code for ~lookup~ in ~IntMap~:
+      #+begin_src
+      lookup :: Key -> IntMap a -> Maybe a
+      lookup !k = go
+        where
+          go (Bin p m l r) | nomatch k p m = Nothing
+                           | zero k m  = go l
+                           | otherwise = go r
+          go (Tip kx x) | k == kx   = Just x
+                        | otherwise = Nothing
+          go Nil = Nothing
+      #+end_src
+      Nothing too unusual but if we look at those helper functions we'll find a
+      bunch of superfluous ~int2Word~ calls:
+      #+begin_src
+      -- | Should this key follow the left subtree of a 'Bin' with switching
+      -- bit @m@? N.B., the answer is only valid when @match i p m@ is true.
+      zero :: Key -> Mask -> Bool
+      zero i m
+        = (natFromInt i) .&. (natFromInt m) == 0
+      {-# INLINE zero #-}
+
+      nomatch,match :: Key -> Prefix -> Mask -> Bool
+
+      -- | Does the key @i@ differ from the prefix @p@ before getting to
+      -- the switching bit @m@?
+      nomatch i p m
+        = (mask i m) /= p
+      {-# INLINE nomatch #-}
+
+      -- | Does the key @i@ match the prefix @p@ (up to but not including
+      -- bit @m@)?
+      match i p m
+        = (mask i m) == p
+      {-# INLINE match #-}
+
+
+      -- | The prefix of key @i@ up to (but not including) the switching
+      -- bit @m@.
+      mask :: Key -> Mask -> Prefix
+      mask i m
+        = maskW (natFromInt i) (natFromInt m)
+      {-# INLINE mask #-}
+
+
+      {--------------------------------------------------------------------
+        Big endian operations
+      --------------------------------------------------------------------}
+
+      -- | The prefix of key @i@ up to (but not including) the switching
+      -- bit @m@.
+      maskW :: Nat -> Nat -> Prefix
+      maskW i m
+        = intFromNat (i .&. ((-m) `xor` m))
+      {-# INLINE maskW #-}
+      #+end_src
+
+      and that's where these superfluous calls are coming from. There is an
+      extra call I want to point out which arises from ~-m~ in ~maskW~. If you
+      check the ~Num~ instance for ~Word~ you'll see this:
+      #+begin_src
+      instance Num Word64 where
+          ...
+          negate (W64# x#)       = W64# (int64ToWord64# (negateInt64# (word64ToInt64# x#)))
+          ...
+      #+end_src
+      Which also does conversion! Why this is the case and not something like
+      ~maxBound - x~ or even a call to a primop like ~0 - x~ I don't know.
+
+      So I tried to fix it with this version of lookup:
+      #+begin_src
+      lookup :: Key -> IntMap a -> Maybe a
+      lookup !k = go
+        where
+          go (Bin p m l r)  | nomatchNat k' p' m' = Nothing
+                            | zeroNat    k' m'    = go l
+                            | otherwise           = go r
+            where p' = natFromInt p
+                  m' = natFromInt m
+                  k' = natFromInt k
+          go (Tip kx x) | k == kx   = Just x
+                           | otherwise = Nothing
+          go Nil = Nothing
+      #+end_src
+      Which just converts these the Bin parameters /once/ and then uses Nat
+      versions to do the Bit manipulation. If we look at the core and stg the
+      situation looks much improved:
+      #+begin_src
+      $wlookup
+        = \ @a_s5MgS ww_s5MgX w_s5MgU ->
+            let { k'_s5ES7 = int2Word# ww_s5MgX } in
+            join {
+              exit_X9 dt_d5BQu x_a5q9D
+                = case ==# ww_s5MgX dt_d5BQu of {
+                    __DEFAULT -> Nothing;
+                    1# -> Just x_a5q9D
+                  } } in
+            joinrec {
+              go3_s5ECW ds_d5wR4
+                = case ds_d5wR4 of {
+                    Bin dt_d5BQs dt1_d5BQt l_a5q9x r_a5q9y ->
+                      let { m'_s5ECZ = int2Word# dt1_d5BQt } in
+                      case neWord#
+                             (and# k'_s5ES7 (xor# (minusWord# 0## m'_s5ECZ) m'_s5ECZ))
+                             (int2Word# dt_d5BQs)
+                      of {
+                        __DEFAULT ->
+                          case and# k'_s5ES7 m'_s5ECZ of {
+                            __DEFAULT -> jump go3_s5ECW r_a5q9y;
+                            0## -> jump go3_s5ECW l_a5q9x
+                          };
+                        1# -> Nothing
+                      };
+                    Tip dt_d5BQu x_a5q9D -> jump exit_X9 dt_d5BQu x_a5q9D;
+                    Nil -> Nothing
+                  }; } in
+            jump go3_s5ECW w_s5MgU
+      #+end_src
+      That's 3 ~int2Word~'s instead of 4, and no calls to ~word2Int~! This is
+      even more clear in the ~stg~:
+
+      #+begin_src
+      $wlookup =
+          \r [ww_s5TXH w_s5TXI]
+              case int2Word# [ww_s5TXH] of k'_s5TXJ {
+              __DEFAULT ->
+              let-no-escape {
+                exit_s5TXK =
+                    \r [dt_s5TXL x_s5TXM]
+                        case ==# [ww_s5TXH dt_s5TXL] of {
+                          __DEFAULT -> Nothing [];
+                          1# -> Just [x_s5TXM];
+                        };
+              } in
+                let-no-escape {
+                  Rec {
+                  go3_s5TXO =
+                      \r [ds_s5TXP]
+                          case ds_s5TXP of {
+                            Bin dt_s5TXR dt1_s5TXS l_s5TXT r_s5TXU ->
+                                case int2Word# [dt1_s5TXS] of m'_s5TXV {
+                                __DEFAULT ->
+                                case int2Word# [dt_s5TXR] of sat_s5TXZ {
+                                __DEFAULT ->
+                                case minusWord# [0## m'_s5TXV] of sat_s5TXW {
+                                __DEFAULT ->
+                                case xor# [sat_s5TXW m'_s5TXV] of sat_s5TXX {
+                                __DEFAULT ->
+                                case and# [k'_s5TXJ sat_s5TXX] of sat_s5TXY {
+                                __DEFAULT ->
+                                case neWord# [sat_s5TXY sat_s5TXZ] of {
+                                  __DEFAULT ->
+                                      case and# [k'_s5TXJ m'_s5TXV] of {
+                                        __DEFAULT -> go3_s5TXO r_s5TXU;
+                                        0## -> go3_s5TXO l_s5TXT;
+                                      };
+                                  1# -> Nothing [];
+                                };
+                                };
+                                };
+                                };
+                                };
+                                };
+                            Tip dt_s5TY2 x_s5TY3 -> exit_s5TXK dt_s5TY2 x_s5TY3;
+                            Nil -> Nothing [];
+                          };
+                  end Rec }
+                } in  go3_s5TXO w_s5TXI;
+              };
+      #+end_src
+      In the stg we see a reduction in ~case~ expressions from 11 to 7! However,
+      the change doesn't show up in /any/ benchmarking as a positive. IntMap
+      benchmarks are unchanged, allocations of ~lookup~ are unchanged in a ticky
+      of ~spectral/simple/Main.hs~ with a patched ~GHC~. We compiling packages
+      with the patched GHC allocations were actually found to /get worse/! The
+      reason is in the ~Cmm~ code. Essentially the patched version produces
+      better ~stg~ but these get optimized away at ~Cmm~ anyway. Furthermore
+      because we allocate for ~k~ in the closure of the patched version the
+      patched ~Cmm~ code maintains an additional register, whereas the
+      un-patched version doesn't. Thus we have another promising lead but a
+      failure in the end.
+
+
 ** IntMap ~lookup~ performs allocation
 
 *** Hypothesis
