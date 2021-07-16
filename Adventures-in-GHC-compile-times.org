@@ -69,7 +69,7 @@
       Furthermore the nofib results only showed degradation's in compile time
       performance. See my analysis [[https://gitlab.haskell.org/ghc/ghc/-/issues/19820#note_364086][here]] for more details and data.
 
-    - I took a deep dive into the core, stg of the lookup. First thing to notice
+    - I took a deep dive into the core, stg of the lookup function in ~IntMap.Internal.hs~. First thing to notice
       is the core:
        #+begin_src
        $wlookup
@@ -238,7 +238,7 @@
       Which also does conversion! Why this is the case and not something like
       ~maxBound - x~ or even a call to a primop like ~0 - x~ I don't know.
 
-      So I tried to fix it with this version of lookup:
+      So I tried to fix it with this version of [[https://github.com/doyougnu/containers/commits/wip/intmap-less-alloc][lookup]]:
       #+begin_src
       lookup :: Key -> IntMap a -> Maybe a
       lookup !k = go
