@@ -69,6 +69,40 @@
       Furthermore the nofib results only showed degradation's in compile time
       performance. See my analysis [[https://gitlab.haskell.org/ghc/ghc/-/issues/19820#note_364086][here]] for more details and data.
 
+
+** IntMap ~lookup~ performs allocation
+
+*** Hypothesis
+    IntMap lookup performs allocation due to the key being specialized in its
+    definition. See SPJ's breakdown [[https://gitlab.haskell.org/ghc/ghc/-/issues/20069][here]].
+
+*** Status
+    Confirmed without direct evidence.
+
+*** Evidence
+    By inspection of source code. Also noticed in [[https://gitlab.haskell.org/ghc/ghc/-/issues/18541#note_292432][this comment]], however not
+    confirmed with direct evidence. See Sebastian's [[https://gitlab.haskell.org/ghc/ghc/-/issues/20069#note_362952][comment]] about the ~go~
+    closure.
+
+*** The Fix
+    Sylvain Henry has a patch [[https://gitlab.haskell.org/ghc/ghc/-/issues/18541#note_292432][here]] but only tested the intmap-benchmarks.
+
+*** Relevant Issues
+     - https://gitlab.haskell.org/ghc/ghc/-/issues/19820 The low-hanging fruit
+       issue kicked off by Richard Eisenberg's ticky ticky profile.
+     - https://gitlab.haskell.org/ghc/ghc/-/issues/18541#note_292432 see Sylvain
+       Henry's comment on ~IntMap.lookup~
+     - https://gitlab.haskell.org/ghc/ghc/-/issues/20069 SPJ's IntMap issue
+
+*** Relevant Merge Requests
+
+*** Relevant Patches
+    - see https://gitlab.haskell.org/ghc/ghc/-/issues/18541#note_292432
+
+*** Courses of Action
+    - Implement and benchmark Sylvain Henry's patch, benchmark it for building
+      entire packages not just the intmap-benchmark
+
     - I took a deep dive into the core, stg of the lookup. First thing to notice
       is the core:
        #+begin_src haskell
@@ -229,16 +263,19 @@
       and that's where these superfluous calls are coming from. There is an
       extra call I want to point out which arises from ~-m~ in ~maskW~. If you
       check the ~Num~ instance for ~Word~ you'll see this:
+
       #+begin_src haskell
       instance Num Word64 where
           ...
           negate (W64# x#)       = W64# (int64ToWord64# (negateInt64# (word64ToInt64# x#)))
           ...
       #+end_src
+
       Which also does conversion! Why this is the case and not something like
       ~maxBound - x~ or even a call to a primop like ~0 - x~ I don't know.
 
       So I tried to fix it with this version of [[https://github.com/doyougnu/containers/commits/wip/intmap-less-alloc][lookup]]:
+
       #+begin_src Haskell
       lookup :: Key -> IntMap a -> Maybe a
       lookup !k = go
@@ -287,6 +324,7 @@
                   }; } in
             jump go3_s5ECW w_s5MgU
       #+end_src
+
       That's 3 ~int2Word~'s instead of 4, and no calls to ~word2Int~! This is
       even more clear in the ~stg~:
 
@@ -339,6 +377,7 @@
                 } in  go3_s5TXO w_s5TXI;
               };
       #+end_src
+
       In the stg we see a reduction in ~case~ expressions from 11 to 7! However,
       the change doesn't show up in /any/ benchmarking as a positive. IntMap
       benchmarks are unchanged, allocations of ~lookup~ are unchanged in a ticky
@@ -350,40 +389,6 @@
       patched ~Cmm~ code maintains an additional register, whereas the
       un-patched version doesn't. Thus we have another promising lead but a
       failure in the end.
-
-
-** IntMap ~lookup~ performs allocation
-
-*** Hypothesis
-    IntMap lookup performs allocation due to the key being specialized in its
-    definition. See SPJ's breakdown [[https://gitlab.haskell.org/ghc/ghc/-/issues/20069][here]].
-
-*** Status
-    Confirmed without direct evidence.
-
-*** Evidence
-    By inspection of source code. Also noticed in [[https://gitlab.haskell.org/ghc/ghc/-/issues/18541#note_292432][this comment]], however not
-    confirmed with direct evidence. See Sebastian's [[https://gitlab.haskell.org/ghc/ghc/-/issues/20069#note_362952][comment]] about the ~go~
-    closure.
-
-*** The Fix
-    Sylvain Henry has a patch [[https://gitlab.haskell.org/ghc/ghc/-/issues/18541#note_292432][here]] but only tested the intmap-benchmarks.
-
-*** Relevant Issues
-     - https://gitlab.haskell.org/ghc/ghc/-/issues/19820 The low-hanging fruit
-       issue kicked off by Richard Eisenberg's ticky ticky profile.
-     - https://gitlab.haskell.org/ghc/ghc/-/issues/18541#note_292432 see Sylvain
-       Henry's comment on ~IntMap.lookup~
-     - https://gitlab.haskell.org/ghc/ghc/-/issues/20069 SPJ's IntMap issue
-
-*** Relevant Merge Requests
-
-*** Relevant Patches
-    - see https://gitlab.haskell.org/ghc/ghc/-/issues/18541#note_292432
-
-*** Courses of Action
-    - Implement and benchmark Sylvain Henry's patch, benchmark it for building
-      entire packages not just the intmap-benchmark
 
 
 ** Avoid allocations in substitutions in the simplifier
