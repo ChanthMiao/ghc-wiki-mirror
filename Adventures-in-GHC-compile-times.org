@@ -239,7 +239,7 @@
       ~maxBound - x~ or even a call to a primop like ~0 - x~ I don't know.
 
       So I tried to fix it with this version of [[https://github.com/doyougnu/containers/commits/wip/intmap-less-alloc][lookup]]:
-      #+begin_src haskell
+      #+begin_src Haskell
       lookup :: Key -> IntMap a -> Maybe a
       lookup !k = go
         where
@@ -253,7 +253,7 @@
                            | otherwise = Nothing
           go Nil = Nothing
       #+end_src
-      Which just converts these the Bin parameters /once/ and then uses Nat
+      Which just converts these Bin parameters /once/ and then uses Nat
       versions to do the Bit manipulation. If we look at the core and stg the
       situation looks much improved:
       #+begin_src haskell
