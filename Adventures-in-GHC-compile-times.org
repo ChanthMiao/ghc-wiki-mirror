@@ -69,9 +69,9 @@
       Furthermore the nofib results only showed degradation's in compile time
       performance. See my analysis [[https://gitlab.haskell.org/ghc/ghc/-/issues/19820#note_364086][here]] for more details and data.
 
-    - I took a deep dive into the core, stg of the lookup function in ~IntMap.Internal.hs~. First thing to notice
+    - I took a deep dive into the core, stg of the lookup. First thing to notice
       is the core:
-       #+begin_src
+       #+begin_src haskell
        $wlookup
          = \ @a_s5OwJ ww_s5OwO w_s5OwL ->
              join {
@@ -107,7 +107,7 @@
        Notice all those ~word2Int~ and ~int2Word~'s? The hypothesis here is that
       these are allocating. Even if they aren't they waste time in the
       conversion. You can see it more clearly in the stg:
-       #+begin_src
+       #+begin_src haskell
        $wlookup =
            \r [ww_s5Wim w_s5Win]
                let-no-escape {
@@ -170,7 +170,7 @@
       of ~int2Word~ on variable ~m~, clearly what a waste!
 
       We can see why in the source code for ~lookup~ in ~IntMap~:
-      #+begin_src
+      #+begin_src haskell
       lookup :: Key -> IntMap a -> Maybe a
       lookup !k = go
         where
@@ -183,7 +183,7 @@
       #+end_src
       Nothing too unusual but if we look at those helper functions we'll find a
       bunch of superfluous ~int2Word~ calls:
-      #+begin_src
+      #+begin_src haskell
       -- | Should this key follow the left subtree of a 'Bin' with switching
       -- bit @m@? N.B., the answer is only valid when @match i p m@ is true.
       zero :: Key -> Mask -> Bool
@@ -229,7 +229,7 @@
       and that's where these superfluous calls are coming from. There is an
       extra call I want to point out which arises from ~-m~ in ~maskW~. If you
       check the ~Num~ instance for ~Word~ you'll see this:
-      #+begin_src
+      #+begin_src haskell
       instance Num Word64 where
           ...
           negate (W64# x#)       = W64# (int64ToWord64# (negateInt64# (word64ToInt64# x#)))
@@ -239,7 +239,7 @@
       ~maxBound - x~ or even a call to a primop like ~0 - x~ I don't know.
 
       So I tried to fix it with this version of [[https://github.com/doyougnu/containers/commits/wip/intmap-less-alloc][lookup]]:
-      #+begin_src
+      #+begin_src haskell
       lookup :: Key -> IntMap a -> Maybe a
       lookup !k = go
         where
@@ -256,7 +256,7 @@
       Which just converts these the Bin parameters /once/ and then uses Nat
       versions to do the Bit manipulation. If we look at the core and stg the
       situation looks much improved:
-      #+begin_src
+      #+begin_src haskell
       $wlookup
         = \ @a_s5MgS ww_s5MgX w_s5MgU ->
             let { k'_s5ES7 = int2Word# ww_s5MgX } in
@@ -290,7 +290,7 @@
       That's 3 ~int2Word~'s instead of 4, and no calls to ~word2Int~! This is
       even more clear in the ~stg~:
 
-      #+begin_src
+      #+begin_src haskell
       $wlookup =
           \r [ww_s5TXH w_s5TXI]
               case int2Word# [ww_s5TXH] of k'_s5TXJ {
