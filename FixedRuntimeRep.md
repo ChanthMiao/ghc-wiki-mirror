@@ -92,7 +92,10 @@ data Arg b
   | CoercionArg Coercion
 ```
 
-Note that we don't change `Bind` as only the `BoxedRep Lifted` representation is allowed there. We have also refactored `Expr` to move the `Type` and `Coercion` constructors out to `Arg`. Otherwise, we could have something like `type Arg b = (Maybe CodeGenRep, Expr b)` with an invariant that the first element is `Nothing` iff the second element is `Type` or `Coercion`, but that seems more error-prone.
+Here, we refactored `Expr` to move the `Type` and `Coercion` constructors out to `Arg`.    
+It would also be possible to proceed by defining `type Arg b = (Maybe CodeGenRep, Expr b)`, and enforce the invariant that the first element is `Nothing` iff the second element is `Type` or `Coercion`; however, this seems more error-prone.    
+
+Note that we don't change `Bind` as only the `BoxedRep Lifted` representation is allowed there. 
 
 **Advantage**: the `CodeGenRep`s are exactly what the code generator needs; it doesn't need to go inspecting types to determine the runtime representation.    
 **Disadvantage**: we are potentially storing a lot of `PrimRep`s, which might bloat `Core` programs (e.g. `1+2+3+4+5+6+7+8` would store many `LiftedRep` `PrimRep`s).    
