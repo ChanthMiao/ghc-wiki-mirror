@@ -25,13 +25,9 @@ Whenever a situation arises in which a `RuntimeRep` must be monomorphic, we emit
 # Details
 ## Emitting FixedRuntimeRep constraints
 
-The whole point of emitting a `RuntimeRep` constraint is to allow the typechecker to determine whether the `RuntimeRep` is actually fixed (e.g. performing type-family reduction if necessary). When encountering a type `ty :: k`, one has several options to ensure it is representation-monomorphic:
-  1. require that `k` be of the form `TYPE r` for a specific `RuntimeRep` `r`. This is no good: we might have `TYPE (Id IntRep)` which requires a type family reduction.
-  2. require that `k` be of the form `TYPE r` for some as-yet-unspecified `r,` and emit a `FixedRuntimeRep r` constraint,
-  3. emit a `FixedRuntimeRep (GetRuntimeRep k)` where `GetRuntimeRep` is a type family with only equation `GetRuntimeRep (TYPE r) = r`.
+The whole point of emitting a `RuntimeRep` constraint is to allow the typechecker to determine whether the `RuntimeRep` is actually fixed (e.g. performing type-family reduction if necessary). When encountering a type `ty :: k`,  to ensure it is representation-monomorphic, we require that `k` be of the form `TYPE r`. If we can immediately determine that `r` is a specific `RuntimeRep` (e.g. `IntRep`), we're done. Otherwise, we emit a `FixedRuntimeRep r` constraint.
 
-The third option would lead to more programs being accepted, as it would allow programs in which type-family reduction is necessary to discover that the kind `k` is of the form `TYPE r`.    
-I (@sheaf) have chosen (3.) for the moment, but if it turns out to cause problems it will be very easy to pivot back to (2.).
+Note that we must look through type synonyms to avoid emitting `FixedRuntimeRep` constraints, in order to handle the common case `type Type = TYPE ('BoxedRep 'Lifted)`.
 
 ### Where specifically are we emitting these constraints?
 
