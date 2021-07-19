@@ -64,5 +64,77 @@ We don't want to suggest the user add a `FixedRuntimeRep` constraint to their ty
 ## Evidence for FixedRuntimeRep and code generation
 
 The evidence for a `FixedRuntimeRep` is the information necessary for compiling the program, which will allow the code generator to know what runtime representation to use (e.g. to know which kind of register to use when compiling a function call).    
-This would replace the existing calls to `typePrimRep`, which panic when encoutering type family applications like `Id IntRep`.
-There will need to be a mechanism through which the evidence is passed on to the code generator.
+This would replace the existing calls to `typePrimRep`, which panic when encountering type family applications like `Id IntRep`.    
+
+Firstly, evidence from solving `FixedRuntimeRep` constraints in the typechecker will be stored in TTG extension fields at `GhcTc` pass (e.g. in `XApp` for `HsExpr`, in `XWildPat`, `XVarPat`, ... in `Pat`, etc).    
+Secondly, this information needs to persist in some fashion through desugaring, so that the code generator has enough information. Here are some of the ideas considered so far for:
+
+### Alternative 1: Evidence = [PrimRep]
+
+The solver generates `[PrimRep]` as evidence:
+
+```haskell
+newtype CodeGenRep = MkCodeGenRep [PrimRep]
+newtype TcCodeGenRep = MkTcCodeGenRep (TcRef (Maybe CodeGenRep))
+```
+
+A new `TcEvDest` corresponding to `TcCodeGenRep` will also need to be added, to be used by `FixedRuntimeRep`.    
+
+To pass this on after desugaring, we modify Core so that arguments and binders have associated `[PrimRep]`:
+
+```haskell
+data Expr b
+  = Var   Id
+  | Lit   Literal
+  | App   (Expr b) (Arg b)
+  | Lam   PrimRep b (Expr b)
+  | Let   (Bind b) (Expr b)
+  | Case  PrimRep (Expr b) b Type [Alt b]
+  | Cast  (Expr b) CoercionR
+  | Tick  CoreTickish (Expr b)
+
+data Arg b
+  = ExprArg PrimRep (Expr b)
+  | TypeArg Type
+  | CoercionArg Coercion
+```
+Note that we don't change `Bind` as only the `BoxedRep Lifted` representation is allowed there.
+
+**Advantage**: the primreps are exactly what the code generator needs; it doesn't need to go inspecting types to determine the runtime representation.
+**Disadvantage**: we are potentially storing a lot of `PrimRep`s, which might bloat `Core` programs (e.g. `1+2+3+4+5+6+7+8` would store many `LiftedRep` `PrimRep`s).
+**Disadvantage**: we don't have a good way of linting the `PrimRep`s.
+
+### Alternative 2: Evidence is a coercion
+
+The evidence for a `FixedRuntimeRep k` constraint is a coercion whose LHS is k and whose RHS is `TYPE rep` where `rep` is a tree of constructors and applications like `mkTyConApp intRepTyCon []` or `mkTyConApp tupleRepTyCon [mkTyConApp nilTyCon [runtimeRepTy]]`. No variables, type synonyms or type families, etc.    
+
+We can re-use `HoleDest` at the typechecker stage to store a mutable hole to be filled by the evidence.    
+
+Changes to Core:
+
+```haskell
+data Expr b
+  = Var   Id
+  | Lit   Literal
+  | App   (Expr b) (Arg b)
+  | Lam   Coercion b (Expr b)
+  | Let   (Bind b) (Expr b)
+  | Case  Coercion (Expr b) b Type [Alt b]
+  | Cast  (Expr b) CoercionR
+  | Tick  CoreTickish (Expr b)
+  | Type  Type
+  | Coercion Coercion
+```
+
+That is, we add coercions that prove that binders have a fixed runtime representation. We don't do this for arguments, which we instead directly cast by such a coercion.
+
+**Advantage**: we can lint the coercions.
+**Disadvantage**: the code generator will need to inspect the coercions to obtain the relevant `PrimRep`s.
+
+### Alternative 3 = 1 + 2
+
+Store both the coercion and `[PrimRep]` in `Core`.
+
+**Advantage**: the code-generator has the `PrimRep`s it needs.
+**Advantage**: we can lint everything nicely.
+**Disadvantage**: we are potentially storing a lot of `PrimRep`s.
