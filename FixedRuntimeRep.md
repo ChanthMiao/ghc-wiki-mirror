@@ -134,6 +134,6 @@ That is, we add coercions that prove that binders have a fixed runtime represent
 
 Store both the coercion and `[PrimRep]` in `Core`.
 
-**Advantage**: the code-generator has the `PrimRep`s it needs -- no need to recalculate the representation from the coercion. 
+**Advantage**: the code-generator has the `PrimRep`s it needs -- no need to recalculate the representation from the coercion.     
 **Advantage**: we can lint everything nicely.    
 **Disadvantage**: we are potentially storing a lot of `PrimRep`s.
