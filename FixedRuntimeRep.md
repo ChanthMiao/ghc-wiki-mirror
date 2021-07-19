@@ -17,11 +17,10 @@ Introduce a new built-in class:
 
 ```haskell
 type FixedRuntimeRep :: RuntimeRep -> Constraint
-class FixedRuntimeRep rep where
-  fixedRuntimeRep :: RuntimeRep
+class FixedRuntimeRep rep where {}
 ```
 
-Whenever a situation arises in which a `RuntimeRep` must be monomorphic, we emit a `FixedRuntimeRep rep` Wanted constraint. The constraint solver attempts to solve these Wanted constraints; if it can't, a type error is reported that tells the user that a representation-polymorphic type isn't allowed. Otherwise, it produces evidence: the specific `RuntimeRep`. This evidence is then passed on to the code generator.
+Whenever a situation arises in which a `RuntimeRep` must be monomorphic, we emit a `FixedRuntimeRep rep` Wanted constraint. The constraint solver attempts to solve these Wanted constraints; if it can't, a type error is reported that tells the user that a representation-polymorphic type isn't allowed. Otherwise, it produces evidence, to be passed onto the code generator (we will come back to which kind of evidence is most appropriate).
 
 # Details
 ## Emitting FixedRuntimeRep constraints
