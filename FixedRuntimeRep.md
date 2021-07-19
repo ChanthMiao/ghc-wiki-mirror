@@ -126,8 +126,8 @@ data Expr b
 That is, we add coercions that prove that binders have a fixed runtime representation. We don't do this for arguments, which we instead directly cast by such a coercion. Then, when we need to know the representation for the argument, we can always look at the argument's type's kind, which will always be a constructor/application tree.
 
 **Advantage**: We can lint the coercions.    
-**Advantage**: We can re-use some infrastructure around `CoercionHole`s.
-**Advantage**: The changes to Core are fewer.
+**Advantage**: We can re-use some infrastructure around `CoercionHole`s.    
+**Advantage**: The changes to Core are fewer.    
 **Disadvantage**: the code generator will need to inspect the coercions to obtain the relevant `PrimRep`s.
 
 ### Alternative 3 = 1 + 2
