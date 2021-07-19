@@ -7,14 +7,9 @@ This page outlines a plan to move the representation polymorphism checks that cu
 
 There are several downsides to checking representation polymorphism in the desugarer, as evidenced by the tickets #17201 #17113 #13105 #17536. For instance, one might need to do type-family reduction in order to determine the `RuntimeRep`. So it seems more natural to do these checks in the typechecker instead, where one has access to all this information.
 
-There are a bunch of related tickets, generally called "TypeLike"; see e.g.
-
-* #17201(FixedRuntimeRep ie. not levity-polymorphic) (will also fix #17536, #18170) Maybe #13105
-* #15979 (TypeLike)
-* #18756 Something about linearity
-* #19573
-
-and [this comment](https://gitlab.haskell.org/ghc/ghc/-/issues/15979#note_213564).
+Similar mechanisms can be implemented in other circumstances:
+  * constrain a type to be of the form `TYPE blah` or `Constraint` (TypeLike), see #15979 ([this comment](https://gitlab.haskell.org/ghc/ghc/-/issues/15979#note_213564) in particular), #16139, #19573, ...
+  * linear types: check for submultiplicity; see #18756. 
 
 # Broad outline
 
@@ -67,7 +62,7 @@ The evidence for a `FixedRuntimeRep` is the information necessary for compiling 
 This would replace the existing calls to `typePrimRep`, which panic when encountering type family applications like `Id IntRep`.    
 
 Firstly, evidence from solving `FixedRuntimeRep` constraints in the typechecker will be stored in TTG extension fields at `GhcTc` pass (e.g. in `XApp` for `HsExpr`, in `XWildPat`, `XVarPat`, ... in `Pat`, etc).    
-Secondly, this information needs to persist in some fashion through desugaring, so that the code generator has enough information. Here are some of the ideas considered so far for:
+Secondly, this information needs to persist in some fashion through desugaring, so that the code generator has enough information. Here are some of the ideas considered so far:
 
 ### Alternative 1: Evidence = [PrimRep]
 
