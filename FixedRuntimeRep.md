@@ -46,7 +46,7 @@ The constraint solver needs to be able to solve these newly emitted `FixedRuntim
 
 ### CtOrigins
 
-When we emit a new wanted `FixedRuntimeRep` constraint, we also pass a `CtOrigin` that provides further information about the nature of the check (are checking a function application, a pattern match, ...?). When the error is reported, this further information will be supplied to the user.
+When we emit a new wanted `FixedRuntimeRep` constraint, we also pass a `CtOrigin` that provides further information about the nature of the check (are we checking a function application, a pattern match, ...?). When the error is reported, this further information will be supplied to the user.
 
 ### Don't suggest "add FixedRuntimeRep"
 
