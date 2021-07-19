@@ -221,7 +221,7 @@ See [the Git manual](http://www.kernel.org/pub/software/scm/git/docs/user-manual
 * Takes `A`, the nearest common ancestor of `HEAD` and `base`
 * Transfers commits `A..HEAD` to the tip of `base`
 
-`git rebase --onto <newbase> <base>
+`git rebase --onto <newbase> <base>`
 * Takes `A`, the nearest common ancestor of `HEAD` and `base`
 * Transfers commits `A..HEAD` to the tip of `newbase`
 
