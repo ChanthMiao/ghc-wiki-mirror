@@ -31,10 +31,11 @@ Note that we must look through type synonyms to avoid emitting `FixedRuntimeRep`
 
 ### Where specifically are we emitting these constraints?
 
-Under the `GHC.Tc.Gen` module hierarchy:
-  - `GHC.Tc.Gen.App` for function applications,
-  - `GHC.Tc.Gen.Bind` for bindings,
-  - `GHC.Tc.Gen.Pat` for patterns,
+Under the `GHC.Tc.Gen` module hierarchy. For instance, we simply add a call to `hasFixedRuntimeRep` in the following functions:
+  - `GHC.Tc.Gen.App.tcEValArg` for function applications,
+  - `GHC.Tc.Gen.Bind.tcPolyBinds` for bindings,
+  - `GHC.Tc.Gen.Pat.tc_pat` for patterns,
+  - `GHC.Tc.Gen.Expr.tcRecordField` for record fields,
   - ...
 
 ## Solving FixedRuntimeRep constraints
