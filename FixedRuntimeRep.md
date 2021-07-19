@@ -94,8 +94,8 @@ data Arg b
 ```
 Note that we don't change `Bind` as only the `BoxedRep Lifted` representation is allowed there.
 
-**Advantage**: the primreps are exactly what the code generator needs; it doesn't need to go inspecting types to determine the runtime representation.
-**Disadvantage**: we are potentially storing a lot of `PrimRep`s, which might bloat `Core` programs (e.g. `1+2+3+4+5+6+7+8` would store many `LiftedRep` `PrimRep`s).
+**Advantage**: the primreps are exactly what the code generator needs; it doesn't need to go inspecting types to determine the runtime representation.    
+**Disadvantage**: we are potentially storing a lot of `PrimRep`s, which might bloat `Core` programs (e.g. `1+2+3+4+5+6+7+8` would store many `LiftedRep` `PrimRep`s).    
 **Disadvantage**: we don't have a good way of linting the `PrimRep`s.
 
 ### Alternative 2: Evidence is a coercion
@@ -122,13 +122,13 @@ data Expr b
 
 That is, we add coercions that prove that binders have a fixed runtime representation. We don't do this for arguments, which we instead directly cast by such a coercion.
 
-**Advantage**: we can lint the coercions.
+**Advantage**: we can lint the coercions.    
 **Disadvantage**: the code generator will need to inspect the coercions to obtain the relevant `PrimRep`s.
 
 ### Alternative 3 = 1 + 2
 
 Store both the coercion and `[PrimRep]` in `Core`.
 
-**Advantage**: the code-generator has the `PrimRep`s it needs.
-**Advantage**: we can lint everything nicely.
+**Advantage**: the code-generator has the `PrimRep`s it needs.    
+**Advantage**: we can lint everything nicely.    
 **Disadvantage**: we are potentially storing a lot of `PrimRep`s.
