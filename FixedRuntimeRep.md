@@ -97,9 +97,9 @@ To avoid this refactoring, we could instead define `type Arg b = (Maybe CodeGenR
 
 Note that we don't change `Bind` as only the `BoxedRep Lifted` representation is allowed there. 
 
-**Advantage**: the `CodeGenRep`s are exactly what the code generator needs; it doesn't need to go inspecting types to determine the runtime representation.    
-**Disadvantage**: we are potentially storing a lot of `PrimRep`s, which might bloat `Core` programs (e.g. `1+2+3+4+5+6+7+8` would store many `LiftedRep` `PrimRep`s).    
-**Disadvantage**: we don't have a good way of linting the `PrimRep`s.
+**Pro**: the `CodeGenRep`s are exactly what the code generator needs; it doesn't need to go inspecting types to determine the runtime representation.    
+**Con**: we are potentially storing a lot of `PrimRep`s, which might bloat `Core` programs (e.g. `1+2+3+4+5+6+7+8` would store many `LiftedRep` `PrimRep`s).    
+**Con**: we don't have a good way of linting the `PrimRep`s.
 
 ### Alternative 2: Evidence is a coercion
 
@@ -125,15 +125,15 @@ data Expr b
 
 That is, we add coercions that prove that binders have a fixed runtime representation. We don't do this for arguments, which we instead directly cast by such a coercion. Then, when we need to know the representation for the argument, we can always look at the argument's type's kind, which will always be a constructor/application tree.
 
-**Advantage**: We can lint the coercions.    
-**Advantage**: We can re-use some infrastructure around `CoercionHole`s.    
-**Advantage**: The changes to Core are fewer.    
-**Disadvantage**: the code generator will need to inspect the coercions to obtain the relevant `PrimRep`s.
+**Pro**: We can lint the coercions.    
+**Pro** We can re-use some infrastructure around `CoercionHole`s.    
+**Pro**: The changes to Core are fewer.    
+**Con**: the code generator will need to inspect the coercions to obtain the relevant `PrimRep`s.
 
 ### Alternative 3 = 1 + 2
 
 Store both the coercion and `[PrimRep]` in `Core`.
 
-**Advantage**: the code-generator has the `PrimRep`s it needs -- no need to recalculate the representation from the coercion.     
-**Advantage**: we can lint everything nicely.    
-**Disadvantage**: we are potentially storing a lot of `PrimRep`s.
+**Pro**: the code-generator has the `PrimRep`s it needs -- no need to recalculate the representation from the coercion.     
+**Pro**: we can lint everything nicely.    
+**Con**: we are potentially storing a lot of `PrimRep`s.
