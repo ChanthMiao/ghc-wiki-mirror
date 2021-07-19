@@ -93,7 +93,7 @@ data Arg b
 ```
 
 Here, we refactored `Expr` to move the `Type` and `Coercion` constructors out to `Arg`.    
-It would also be possible to proceed by defining `type Arg b = (Maybe CodeGenRep, Expr b)`, and enforce the invariant that the first element is `Nothing` iff the second element is `Type` or `Coercion`; however, this seems more error-prone.    
+To avoid this refactoring, we could instead define `type Arg b = (Maybe CodeGenRep, Expr b)`, and enforce the invariant that the first element is `Nothing` iff the second element is `Type` or `Coercion`. This seems more error-prone, however.    
 
 Note that we don't change `Bind` as only the `BoxedRep Lifted` representation is allowed there. 
 
