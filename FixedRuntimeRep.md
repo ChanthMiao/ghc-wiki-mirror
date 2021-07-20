@@ -14,7 +14,7 @@ This page outlines a plan to move the representation polymorphism checks that cu
   * [Solving FixedRuntimeRep constraints](#solving-fixedruntimerep-constraints)
   * [Reporting unsolved FixedRuntimeRep constraints](#reporting-unsolved-fixedruntimerep-constraints)
     + [CtOrigins](#ctorigins)
-    + [Don't suggest "add FixedRuntimeRep"](#don-t-suggest-add-fixedruntimerep-)
+    + [Don't suggest "add FixedRuntimeRep"](#don-t-suggest-add-fixedruntimerep)
   * [Evidence for FixedRuntimeRep and code generation](#evidence-for-fixedruntimerep-and-code-generation)
     + [Alternative 1: store the representation](#alternative-1-store-the-representation)
     + [Alternative 2: cast to a fixed representation using a kind coercion](#alternative-2-cast-to-a-fixed-representation-using-a-kind-coercion)
