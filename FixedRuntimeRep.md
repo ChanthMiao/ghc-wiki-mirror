@@ -110,7 +110,7 @@ Note that we don't change `Bind` as only the `BoxedRep Lifted` representation is
 
 The evidence for a `FixedRuntimeRep rr` constraint is a (nominal) kind coercion between types of kind `RuntimeRep`; its LHS type is `rr` and its RHS type is `rep` for some `rep` which is a tree of constructors and applications like `mkTyConApp intRepTyCon []` or `mkTyConApp tupleRepTyCon [mkTyConApp nilTyCon [runtimeRepTy]]`. No variables, type synonyms or type families, etc.    
 
-We can re-use `HoleDest` at the typechecker stage to store a mutable hole to be filled by the evidence.    
+We can re-use `HoleDest` at the typechecker stage to store a mutable hole to be filled in with evidence, later, by the constraint solver. We attach these at the `GhcTc` pass, so that the desugarer has access whatever evidence the constraint solver managed to find.    
 
 The idea is that, while typechecking, we insert casts using these coercions, so that the code-generator only ever sees function arguments and binders that have a fixed runtime representation.
 
@@ -128,3 +128,33 @@ f = /\ ( a :: TYPE (F Int) ). \ ( x :: ( a |> TYPE kco ) ). some_expression
 
 where `kco` is the evidence for `FixedRuntimeRep (F Int)`.    
 Then the type of `x`, `a |> TYPE kco`, has kind `TYPE rep` where `rep` is a definite `RuntimeRep` such as `'IntRep`. This is what we wanted: we know which representation the binder `x` has, so the code generator can do its usual work. Calling `typePrimRep` will return the `[PrimRep]` that correspond to the `RuntimeRep` rep, which we recall is guaranteed to be a tree of constructors and applications. This is important, as `kindPrimRep` can't handle type-family applications such as `TYPE (F Int)` (as it doesn't have access to a typechecking environment, needed to look up type-family instances, etc).
+
+#### Implementation plan
+
+It is possible to implement this alternative in two steps.
+
+##### Step1
+Don't insert any casts. That is, after constraint solving (and zonking), we insist that the coercion evidence obtained for any `FixedRuntimeRep rr` constraint must be `Refl`, and not a more general coercion.    
+This will not handle situations such as type family reduction of a `RuntimeRep`, but will be sufficient to subsume all the previous representation-polymorphism checks that are done in the desugarer.
+
+##### Step2
+Introduce casts to allow type-family reduction in `RuntimeRep`s. This will require inserting additional casts to ensure everything remains well-kinded. Consider for instance type-checking a function application
+
+```haskell
+f :: a -> b
+e :: a
+
+f e
+```
+
+Suppose we find that `a :: TYPE rr` and that `kco` is the evidence for a `FixedRuntimeRep rr` constraint. Then we must cast `a |> TYPE kco` to have a representation-monomorphic kind. However, we can't simply end there, as we must now also insert a cast in the type of `f`, because it expects an argument of type `a` when we instead provide an argument of type `a |> TYPE kco`. So we cast in the opposite direction in the first argument of the function type:
+
+```
+f :: ( a -> b ) |> fun_co
+```
+
+where
+
+```
+fun_co = (->) (SymCo (GRefl a (TYPE kco)) (Refl b)
+```
