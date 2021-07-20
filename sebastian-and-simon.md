@@ -31,7 +31,7 @@ I move stuff here from the different sections that is on our radar at the moment
 - #19309: conditional CPR and free variables
 - #19240: Don't pass constants/free variables in unboxed tuple
 - #19309: Do CPR even if not all code paths construct products by returning an unboxed sum
-- #18174, !1866: Nested CPR
+- #18174, !1866: Nested CPR Light
   - On hold again, no clear wins and even regressions. Prbobably loses too much thunk sharing.
   - Probably related to not doing CPR for recursive data cons. !5667 does much better because of it.
 
