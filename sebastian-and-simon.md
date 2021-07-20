@@ -18,7 +18,7 @@ I move stuff here from the different sections that is on our radar at the moment
 
 # Exceptions
 
-- #19181 Semantics of exceptions
+- #20121, #20111 side effects
 
 # Closure representation
 
