@@ -37,11 +37,7 @@ I move stuff here from the different sections that is on our radar at the moment
 
 # Demand Analysis
 
-- Worker/wrapper
-  * #19917: better w/w for bottoming functions
-  * #19874, !5814 kill `mkWWargs`
-  * #17917 fix this, which was accidentally undone
-  * #19833 zapping used-once info
+-  #19917: better w/w for bottoming functions
 
 - #18907 Product demands
 
@@ -51,10 +47,6 @@ I move stuff here from the different sections that is on our radar at the moment
   * Sebastian thinks he has a better way to detect potentially-recursive type constructors
 
 - #14620 join points [this comment](https://gitlab.haskell.org/ghc/ghc/-/issues/14620#note_315900)
-
-- #19050 refactor demand lattice so that it has fewer equalities
-
-- #19016 better syntax for demand signatures
 
 - #14816, [this comment](https://gitlab.haskell.org/ghc/ghc/-/issues/14816#note_315980)
   - Drop `reuseEnv` in DmdAnal, check `lazy_fvs` for equality.
