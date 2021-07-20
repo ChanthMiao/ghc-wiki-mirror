@@ -154,7 +154,7 @@ Now we perform a representation-polymorphism check on the application `f e`. Sup
   - this constraint gets solved with evidence `kco`.
 
 We now perform the cast `a |> TYPE kco` as explained [above](#alternative-2-cast-to-a-fixed-representation-using-a-kind-coercion), in order to achieve representation monomorphism in Core.    
-However, we can't simply end there, as we must now also insert a cast in the type of `f`, because it had expected an argument of type `a` when we instead desire to pass an argument of type `a |> TYPE kco`. So we cast in the opposite direction in the first argument of the function type:
+However, we can't simply end there, as we must now also insert a cast in the type of `f`, because it had expected an argument of type `a` when we instead desire to pass an argument of type `a |> TYPE kco`. So we cast in the opposite direction in the "argument" parameter of the function type:
 
 ```
 f :: ( a -> b ) |> fun_co
