@@ -147,7 +147,7 @@ f :: a -> b
 e :: a
 ```
 
-Now we perform a representation-polymorphism check on the application `f e`. Supposing all goes well:
+Now we perform a representation polymorphism check on the application `f e`. Supposing all goes well:
 
   - we find that `a :: TYPE rr`,
   - we emit a Wanted `FixedRuntimeRep rr` constraint,
