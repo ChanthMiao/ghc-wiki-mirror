@@ -133,11 +133,11 @@ Then the type of `x`, `a |> TYPE kco`, has kind `TYPE rep` where `rep` is a defi
 
 It is possible to implement this alternative in two steps.
 
-##### Step1
+##### Step 1
 Don't insert any casts. That is, after constraint solving (and zonking), we insist that the coercion evidence obtained for any `FixedRuntimeRep rr` constraint must be `Refl`, and not a more general coercion.    
 This will not handle situations such as type family reduction of a `RuntimeRep`, but will be sufficient to subsume all the previous representation-polymorphism checks that are done in the desugarer.
 
-##### Step2
+##### Step 2
 Introduce casts to allow type-family reduction in `RuntimeRep`s. This will require inserting additional casts to ensure everything remains well-kinded. Consider for instance type-checking a function application
 
 ```haskell
