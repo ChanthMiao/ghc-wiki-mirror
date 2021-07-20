@@ -108,8 +108,7 @@ Note that we don't change `Bind` as only the `BoxedRep Lifted` representation is
 
 ### Alternative 2: cast to a fixed representation using a kind coercion
 
-The evidence for a `FixedRuntimeRep rr` constraint is a (nominal) kind coercion whose LHS type is `rr` and whose RHS type is `rep` where `rep` is a tree of constructors and applications like `mkTyConApp intRepTyCon []` or `mkTyConApp tupleRepTyCon [mkTyConApp nilTyCon [runtimeRepTy]]`. No variables, type synonyms or type families, etc.    
-In other words, the evidence is a kind coercion between a potentially unknown `RuntimeRep` (e.g. `F Int` for some type family `F :: Type -> RuntimeRep`) and a definite `RuntimeRep` like `'IntRep`.    
+The evidence for a `FixedRuntimeRep rr` constraint is a (nominal) kind coercion between types of kind `RuntimeRep`; its LHS type is `rr` and its RHS type is `rep` for some `rep` which is a tree of constructors and applications like `mkTyConApp intRepTyCon []` or `mkTyConApp tupleRepTyCon [mkTyConApp nilTyCon [runtimeRepTy]]`. No variables, type synonyms or type families, etc.    
 
 We can re-use `HoleDest` at the typechecker stage to store a mutable hole to be filled by the evidence.    
 
