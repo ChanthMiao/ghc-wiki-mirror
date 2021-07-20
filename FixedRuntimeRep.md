@@ -183,7 +183,7 @@ f :: ( a -> b ) |> fun_co
 where
 
 ```
-fun_co = (->) ( SymCo (GRefl a (TYPE kco) ) ( Refl b )
+fun_co = (->) ( SymCo (GRefl a (TYPE kco)) ) ( Refl b )
 ```
 
 Each situation in which we desire to insert casts to allow for this extended form of representation polymorphism will require a similar treatment: adjust the surrounding types so that everything remains well-typed.
