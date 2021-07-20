@@ -140,7 +140,8 @@ This will not handle situations such as type family reduction of a `RuntimeRep`,
 ##### Step 2
 Introduce casts, in order to allow type-family reduction in `RuntimeRep`s.    
 These casts have knock-on consequences: additional casts will be required, to ensure everything remains well-typed.    
-Suppose that we are part-way through type-checking a function application `f e`. So far, say that we've determined the following types:
+
+To illustrate, suppose that we are part-way through type-checking a function application `f e`. So far, say that we've determined the following types:
 
 ```haskell
 f :: a -> b
