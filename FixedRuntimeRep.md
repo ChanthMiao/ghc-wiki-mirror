@@ -20,7 +20,7 @@ type FixedRuntimeRep :: RuntimeRep -> Constraint
 class FixedRuntimeRep rep where {}
 ```
 
-Whenever a situation arises in which a `RuntimeRep` must be monomorphic, we emit a `FixedRuntimeRep rep` Wanted constraint. The constraint solver attempts to solve these Wanted constraints; if it can't, a type error is reported that tells the user that a representation-polymorphic type isn't allowed. Otherwise, it produces evidence, to be passed onto the code generator (see the section [Evidence for FixedRuntimeRep and code generation](#evidence-for-fixedruntimerep-and-code-generation)).
+Whenever a situation arises in which a `RuntimeRep` must be monomorphic, we emit a `FixedRuntimeRep rep` Wanted constraint. The constraint solver attempts to solve these Wanted constraints; if it can't, a type error is reported that tells the user that a representation-polymorphic type isn't allowed. Otherwise, it must provide some kind of evidence that code generation is possible: see the section [Evidence for FixedRuntimeRep and code generation](#evidence-for-fixedruntimerep-and-code-generation).
 
 # Details
 ## Emitting FixedRuntimeRep constraints
@@ -54,13 +54,14 @@ We don't want to suggest the user add a `FixedRuntimeRep` constraint to their ty
 
 ## Evidence for FixedRuntimeRep and code generation
 
-The evidence for a `FixedRuntimeRep` is the information necessary for compiling the program, which will allow the code generator to know what runtime representation to use (e.g. to know which kind of register to use when compiling a function call).    
-This would replace the existing calls to `typePrimRep`, which panic when encountering type family applications like `Id IntRep`.    
+What kind of evidence do we want the solving of `FixedRuntimeRep` constraints to produce? We need to obtain enough information so that code-generation is possible (e.g. so that we know what kind of register to use when doing a function call).
 
-Firstly, evidence from solving `FixedRuntimeRep` constraints in the typechecker will be stored in TTG extension fields at `GhcTc` pass (e.g. in `XApp` for `HsExpr`, in `XWildPat`, `XVarPat`, ... in `Pat`, etc).    
-Secondly, this information needs to persist in some fashion through desugaring, so that the code generator has enough information. Here are some of the ideas considered so far:
+### Alternative 1: store the representation
 
-### Alternative 1: Evidence = `[PrimRep]`
+One idea is to directly store the representation of all binders and function arguments in Core, perhaps as `[PrimRep]`. This would entail changing Core rather significantly.    
+
+<details>
+  <summary>Click to read more about this alternative.</summary>
 
 A `[PrimRep]` (that is, a list of `PrimRep`s) describes the representation of a value, as it will be used after unarisation. It must be a list to account for the possibility of unboxed tuples. Note that `PrimRep` includes a constructor `VoidRep`, but we will always assume that we will not use this constructor. See `Note [VoidRep]` in `GHC.Types.RepType` for details.
 
@@ -72,6 +73,8 @@ newtype TcCodeGenRep = MkTcCodeGenRep (TcRef (Maybe CodeGenRep))
 ```
 
 A new `TcEvDest` corresponding to `TcCodeGenRep` will also need to be added, to be used by `FixedRuntimeRep`.    
+
+This evidence is then stored in TTG extension fields at `GhcTc` pass (e.g. in `XApp` for `HsExpr`, in `XWildPat`, `XVarPat`, ... in `Pat`, etc).    
 
 To pass this on after desugaring, we modify Core so that arguments and binders have associated `CodeGenRep`:
 
@@ -101,39 +104,28 @@ Note that we don't change `Bind` as only the `BoxedRep Lifted` representation is
 **Con**: we are potentially storing a lot of `PrimRep`s, which might bloat `Core` programs (e.g. `1+2+3+4+5+6+7+8` would store many `LiftedRep` `PrimRep`s).    
 **Con**: we don't have a good way of linting the `PrimRep`s.
 
+</details>
+
 ### Alternative 2: Evidence is a coercion
 
-The evidence for a `FixedRuntimeRep k` constraint is a (nominal) coercion whose LHS type is `k` and whose RHS type is `TYPE rep` where `rep` is a tree of constructors and applications like `mkTyConApp intRepTyCon []` or `mkTyConApp tupleRepTyCon [mkTyConApp nilTyCon [runtimeRepTy]]`. No variables, type synonyms or type families, etc.    
+The evidence for a `FixedRuntimeRep rr` constraint is a (nominal) kind coercion whose LHS type is `rr` and whose RHS type is `rep` where `rep` is a tree of constructors and applications like `mkTyConApp intRepTyCon []` or `mkTyConApp tupleRepTyCon [mkTyConApp nilTyCon [runtimeRepTy]]`. No variables, type synonyms or type families, etc.    
+In other words, the evidence is a kind coercion between a potentially unknown `RuntimeRep` (e.g. `F Int` for some type family `F :: Type -> RuntimeRep`) and a definite `RuntimeRep` like `'IntRep`.    
 
 We can re-use `HoleDest` at the typechecker stage to store a mutable hole to be filled by the evidence.    
 
-Changes to Core:
+The idea is that, while typechecking, we insert casts using these coercions, so that the code-generator only ever sees function arguments and binders that have a fixed runtime representation.
+
+That is, we would never end up with Core like:
 
 ```haskell
-data Expr b
-  = Var   Id
-  | Lit   Literal
-  | App   (Expr b) (Arg b)
-  | Lam   CoercionN b (Expr b)   -- this is different
-  | Let   (Bind b) (Expr b)
-  | Case  CoercionN (Expr b) b Type [Alt b]   -- this is different
-  | Cast  (Expr b) CoercionR
-  | Tick  CoreTickish (Expr b)
-  | Type  Type
-  | Coercion Coercion
+f = /\ ( a :: TYPE (F Int) ). \ ( x :: a ). some_expression
 ```
 
-That is, we add coercions that prove that binders have a fixed runtime representation. We don't do this for arguments, which we instead directly cast by such a coercion. Then, when we need to know the representation for the argument, we can always look at the argument's type's kind, which will always be a constructor/application tree.
+but rather:
 
-**Pro**: We can lint the coercions.    
-**Pro** We can re-use some infrastructure around `CoercionHole`s.    
-**Pro**: The changes to Core are fewer.    
-**Con**: the code generator will need to inspect the coercions to obtain the relevant `PrimRep`s.
+```haskell
+f = /\ ( a :: TYPE (F Int) ). \ ( x :: ( a |> TYPE kco ) ). some_expression
+```
 
-### Alternative 3 = 1 + 2
-
-Store both the coercion and `[PrimRep]` in `Core`.
-
-**Pro**: the code-generator has the `PrimRep`s it needs -- no need to recalculate the representation from the coercion.     
-**Pro**: we can lint everything nicely.    
-**Con**: we are potentially storing a lot of `PrimRep`s.
+where `kco` is the evidence for `FixedRuntimeRep (F Int)`, which allows us to cast from the type `F Int` to the type `rep` for some fixed `RuntimeRep` (such as `'IntRep`).    
+The type of `x` is `a |> TYPE kco`, which has kind `TYPE rep` where `rep` is a definite `RuntimeRep`. This is what we wanted: we know which representation the binder `x` has, so the code generator can do its usual work. Calling `typePrimRep` will return the `[PrimRep]` that correspond to the `RuntimeRep` rep, which we recall is guaranteed to be a tree of constructors and applications. This is important, as `kindPrimRep` can't handle type-family applications such as `TYPE (F Int)` (as it doesn't have access to a typechecking environment, needed to look up type-family instances, etc).
