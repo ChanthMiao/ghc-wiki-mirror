@@ -138,17 +138,23 @@ Don't insert any casts. That is, after constraint solving (and zonking), we insi
 This will not handle situations such as type family reduction of a `RuntimeRep`, but will be sufficient to subsume all the previous representation-polymorphism checks that are done in the desugarer.
 
 ##### Step 2
-Introduce casts to allow type-family reduction in `RuntimeRep`s. This will require inserting additional casts to ensure everything remains well-kinded. Consider for instance type-checking a function application
+Introduce casts, in order to allow type-family reduction in `RuntimeRep`s.    
+These casts have knock-on consequences: additional casts will be required, to ensure everything remains well-typed.    
+Suppose that we are part-way through type-checking a function application `f e`. So far, say that we've determined the following types:
 
 ```haskell
 f :: a -> b
 e :: a
-
-f e
 ```
 
-Suppose we find that `a :: TYPE rr`; we emit a `FixedRuntimeRep rr` constraint, which (we assume) gets solved with evidence `kco`. We must then perform the cast `a |> TYPE kco` as explained [above](#alternative-2-cast-to-a-fixed-representation-using-a-kind-coercion).    
-However, we can't simply end there, as we must now also insert a cast in the type of `f`, because it expects an argument of type `a` when we instead provide an argument of type `a |> TYPE kco`. So we cast in the opposite direction in the first argument of the function type:
+Now we perform a representation-polymorphism check on the application `f e`. Supposing all goes well:
+
+  - we find that `a :: TYPE rr`,
+  - we emit a Wanted `FixedRuntimeRep rr` constraint,
+  - this constraint gets solved with evidence `kco`.
+
+We now perform the cast `a |> TYPE kco` as explained [above](#alternative-2-cast-to-a-fixed-representation-using-a-kind-coercion), in order to achieve representation-monomorphism in Core.    
+However, we can't simply end there, as we must now also insert a cast in the type of `f`, because it had expected an argument of type `a` when we instead desire to pass an argument of type `a |> TYPE kco`. So we cast in the opposite direction in the first argument of the function type:
 
 ```
 f :: ( a -> b ) |> fun_co
@@ -159,3 +165,5 @@ where
 ```
 fun_co = (->) (SymCo (GRefl a (TYPE kco)) (Refl b)
 ```
+
+Each situation in which we desire to insert casts to allow for this extended form of representation polymorphism will require a similar treatment: adjust the surrounding types so that everything remains well-typed.
