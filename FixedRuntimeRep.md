@@ -110,7 +110,7 @@ Note that we don't change `Bind` as only the `BoxedRep Lifted` representation is
 
 The evidence for a `FixedRuntimeRep rr` constraint is a (nominal) kind coercion between types of kind `RuntimeRep`; its LHS type is `rr` and its RHS type is `rep` for some `rep` which is a tree of constructors and applications like `mkTyConApp intRepTyCon []` or `mkTyConApp tupleRepTyCon [mkTyConApp nilTyCon [runtimeRepTy]]`. No variables, type synonyms or type families, etc.    
 
-We can re-use `HoleDest` at the typechecker stage to store a mutable hole to be filled in with evidence, later, by the constraint solver. We attach these at the `GhcTc` pass, so that the desugarer has access whatever evidence the constraint solver managed to find.    
+We can re-use `HoleDest` at the typechecker stage to store a mutable hole to be filled in with evidence, later, by the constraint solver.      
 
 The idea is that, while typechecking, we insert casts using these coercions, so that the code-generator only ever sees function arguments and binders that have a fixed runtime representation.
 
