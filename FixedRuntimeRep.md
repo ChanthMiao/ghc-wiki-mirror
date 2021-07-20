@@ -126,5 +126,5 @@ but rather:
 f = /\ ( a :: TYPE (F Int) ). \ ( x :: ( a |> TYPE kco ) ). some_expression
 ```
 
-where `kco` is the evidence for `FixedRuntimeRep (F Int)`, which allows us to cast from the type `F Int` to the type `rep` for some fixed `RuntimeRep` (such as `'IntRep`).    
-The type of `x` is `a |> TYPE kco`, which has kind `TYPE rep` where `rep` is a definite `RuntimeRep`. This is what we wanted: we know which representation the binder `x` has, so the code generator can do its usual work. Calling `typePrimRep` will return the `[PrimRep]` that correspond to the `RuntimeRep` rep, which we recall is guaranteed to be a tree of constructors and applications. This is important, as `kindPrimRep` can't handle type-family applications such as `TYPE (F Int)` (as it doesn't have access to a typechecking environment, needed to look up type-family instances, etc).
+where `kco` is the evidence for `FixedRuntimeRep (F Int)`.    
+Then the type of `x`, `a |> TYPE kco`, has kind `TYPE rep` where `rep` is a definite `RuntimeRep` such as `'IntRep`. This is what we wanted: we know which representation the binder `x` has, so the code generator can do its usual work. Calling `typePrimRep` will return the `[PrimRep]` that correspond to the `RuntimeRep` rep, which we recall is guaranteed to be a tree of constructors and applications. This is important, as `kindPrimRep` can't handle type-family applications such as `TYPE (F Int)` (as it doesn't have access to a typechecking environment, needed to look up type-family instances, etc).
