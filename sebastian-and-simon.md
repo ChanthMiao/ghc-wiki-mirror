@@ -3,17 +3,11 @@
 I move stuff here from the different sections that is on our radar at the moment.
 
 - #19871, !5790 boxity analysis.  See also https://gitlab.haskell.org/ghc/ghc/-/issues/19824#note_353112
-  - Nice idea for a paper: DmdAnal, then CprAnal, both record boxity constraints
-    and possibly insert variables. Then Boxity Anal solves those equations,
-    globally. A bit like Unification
+  - Nice idea for a paper: DmdAnal, then Boxity analysis, which infers boxity for parameters and results.
 - !5667: Nested CPR light, part 2
 - #5075, !4229: CPR for sum types
   - Maybe we have a shot at fixing this after !5667 lands; I feel like most of
     its woes were due to CPR'ing lists.
-- TrieMaps
-  - Tests
-  - Paper comments
-  - Related Work
 - Ultimately pick up the SAT work again #18962, but I feel like we need a better story for derived unfoldings here
   - Maybe new unfolding source? Or attach unfolding deriving strategy to
     InlineRHS. On the other hand, it would also be useful for stable unfoldings..
