@@ -3,6 +3,25 @@ This page outlines a plan to move the representation polymorphism checks that cu
 * Tickets: #17201 #17113 #13105 #17536
 * Merge request: !6164
 
+
+# Table of contents
+
+- [Motivation](#motivation)
+- [Broad outline](#broad-outline)
+- [Details](#details)
+  * [Emitting FixedRuntimeRep constraints](#emitting-fixedruntimerep-constraints)
+    + [Where specifically are we emitting these constraints?](#where-specifically-are-we-emitting-these-constraints-)
+  * [Solving FixedRuntimeRep constraints](#solving-fixedruntimerep-constraints)
+  * [Reporting unsolved FixedRuntimeRep constraints](#reporting-unsolved-fixedruntimerep-constraints)
+    + [CtOrigins](#ctorigins)
+    + [Don't suggest "add FixedRuntimeRep"](#don-t-suggest--add-fixedruntimerep-)
+  * [Evidence for FixedRuntimeRep and code generation](#evidence-for-fixedruntimerep-and-code-generation)
+    + [Alternative 1: store the representation](#alternative-1--store-the-representation)
+    + [Alternative 2: cast to a fixed representation using a kind coercion](#alternative-2--cast-to-a-fixed-representation-using-a-kind-coercion)
+      - [Implementation plan](#implementation-plan)
+        * [Step 1](#step-1)
+        * [Step 2](#step-2)
+
 # Motivation
 
 There are several downsides to checking representation polymorphism in the desugarer, as evidenced by the tickets #17201 #17113 #13105 #17536. For instance, one might need to do type-family reduction in order to determine the `RuntimeRep`. So it seems more natural to do these checks in the typechecker instead, where one has access to all this information.
