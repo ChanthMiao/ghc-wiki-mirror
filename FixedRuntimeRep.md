@@ -147,7 +147,8 @@ e :: a
 f e
 ```
 
-Suppose we find that `a :: TYPE rr` and that `kco` is the evidence for a `FixedRuntimeRep rr` constraint. Then we must cast `a |> TYPE kco` to have a representation-monomorphic kind. However, we can't simply end there, as we must now also insert a cast in the type of `f`, because it expects an argument of type `a` when we instead provide an argument of type `a |> TYPE kco`. So we cast in the opposite direction in the first argument of the function type:
+Suppose we find that `a :: TYPE rr`; we emit a `FixedRuntimeRep rr` constraint, which (we assume) gets solved with evidence `kco`. We must then perform the cast `a |> TYPE kco` as explained [above](#alternative-2-cast-to-a-fixed-representation-using-a-kind-coercion).    
+However, we can't simply end there, as we must now also insert a cast in the type of `f`, because it expects an argument of type `a` when we instead provide an argument of type `a |> TYPE kco`. So we cast in the opposite direction in the first argument of the function type:
 
 ```
 f :: ( a -> b ) |> fun_co
