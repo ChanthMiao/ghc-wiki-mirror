@@ -15,3 +15,7 @@ Additionally, it seems that trying to run `lldb` on an AArch64 executable will f
 # lldb over ssh
 
 One must run `sudo dscl . append /Groups/_developer GroupMembership $username` on a user before that user can attach to a process in `lldb` from a non-interactive (e.g. SSH) session.
+
+# Debug information
+
+Darwin has a [rather non-traditional](https://stackoverflow.com/questions/10044697/where-how-does-apples-gcc-store-dwarf-inside-an-executable) means of  storing debug information in executables.
