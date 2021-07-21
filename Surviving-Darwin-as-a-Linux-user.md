@@ -1,4 +1,4 @@
-Darwin has quite a few quirks which 
+Darwin has quite a few quirks which may catch a Linux user by surprise. Good luck!
 
 # Collecting core dumps
 
