@@ -19,3 +19,5 @@ One must run `sudo dscl . append /Groups/_developer GroupMembership $username` o
 # Debug information
 
 Darwin has a [rather non-traditional](https://stackoverflow.com/questions/10044697/where-how-does-apples-gcc-store-dwarf-inside-an-executable) means of  storing debug information in executables.
+
+Unfortunately, it is rather tricky to arrange that symbols for dynamic objects are picked up by debugging tools. Consequently, users needing symbols are probably best advised to rather use a static build.
