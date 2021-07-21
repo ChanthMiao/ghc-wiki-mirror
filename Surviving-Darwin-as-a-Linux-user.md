@@ -10,6 +10,8 @@ Rosetta 2 is Apple's x86-64 to AArch64 dynamic translation engine and was introd
 
 This gives rise to somewhat surprising behavior in the case of toolchain executables like `clang`: using an x86-64 `cabal-install` executable to build a package with an AArch64 GHC will result in assembler errors due to `clang` trying to compile GHC's assembler as x86-64 code. For this reason, we take pains to always pass a `--target` flag to `clang`.
 
+Additionally, it seems that trying to run `lldb` on an AArch64 executable will fail unless one explicitly sets the architecture (`arch -arm64e lldb ...`)
+
 # lldb over ssh
 
 One must run `sudo dscl . append /Groups/_developer GroupMembership $username` on a user before that user can attach to a process in `lldb` from a non-interactive (e.g. SSH) session.
