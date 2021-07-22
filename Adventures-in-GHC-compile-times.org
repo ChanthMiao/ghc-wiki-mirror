@@ -390,6 +390,8 @@
       un-patched version doesn't. Thus we have another promising lead but a
       failure in the end.
 
+      Addendum (7-22-2021). These coercions get compiled away in the `Stg -> Cmm` pass. Specifically [here](https://gitlab.haskell.org/ghc/ghc/-/blob/master/compiler/GHC/StgToCmm/Prim.hs#L1089)
+
 
 ** Avoid allocations in substitutions in the simplifier
 
