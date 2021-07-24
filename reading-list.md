@@ -138,7 +138,7 @@ Please add: System FC, GADTs, kind polymorphism etc
 
 - [A Single Intermediate Language That Supports Multiple Implementations of Exceptions](http://research.microsoft.com/en-us/um/people/simonpj/papers/c--/c--exn-pldi.ps.gz), Norman Ramsey and Simon Peyton Jones, PLDI 2000.
 
-- [An LLVM Backend for GHC](https://www.davidterei.com/downloads/papers/terei:2010:llvm.pdf), David Terei and Manuel M. T. Chakravarty. Haskell Symposium 2010
+- [An LLVM Backend for GHC](https://llvm.org/pubs/2010-09-HASKELLSYM-LLVM-GHC.pdf), David Terei and Manuel M. T. Chakravarty. Haskell Symposium 2010
 
 ## IO and Related
 
