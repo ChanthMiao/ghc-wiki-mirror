@@ -500,6 +500,38 @@
     stg to really verify these thunks.
 
 *** The Fix
+    - Note taken on [2021-07-25 Sun 16:43] \\
+      Update. I built a stage 2 profiled compiler with the previously mentioned patch
+      but the build went into an infinite loop. I've narrowed down the cause to adding
+      strictness to the ~Doc~ data type. Specifically this builds just fine:
+      #+begin_src haskell
+      -- | The abstract type of documents.
+      -- A Doc represents a *set* of layouts. A Doc with
+      -- no occurrences of Union or NoDoc represents just one layout.
+      data Doc
+        = Empty                                            -- empty
+        | NilAbove Doc                                     -- text "" $$ x
+        | TextBeside !TextDetails {-# UNPACK #-} !Int Doc  -- text s <> x
+        | Nest {-# UNPACK #-} !Int Doc                     -- nest k x
+        | Union !Doc !Doc                                    -- ul `union` ur
+        | NoDoc                                            -- The empty set of documents
+        | Beside !Doc Bool !Doc                              -- True <=> space between
+        | Above !Doc Bool !Doc                               -- True <=> never overlap
+      #+end_src
+      while this goes infinite:
+      #+begin_src
+      data Doc
+        = Empty                                            -- empty
+        | NilAbove !Doc                                     -- text "" $$ x
+        | TextBeside !TextDetails {-# UNPACK #-} !Int !Doc  -- text s <> x
+        | Nest {-# UNPACK #-} !Int !Doc                     -- nest k x
+        | Union !Doc !Doc                                    -- ul `union` ur
+        | NoDoc                                            -- The empty set of documents
+        | Beside !Doc Bool !Doc                              -- True <=> space between
+        | Above !Doc Bool !Doc                               -- True <=> never overlap
+      #+end_src
+      Notice the extra bangs on ~NilAbove~ ~TextBeside~ and ~Nest~.
+
     I've forked and pushed a patch [[https://gitlab.haskell.org/doyougnu/ghc/-/commit/659db2e3a75c585b3a50b25b8b2f84aa512850d1][here]] it cleans up that lazy fold and removes lines like this:
     #+begin_src
     put b _ | b `seq` False = undefined
