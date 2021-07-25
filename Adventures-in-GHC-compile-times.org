@@ -484,12 +484,12 @@
     #+begin_src haskell
     putDumpFileMaybe logger Opt_D_dump_stg_final "Final STG:" FormatSTG (pprGenStgTopBindings (initStgPprOpts dflags) stg_binds_w_fvs)
     #+end_src
-    where ~pprGenStgBinding is:
+    where ~pprGenStgBinding~ is:
     #+begin_src haskell
       pprGenStgTopBindings :: (OutputablePass pass) => StgPprOpts -> [GenStgTopBinding pass] -> SDoc
       pprGenStgTopBindings opts binds = vcat $ intersperse blankLine (map (pprGenStgTopBinding opts) binds)
     #+end_src
-    and vcat is a /lazy/ fold!:
+    and ~vcat~ is a /lazy/ fold!:
     #+begin_src haskell
       -- | List version of '$$'.
       vcat :: [Doc] -> Doc
