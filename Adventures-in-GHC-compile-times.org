@@ -429,15 +429,101 @@
     this phase which leads to a slow down.
 
 *** Status
-    Unexplored
+    Issue Observed
 
 *** Evidence
+    Consider this ticky profile sorted by allocations (second column) from ~spectral/simple/Main.hs~:
+    #+begin_src shell
+     16345250 1954658904          0   4 MEiM                 $waboveNest{v r4VL} (GHC.Utils.Ppr) (fun)
+      12426097 1127986424          0   3 MEM                  beside{v rTN} (GHC.Utils.Ppr) (fun)
+      11513051  695793312          0   3 i.M                  Data.IntMap.Internal.$winsert{v rg4h} (fun)
+       1168605  281826888          0   5 SMMSM                GHC.Core.Opt.Simplify.simplExpr2{v roRP} (fun)
+       3034078  233802360          0   2 >L                   GHC.Base.map{v 01X} (fun)
+        531047  152702648          0   4 SMLL                 $woccAnalApp{v raIX} (GHC.Core.Opt.OccurAnal) (fun)
+        486824  147994496          0   2 SS                   GHC.IO.Encoding.UTF8.mkUTF1{v r2sh} (fun)
+       1011674  119141568          0   5 SSMSM                rebuildCall{v roV4} (GHC.Core.Opt.Simplify) (fun)
+        352269  109907928   11272608   7 >.pMpME              $wact1{v s5qY} (GHC.IO.Handle.Text) (fun) in r5im
+       4977172  104923112          0   2 iM                   Data.IntMap.Internal.$wdelete{v rg4i} (fun)
+        858053   98320600          0   4 iiiM                 $l$s$wget1_g5mo{v} (GHC.Utils.Ppr) (fun)
+        497211   98275320          0   5 SMLiM                GHC.Core.Opt.Simplify.Utils.$wmkArgInfo{v rjZu} (fun)
+    #+end_src
+    The pretty printer defined in ~Ppr~ does /more/ allocations than ~insert~!
+    Clearly that should not be the case. Furthermore we have evidence from a
+    heap profile that these are a result of a memory leak:
+    #+begin_src
+        Thu Jul 15 18:42 2021 Time and Allocation Profiling Report  (Final)
+
+           ghc +RTS -p -s -hy -l-au -rsimple.ticky -RTS Main.hs -fforce-recomp -O2 -ticky-LNE -ticky-allocd -ddump-stg-final -ddump-simpl -ddump-to-file
+
+        total time  =        7.36 secs   (7356 ticks @ 1000 us, 1 processor)
+        total alloc = 8,120,252,504 bytes  (excludes profiling overheads)
+
+        COST CENTRE                      MODULE                 SRC                                                  %time %alloc
+
+        simplIdF                         GHC.Core.Opt.Simplify  compiler/GHC/Core/Opt/Simplify.hs:1122:61-79          24.4   21.4
+        doCodeGen                        GHC.Driver.Main        compiler/GHC/Driver/Main.hs:(1766,1)-(1814,46)        13.7   23.5
+        CoreTidy                         GHC.Driver.Main        compiler/GHC/Driver/Main.hs:896:15-58                  8.3   13.4
+        occAnalBind.assoc                GHC.Core.Opt.OccurAnal compiler/GHC/Core/Opt/OccurAnal.hs:809:13-64           6.8    5.7
+        OccAnal                          GHC.Core.Opt.Pipeline  compiler/GHC/Core/Opt/Pipeline.hs:(713,22)-(714,42)    5.8    5.0
+        simplRecOrTopPair-normal         GHC.Core.Opt.Simplify  compiler/GHC/Core/Opt/Simplify.hs:(307,5)-(308,62)     2.6    1.9
+        FloatOutwards                    GHC.Core.Opt.Pipeline  compiler/GHC/Core/Opt/Pipeline.hs:499:34-82            2.5    2.0
+        pprNativeCode                    GHC.CmmToAsm           compiler/GHC/CmmToAsm.hs:427:37-64                     1.8    1.7
+        StgToCmm                         GHC.Driver.Main        compiler/GHC/Driver/Main.hs:1785:13-97                 1.8    1.3
+        simplNonRecE                     GHC.Core.Opt.Simplify  compiler/GHC/Core/Opt/Simplify.hs:1198:31-78           1.6    1.1
+        rebuild                          GHC.Core.Opt.Simplify  compiler/GHC/Core/Opt/Simplify.hs:1123:60-85           1.6    1.1
+        tc_rn_src_decls                  GHC.Tc.Module          compiler/GHC/Tc/Module.hs:(592,4)-(663,7)              1.4    0.8
+        RegAlloc-linear                  GHC.CmmToAsm           compiler/GHC/CmmToAsm.hs:(586,27)-(588,55)             1.4    1.0
+        GHC.CmmToAsm.CFG.mkGlobalWeights GHC.CmmToAsm.CFG       compiler/GHC/CmmToAsm/CFG.hs:954:1-15                  1.4    1.5
+        DmdAnal                          GHC.Core.Opt.Pipeline  compiler/GHC/Core/Opt/Pipeline.hs:511:34-103           1.3    1.4
+        simplExprF1-Lam                  GHC.Core.Opt.Simplify  compiler/GHC/Core/Opt/Simplify.hs:1160:5-39            1.3    0.8
+        sink                             GHC.Cmm.Pipeline       compiler/GHC/Cmm/Pipeline.hs:(115,12)-(116,58)         1.2    1.0
+        regLiveness                      GHC.CmmToAsm           compiler/GHC/CmmToAsm.hs:(504,17)-(505,75)             1.2    1.1
+    #+end_src
+    You can see that ~doCodeGen~ takes 13% of time but a whopping 23.5% of
+    allocations. If we peak that the source we'll find stuff like this:
+    #+begin_src haskell
+    putDumpFileMaybe logger Opt_D_dump_stg_final "Final STG:" FormatSTG (pprGenStgTopBindings (initStgPprOpts dflags) stg_binds_w_fvs)
+    #+end_src
+    where ~pprGenStgBinding is:
+    #+begin_src haskell
+      pprGenStgTopBindings :: (OutputablePass pass) => StgPprOpts -> [GenStgTopBinding pass] -> SDoc
+      pprGenStgTopBindings opts binds = vcat $ intersperse blankLine (map (pprGenStgTopBinding opts) binds)
+    #+end_src
+    and vcat is a /lazy/ fold!:
+    #+begin_src haskell
+      -- | List version of '$$'.
+      vcat :: [Doc] -> Doc
+      vcat = reduceAB . foldr (above_' False) empty
+    #+end_src
+
+    However this is not definitive proof, we would need to observe the core and
+    stg to really verify these thunks.
 
 *** The Fix
-    We'll need to optimize pretty printing. Exactly what needs optimization, and
-    how is to be determined.
+    I've forked and pushed a patch [[https://gitlab.haskell.org/doyougnu/ghc/-/commit/659db2e3a75c585b3a50b25b8b2f84aa512850d1][here]] it cleans up that lazy fold and removes lines like this:
+    #+begin_src
+    put b _ | b `seq` False = undefined
+    #+end_src
+    Whose only purpose is to make ~b~ strict. So I've removed those lines for
+    bang patterns:
+    #+begin_src haskell
+    put !b (Chr c)    = bPutChar b c
+    put !b (Str s)    = bPutStr  b s
+    put !b (PStr s)   = bPutFS   b s
+    #+end_src
+    I suspect this module has not been updated in quite a while because of old
+    tricks like that in the code.
 
 *** Relevant Issues
+    - there is an old issue on ~pretty~ by Ben [[https://github.com/haskell/pretty/issues/44][here]] which highlights the a
+      specific use case for GHC. The same functions that Ben points to are the
+      same ones that sit at the top of my ticky profile above.
+    - Most of the issues on ~pretty~ are relevant. Because ~pretty~ uses
+      String's there is a bunch of problems with quadratic runtimes and space
+      leaks. It's simply the wrong data structure. I think the right thing to do
+      is use a different library like [[https://hackage.haskell.org/package/prettyprinter][this]] one, but that would mean adding a
+      dependency on ~text~. I'm unsure if this would mean adding ~text~ to base
+      or simply using ~text~ as a boot library.
 
 *** Relevant Merge Requests
 
@@ -447,6 +533,7 @@
     1. benchmark pretty printing during code generation to identify candidate
        functions for optimization.
     2. Ticky profile these functions to get some hard evidence.
+
 
 * Knowledge Sharing
   It would be nice to know:
