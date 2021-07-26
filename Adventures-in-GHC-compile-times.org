@@ -500,6 +500,16 @@
     stg to really verify these thunks.
 
 *** The Fix
+    - Note taken on [2021-07-25 Sun 17:09] \\
+      Adding some strictness produced the following ticky profile:
+      #+begin_src  shell
+       17371793 1949818584          0   4 iEMM                 $saboveNest{v r4Uk} (GHC.Utils.Ppr) (fun)
+         13224056 1116014480          0   3 MEM                  beside{v r14Y} (GHC.Utils.Ppr) (fun)
+         11442227  691716208          0   3 i.M                  Data.IntMap.Internal.$winsert{v rg6b} (fun)
+          1163713  280712792          0   5 SMMSM                GHC.Core.Opt.Simplify.simplExpr2{v roJf} (fun)
+      #+end_src
+      Still need to check time with nofib
+
     - Note taken on [2021-07-25 Sun 16:43] \\
       Update. I built a stage 2 profiled compiler with the previously mentioned patch
       but the build went into an infinite loop. I've narrowed down the cause to adding
