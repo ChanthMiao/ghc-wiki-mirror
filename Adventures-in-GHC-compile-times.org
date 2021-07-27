@@ -82,7 +82,120 @@
 *** Evidence
     By inspection of source code. Also noticed in [[https://gitlab.haskell.org/ghc/ghc/-/issues/18541#note_292432][this comment]], however not
     confirmed with direct evidence. See Sebastian's [[https://gitlab.haskell.org/ghc/ghc/-/issues/20069#note_362952][comment]] about the ~go~
-    closure.
+    closure. There is also the discrepency provided by the ~weigh~ library. I
+    just modified the ~intmap-benchmark~ target from containers, you'll see that
+    ~findWithDefault~ has better allocation performance after a certain
+    threshold due to the GC. Here's the code.
+     #+begin_src haskell
+     lookup :: [Int] -> M.IntMap Int -> Int
+     lookup xs m = foldl' (\n k -> (fromMaybe n (M.lookup k m))) 0 xs
+
+     lookupWithDefault :: [Int] -> Int -> M.IntMap Int -> Int
+     lookupWithDefault xs d m = foldl' (\n k -> (M.findWithDefault k n m)) d xs
+
+       main = do
+         let m = M.fromAscList elems :: M.IntMap Int
+         evaluate $ rnf [m]
+         mainWith $ do
+           func "lookup 8" (lookup (take (2 ^ 8) keys)) m
+           func "lookupWithDefault 8" (lookupWithDefault (take (2 ^ 8) keys) 0) m
+           func "lookup 9" (lookup (take (2 ^ 9) keys)) m
+           func "lookupWithDefault 9" (lookupWithDefault (take (2 ^ 9) keys) 0) m
+           func "lookupWithDefault 10" (lookupWithDefault (take (2 ^ 10) keys) 0) m
+           func "lookup 10" (lookup (take (2 ^ 10) keys)) m
+           func "lookupWithDefault 11" (lookupWithDefault (take (2 ^ 11) keys) 0) m
+           func "lookup 11" (lookup (take (2 ^ 11) keys)) m
+           func "lookupWithDefault 12" (lookupWithDefault (take (2 ^ 12) keys) 0) m
+           func "lookup 12" (lookup (take (2 ^ 12) keys)) m
+           func "lookupWithDefault 13" (lookupWithDefault (take (2 ^ 13) keys) 0) m
+           func "lookup 13" (lookup (take (2 ^ 13) keys)) m
+           func "lookupWithDefault 14" (lookupWithDefault (take (2 ^ 14) keys) 0) m
+           func "lookup 14" (lookup (take (2 ^ 14) keys)) m
+           func "lookupWithDefault 15" (lookupWithDefault (take (2 ^ 15) keys) 0) m
+           func "lookup 15" (lookup (take (2 ^ 15) keys)) m
+           func "lookupWithDefault 16" (lookupWithDefault (take (2 ^ 16) keys) 0) m
+           func "lookup 16" (lookup (take (2 ^ 16) keys)) m
+           func "lookupWithDefault 17" (lookupWithDefault (take (2 ^ 17) keys) 0) m
+           func "lookup 17" (lookup (take (2 ^ 17) keys)) m
+           func "lookupWithDefault 18" (lookupWithDefault (take (2 ^ 18) keys) 0) m
+           func "lookup 18" (lookup (take (2 ^ 18) keys)) m
+           func "lookupWithDefault 19" (lookupWithDefault (take (2 ^ 19) keys) 0) m
+           func "lookup 19" (lookup (take (2 ^ 19) keys)) m
+           func "lookupWithDefault 20" (lookupWithDefault (take (2 ^ 20) keys) 0) m
+           func "lookup 20" (lookup (take (2 ^ 20) keys)) m
+         where
+           elems = zip keys values
+           keys = [1 .. 2 ^ 22]
+           values = [1 .. 2 ^ 22]
+           sum k v1 v2 = k + v1 + v2
+           consPair k v xs = (k, v) : xs
+     #+end_src
+
+     and the results:
+      #+begin_src shell
+      Running 1 benchmarks...
+      Benchmark intmap-benchmarks: RUNNING...
+
+      Case                    Allocated  GCs
+      lookup 8                   39,224    0
+      lookupWithDefault 8        33,080    0
+      lookup 9                   78,136    0
+      lookupWithDefault 9        65,848    0
+      lookupWithDefault 10      131,384    0
+      lookup 10                 155,960    0
+      lookupWithDefault 11      262,456    0
+      lookup 11                 311,608    0
+      lookupWithDefault 12      524,600    0
+      lookup 12                 622,904    0
+      lookupWithDefault 13    1,048,888    1
+      lookup 13               1,245,496    1
+      lookupWithDefault 14    2,097,464    2
+      lookup 14               2,490,680    2
+      lookupWithDefault 15    4,194,616    4
+      lookup 15               4,981,048    4
+      lookupWithDefault 16    8,388,984    8
+      lookup 16               9,961,848    9
+      lookupWithDefault 17   16,777,592   16
+      lookup 17              19,923,320   19
+      lookupWithDefault 18   33,554,808   32
+      lookup 18              39,846,264   38
+      lookupWithDefault 19   67,109,240   64
+      lookup 19              79,692,152   76
+      lookupWithDefault 20  134,218,104  128
+      lookup 20             159,383,928  153
+         2,228,228,536 bytes allocated in the heap
+         5,022,014,208 bytes copied during GC
+           812,634,240 bytes maximum residency (16 sample(s))
+             6,487,936 bytes maximum slop
+                  1588 MiB total memory in use (0 MB lost due to fragmentation)
+
+                                           Tot time (elapsed)  Avg pause  Max pause
+        Gen  0      2138 colls,     0 par    9.619s   9.621s     0.0045s    0.0097s
+        Gen  1        16 colls,     0 par   11.739s  11.739s     0.7337s    2.6470s
+
+        INIT    time    0.001s  (  0.001s elapsed)
+        MUT     time    3.036s  (538.025s elapsed)
+        GC      time   17.382s  ( 17.384s elapsed)
+        RP      time    0.000s  (  0.000s elapsed)
+        PROF    time    3.976s  (  3.976s elapsed)
+        EXIT    time    0.000s  (  0.000s elapsed)
+        Total   time   24.394s  (559.386s elapsed)
+
+        %GC     time       0.0%  (0.0% elapsed)
+
+        Alloc rate    734,009,009 bytes per MUT second
+
+        Productivity  28.7% of total user, 96.9% of total elapsed
+
+      Benchmark intmap-benchmarks: FINISH
+      #+end_src
+      That's a 15.8% difference in allocations for 2^20 lookups and 25 more GCs!
+      Judging from the allocations in the ticky profiles floating around
+      (usually around 55,354,240) I bet GHC is in the between 2^18 and 2^19
+      lookups. That means we should observe a speedup ~15%. What's surprising is
+      that /every/ difference in the allocs above is ~15%. Or in other words the
+      gap between the two remains the same as the number of lookups increases.
+
 
 *** The Fix
     Sylvain Henry has a patch [[https://gitlab.haskell.org/ghc/ghc/-/issues/18541#note_292432][here]] but only tested the intmap-benchmarks.
