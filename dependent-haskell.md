@@ -5,7 +5,7 @@ It's not the only possible design -- and in any case it's not a fixed design, mo
 of the huge design space -- but perhaps it can serve as a concrete baseline to help bring clarity
 to our discussion.
 
-Readers may also want to check out https://github.com/ghc-proposals/ghc-proposals/pull/378, a proposal to make sure that GHC continues to support development toward the language imagined here.
+Readers may also want to check out [Proposal #378](https://github.com/ghc-proposals/ghc-proposals/pull/378), a proposal to make sure that GHC continues to support development toward the language imagined here.
 
 Given the Haskell's community lack of experience with dependent types, there are also a number of misconceptions that have arisen around the design of dependent types. A section at the end of this document describes several common misconceptions   and better ways of understanding certain design points.
 
@@ -101,7 +101,7 @@ to consider the context of an identifier occurrence to be able to interpret its 
 to see what context we are in.) We expect DH to support these programmers' desire to avoid
 punning by providing optional warnings,
 while still also supporting easy interaction with other code that uses puns.
-[Proposal 270](https://github.com/ghc-proposals/ghc-proposals/pull/270) describes
+[Proposal #270](https://github.com/ghc-proposals/ghc-proposals/pull/270) describes
 a way that might happen; the additional support of [local modules](https://github.com/ghc-proposals/ghc-proposals/pull/283)
 would allow for even easier use of punned identifiers in pun-avoiding code.
 
@@ -122,7 +122,7 @@ design decisions, so that it may be true once DH is fully realized.
 
 ### Switching syntaxes
 
-Given that some programmers will continue to use punning, it may be necessary to explicitly tell GHC to switch syntaxes. As originally described in (#281)[https://github.com/int-index/ghc-proposals/blob/visible-forall/proposals/0000-visible-forall.rst#43secondary-change-type-herald], we propose using the keyword `type` to tell GHC to switch to interpreting type-syntax, not term-syntax. This changes both parsing and name resolution. For example, we might say `sizeof (type Bool)` to allow disambiguation between a `Bool` in the term-level namespace and one in the type-level namespace. We can similarly imagine a `data` herald to switch to the term-level namespace.
+Given that some programmers will continue to use punning, it may be necessary to explicitly tell GHC to switch syntaxes. As originally described in [Proposal #281](https://github.com/int-index/ghc-proposals/blob/visible-forall/proposals/0000-visible-forall.rst#43secondary-change-type-herald), we propose using the keyword `type` to tell GHC to switch to interpreting type-syntax, not term-syntax. This changes both parsing and name resolution. For example, we might say `sizeof (type Bool)` to allow disambiguation between a `Bool` in the term-level namespace and one in the type-level namespace. We can similarly imagine a `data` herald to switch to the term-level namespace.
 
 There are some details to be worked out here (e.g. the precise BNF), but a disambiguation syntax may be necessary, and this section suggests a way to accommodate one.
 
@@ -185,7 +185,7 @@ You can see that
 
 * GHC already supports `forall k -> ty`, in *kinds*, meaning that the programmer must apply
   a type `(T :: forall k -> ty)` to an explicit kind argument
-  ([GHC proposal 81, visible dependent quantification](https://github.com/ghc-proposals/ghc-proposals/pull/81)).  For example:
+  ([GHC proposal #81, visible dependent quantification](https://github.com/ghc-proposals/ghc-proposals/pull/81)).  For example:
   ```
   data T k (a::k) = ...
   ```
@@ -193,7 +193,7 @@ You can see that
   We can tell that from its kind: `T :: forall k -> k -> Type`.
 
 
-* [Proposal 281](https://github.com/ghc-proposals/ghc-proposals/pull/281) extends the `forall ->` quantifier to *types* as well as *kinds*.  For example, we could then write
+* [Proposal #281](https://github.com/ghc-proposals/ghc-proposals/pull/281) extends the `forall ->` quantifier to *types* as well as *kinds*.  For example, we could then write
   ```
   f :: forall a -> a -> Int
   f a (x::a) = 4     -- The pattern signature on (x::a) is optional
@@ -523,7 +523,7 @@ we may decide not to.
 
 # Misconceptions
 
-This section describes several common misconceptions around dependent types, in an attempt to refute them. This was cribbed from (a GHC proposal comment)[https://github.com/ghc-proposals/ghc-proposals/pull/281#issuecomment-736850050];
+This section describes several common misconceptions around dependent types, in an attempt to refute them. This was cribbed from [a GHC proposal comment](https://github.com/ghc-proposals/ghc-proposals/pull/281#issuecomment-736850050);
 the "I" here is Richard.
 
 ## Punning
@@ -532,7 +532,7 @@ False: **Dependent Haskell and/or this proposal is trying to ban definitions lik
 
 There is no effort as far as I'm aware to eliminate code containing definitions like `data T = T`. This is an example of *punning*, where identifiers of the same spelling are used at the term level and at the type level. The design of DH I've been thinking about, and every concrete description I've seen, continues to allow `data T = T`, into perpetuity.
 
-Instead, the leading design for DH introduces warnings `-Wpuns` and `-Wpun-bindings` that warn at either occurrences or binding sites (respectively) of punned identifiers. This is (in my view) the main payload of #270. (The rest of #270 is just about giving users a way to silence the warnings.) No one has to enable these warnings. All DH features work with punned identifiers, perhaps at the expense of requiring a little more disambiguation. #270 has the details.
+Instead, the leading design for DH introduces warnings `-Wpuns` and `-Wpun-bindings` that warn at either occurrences or binding sites (respectively) of punned identifiers. This is (in my view) the main payload of [#270](https://github.com/ghc-proposals/ghc-proposals/pull/270). (The rest of [#270](https://github.com/ghc-proposals/ghc-proposals/pull/270) is just about giving users a way to silence the warnings.) No one has to enable these warnings. All DH features work with punned identifiers, perhaps at the expense of requiring a little more disambiguation. [#270](https://github.com/ghc-proposals/ghc-proposals/pull/270) has the details.
 
 It is true that we believe that idiomatic DH will tend to avoid punning, but it will be up to the community to see how it will all play out. Maybe the disambiguation means are easy enough (at a minimum, prefixes like `D.` or `T.`) that punning remains commonplace.
 
@@ -540,15 +540,15 @@ It is true that we believe that idiomatic DH will tend to avoid punning, but it 
 
 Overstated: **Dependent Haskell is complicated.**
 
-Well, it's a bit hard to make a "False" statement on that one (but I did anyway), but let me try to explain what I mean. @simonpj's comment https://github.com/ghc-proposals/ghc-proposals/pull/281#issuecomment-733715402 is the source of this one. According to my understanding, the complication he refers to is twofold: (1) the need to think about two namespaces, and (2) the need for the T2T translation. 
+Well, it's a bit hard to make a "False" statement on that one (but I did anyway), but let me try to explain what I mean. @simonpj's comment [[here](https://github.com/ghc-proposals/ghc-proposals/pull/281#issuecomment-733715402)] is the source of this one. According to my understanding, the complication he refers to is twofold: (1) the need to think about two namespaces, and (2) the need for the T2T translation. 
 
-1. In corner cases, we do need to worry about the two namespaces -- but only when the user binds an identifier in both. This proposal #281 thus irons out which namespace takes precedence. However, if a name is not punned, then the user may remain blissfully unaware of the distinction. Thus, when I say DH is not complicated in this way, I mean that idiomatic DH -- where the user disambiguates between the namespaces instead of using punning -- is not.
+1. In corner cases, we do need to worry about the two namespaces -- but only when the user binds an identifier in both. This proposal [[#281](https://github.com/ghc-proposals/ghc-proposals/pull/281)] thus irons out which namespace takes precedence. However, if a name is not punned, then the user may remain blissfully unaware of the distinction. Thus, when I say DH is not complicated in this way, I mean that idiomatic DH -- where the user disambiguates between the namespaces instead of using punning -- is not.
 
    Even a user who does use punning is OK: names bound to the left of a `::` are term-level names; those bound to the right of one are type-level names. Occurrences to the left of a `::` look in the term-level namespace first; those to the right of one look in the type-level namespace first. Of course, there are subtleties here, as spelled out in the proposal, but that summary is morally all there is to it.
 
 2. The T2T translation is needed only until we merge terms and types. Note that this merger is *independent* of the namespace issue: we can imagine identical ASTs for terms and for types, but with different name-resolution characteristics. There are relatively few barriers to merging terms and types: essentially, we have to sort out the fact that `'` means something different in the two ASTs (it selects the term-level namespace in types, while it denotes a TH name quote in terms) and we will have to be able to parse type-like things such as `forall` and `->` in terms. Happily, `->` is *already* illegal in terms, so this probably boils down to making `forall` a keyword.
 
-   There may be a stretch of time that we retain the complexity of T2T, but my hope is that this time will be limited. One of the reasons I wrote #378 is to motivate us to deal with that temporary complexity.
+   There may be a stretch of time that we retain the complexity of T2T, but my hope is that this time will be limited. One of the reasons I wrote [#378](https://github.com/ghc-proposals/ghc-proposals/pull/378) is to motivate us to deal with that temporary complexity.
 
 So I claim things are not as bad as they appear here.
 
