@@ -80,7 +80,70 @@
     Confirmed without direct evidence.
 
 *** Evidence
-    By inspection of source code. Also noticed in [[https://gitlab.haskell.org/ghc/ghc/-/issues/18541#note_292432][this comment]], however not
+    - Note taken on [2021-07-29 Thu 09:09] \\
+      Some new data. Consider this ticky I pulled off a profiled ~ghcHEAD~ sorted by
+      allocations again:
+      #+begin_src shell
+         4177975  500907320          0   4 MEiM                 $waboveNest{v r4Wi} (GHC.Utils.Ppr) (fun)
+          4379509  398865488          0   3 MEM                  beside{v rUb} (GHC.Utils.Ppr) (fun)
+           227489   69156656          0   2 SS                   GHC.IO.Encoding.UTF8.mkUTF1{v r2sH} (fun)
+           824290   50234672          0   3 i.M                  Data.IntMap.Internal.$winsert{v rg6b} (fun)
+           160709   50141208    5142688   7 >.pMpME              $wact1{v s5rN} (GHC.IO.Handle.Text) (fun) in r5ja
+           557080   48582464          0   2 >L                   GHC.Base.map{v 01X} (fun)
+           414037   47448864          0   4 iiiM                 $l$s$wget1_g5mW{v} (GHC.Utils.Ppr) (fun)
+           319828   30668960    3155760   1 i                    unpack{v s3Qc} (GHC.Utils.Encoding) (fun) in r3Bo
+           241869   29278576          0   4 EMiL                 GHC.Utils.Ppr.$wsep1{v r4UI} (fun)
+           313030   23752168          0   1 M                    oneLiner{v rUv} (GHC.Utils.Ppr) (fun)
+           356156   22793984          0   4 LM>p                 GHC.IO.Handle.Internals.$wdo_operation{v r4SA} (fun)
+           355989   19935384          0   4 LMp>                 GHC.IO.Handle.Internals.$wwantWritableHandle'{v r4SK} (fun)
+      #+end_src
+
+      Notice the entries (first column) and allocations (second column) for the lazy
+      ~insert~. I added ~hashable~ as a boot library and then hashed ~Uniques~ as they
+      were created, like this:
+      #+begin_src haskell
+        mkUnique :: Char -> Int -> Unique
+                                                -- Builds a unique from pieces
+        -- EXPORTED and used only in GHC.Builtin.Uniques
+        mkUnique c i
+          = MkUnique (tag .|. bits)
+          where
+            tag  = ord c `shiftL` uNIQUE_BITS
+            bits = (hash i) .&. uniqueMask
+      #+end_src
+
+      Now consider the resulting ticky profile:
+      #+begin_src shell
+         110499    4759232          0   3 i.M                  Data.IntMap.Internal.$winsert{v reYM} (fun)
+            74036    3785808          0   4 ..MM                 Data.Map.Internal.balanceR{v r2Zo} (fun)
+            31668    1645920          0   4 ..MM                 Data.Map.Internal.balanceL{v r2Zn} (fun)
+            31084    1407840          0   2 LL                   GHC.Base.++{v 03} (fun)
+             4852    1314304        320   2 LS                   go45{v sxOt} (GHC.IfaceToCore) (fun) in rowA
+            40325    1299344          0   8 >MiipS.M             GHC.Unit.Module.Env.$w$sgo9{v r4iJ} (fun)
+             5816    1179008       4608   1 L                    go26{v sxGg} (GHC.Unit.State) (fun) in sxGa
+              106    1112440       2544   1 S                    $wgo{v s3Ns} (GHC.Foreign) (fun) in s3Q9
+               20    1079704       1280   1 S                    sat_sfDb{v} (GHC.Iface.Binary) (fun,se) in rbYU
+             8060     967200          0   3 pIS                  GHC.Data.FastString.$wmkNewFastStringShortByteString{v r7Qv} (fun)
+            10875     878592          0   2 >L                   GHC.Base.map{v 01X} (fun)
+            10781     773760          0   2 >p                   GHC.Data.FastString.$wmkFastStringWith{v r7Qw} (fun)
+             5233     752976          0   8 SiiipMii             $walexGetByte{v rn73} (GHC.Parser.Lexer) (fun)
+             4832     741096          0   4 Sppp                 GHC.Iface.Syntax.$w$cget1{v rh2S} (fun)
+             2826     678240          0   1 >                    lexStrItem{v r3aM} (Text.Read.Lex) (fun)
+            78656     553344          0   7 >iipS.M              GHC.Unit.State.$w$sgo9{v rkg5} (fun)
+             5770     500896          0   4 Sppp                 GHC.Types.Name.Occurrence.$w$cget{v r8aZ} (fun)
+            16769     460544          0   2 MM                   Text.ParserCombinators.ReadP.$fAlternativeP_$c<|>{v r1V5} (fun)
+             1274     458640          0   1 M                    GHC.Types.Id.Make.mkPrimOpId{v r3} (fun)
+      #+end_src
+
+      Its completely changed, but more importantly the ~balance~ functions have risen
+      to the top, entries are much smaller and ~insert~ has a 90% reduction in
+      allocations and an 86% reduction in calls. This makes sense, under the
+      hypothesis that the ~IntMap~s are becoming very unbalanced, then insert will
+      have /more/ recursive calls but if the Uniques are not jumping in the most
+      significant bits (as hashing will force) then we should observe /less/ recursion
+      and thus less allocations.
+
+    Noticed in [[https://gitlab.haskell.org/ghc/ghc/-/issues/18541#note_292432][this comment]], however not
     confirmed with direct evidence. See Sebastian's [[https://gitlab.haskell.org/ghc/ghc/-/issues/20069#note_362952][comment]] about the ~go~
     closure. There is also the discrepency provided by the ~weigh~ library. I
     just modified the ~intmap-benchmark~ target from containers, you'll see that
