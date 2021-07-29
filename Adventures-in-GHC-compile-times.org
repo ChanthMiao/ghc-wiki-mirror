@@ -99,7 +99,7 @@
       #+end_src
 
       Notice the entries (first column) and allocations (second column) for the lazy
-      ~insert~. I added ~hashable~ as a boot library and then hashed ~Uniques~ as they
+      ~insert{v rg6b}~. I added ~hashable~ as a boot library and then hashed ~Uniques~ as they
       were created, like this:
       #+begin_src haskell
         mkUnique :: Char -> Int -> Unique
