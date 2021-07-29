@@ -568,6 +568,85 @@
 
       Addendum (7-22-2021). These coercions get compiled away in the `Stg to Cmm` pass. Specifically [here](https://gitlab.haskell.org/ghc/ghc/-/blob/master/compiler/GHC/StgToCmm/Prim.hs#L1089)
 
+    - Given the results of the ~weigh~ benchmarking above I altered
+      ~lookupBndrSwap~ to avoid ~lookupUFM~. Here's the master version:
+      #+begin_src haskell
+        lookupBndrSwap :: OccEnv -> Id -> (CoreExpr, Id)
+        -- See Note [The binder-swap substitution]
+        -- Returns an expression of the same type as Id
+        lookupBndrSwap env@(OccEnv { occ_bs_env = bs_env })  bndr
+          = case lookupVarEnv bs_env bndr of {
+               Nothing           -> (Var bndr, bndr) ;
+               Just (bndr1, mco) ->
+
+            -- Why do we iterate here?
+            -- See (BS2) in Note [The binder-swap substitution]
+            case lookupBndrSwap env bndr1 of
+              (fun, fun_id) -> (add_cast fun mco, fun_id) }
+
+          where
+            add_cast fun MRefl    = fun
+            add_cast fun (MCo co) = Cast fun (mkSymCo co)
+            -- We must switch that 'co' to 'sym co';
+            -- see the comment with occ_bs_env
+            -- No need to test for isReflCo, because 'co' came from
+            -- a (Cast e co) and hence is unlikely to be Refl
+      #+end_src
+
+      and the change:
+
+      #+begin_src haskell
+        lookupBndrSwap :: OccEnv -> Id -> (CoreExpr, Id)
+        -- See Note [The binder-swap substitution]
+        -- Returns an expression of the same type as Id
+        lookupBndrSwap env@(OccEnv { occ_bs_env = bs_env })  bndr
+          = if bndr `elemVarEnv` bs_env
+            then -- Why do we iterate here?
+                 -- See (BS2) in Note [The binder-swap substitution]
+                 let (bndr1, mco) = lookupVarEnv_NF bs_env bndr
+                     in case lookupBndrSwap env bndr1 of
+                        (fun, fun_id) -> (add_cast fun mco, fun_id)
+            else (Var bndr, bndr)
+
+          where
+            add_cast fun MRefl    = fun
+            add_cast fun (MCo co) = Cast fun (mkSymCo co)
+            -- We must switch that 'co' to 'sym co';
+            -- see the comment with occ_bs_env
+            -- No need to test for isReflCo, because 'co' came from
+            -- a (Cast e co) and hence is unlikely to be Refl
+      #+end_src
+      Notice that the case statement which unboxes the ~Maybe~ is removed and
+      replaced with an ~if-expression~.
+
+      This change results in a 70% percent reduction in allocations from a ticky
+      of ~spectral/simple/Main.hs~. Here's the master ticky filtered for
+      ~lookup~:
+      #+begin_src shell
+    527596   59018048          0   8 SiMMMMSS             $s$wlookupBndrSwap{v repE} (GHC.Core.Opt.OccurAnal) (fun)
+    4233024   55521472          0   2 iM                   Data.IntMap.Internal.$wlookup{v rg3a} (fun)
+      95963   11782944          0   6 ST>MLL               GHC.Core.Rules.lookupRule{v r6NZ} (fun)
+      28446    2283960          0   2 >M                   $llookupAddr_g8tO{v} (GHC.CmmToAsm.X86.Instr) (fun)
+       8046    2252880          0   7 SMiipSM              GHC.Unit.State.$wlookupModuleWithSuggestions'{v rkVG} (fun)
+      70028    2157088          0   3 SSM                  GHC.Core.Subst.$w$slookupIdSubst{v r8Vc} (fun)
+      #+end_src
+
+      Note that ~lookupBndrSwap~ allocations more (2nd column) than ~lookup~.
+      Here's the patch ticky:
+       #+begin_src shell
+     3699354   55354240          0   2 iM                   Data.IntMap.Internal.$wlookup{v rg3a} (fun)
+     529222   16961120          0   2 SM                   $wlookupBndrSwap{v repA} (GHC.Core.Opt.OccurAnal) (fun)
+      95963   11782944          0   6 ST>MLL               GHC.Core.Rules.lookupRule{v r8} (fun)
+      28446    2283960          0   2 >M                   $llookupAddr_g8tO{v} (GHC.CmmToAsm.X86.Instr) (fun)
+       8046    2252880          0   7 SMiipSM              GHC.Unit.State.$wlookupModuleWithSuggestions'{v rkVG} (fun)
+      70028    2157088          0   3 SSM                  GHC.Core.Subst.$w$slookupIdSubst{v r1l} (fun)
+       8030    1862960          0   8 MSMEiipS             GHC.Unit.State.$wlookupModuleInAllUnits{v rkVy} (fun)
+       5758     598832          0   3 SSL                  $wlookupOccs{v rkpI} (GHC.Core.Opt.SpecConstr) (fun)
+      17952     334720          0   2 SM                   $wlookupHowBound{v rkpD} (GHC.Core.Opt.SpecConstr) (fun)
+       #+end_src
+       We see a change in allocations for ~lookupBndrSwap~ from 59018048 to 16961120 (a 71% reduction).
+
+
 
 ** Avoid allocations in substitutions in the simplifier
 
