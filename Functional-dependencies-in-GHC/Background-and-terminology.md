@@ -1,6 +1,6 @@
 This page summarises background and terminology related to functional dependencies.
 
-Go up to [Functional dependencies in GHC](..)
+Go up to [Functional dependencies in GHC](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies-in-GHC)
 
 **Contents**
 
@@ -144,4 +144,3 @@ we must have that T(S(ti0)) = T(S(si0)); or equivalently S(ti0) and S(si0) are u
 ## Relevant tickets
 
 See #15632 (Undependable dependencies).
-
