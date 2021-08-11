@@ -95,7 +95,7 @@ But it's a bit un-satisfying to have to encode our desired behaviour like this.
 
 ## Example 5: Even LCC is too restrictive
 
-We can use fundeps to support record selection in records with polymorphic fields (#18759).  Consider
+We can use fundeps to support record selection in records with polymorphic fields (#18759, #20188).  Consider
 ```
 class HasField (name :: Symbol) s a | name s -> a where
   getField :: s -> a
