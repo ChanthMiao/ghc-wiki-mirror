@@ -16,6 +16,8 @@ We release GHC on multiple platforms; the [platforms page](platforms) gives deta
 The release plans for previous releases are here:
 
 - [GHC 9.0.1](status/ghc-9.0.1) (current major release)
+- GHC 8.10.6
+- GHC 8.10.5
 - GHC 8.10.4
 - GHC 8.10.3
 - GHC 8.10.2
