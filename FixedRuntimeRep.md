@@ -15,6 +15,7 @@ This page outlines a plan to move the representation polymorphism checks that cu
   * [Reporting unsolved FixedRuntimeRep constraints](#reporting-unsolved-fixedruntimerep-constraints)
     + [CtOrigins](#ctorigins)
     + [Don't suggest "add FixedRuntimeRep"](#dont-suggest-add-fixedruntimerep)
+    + [Don't allow FixedRuntimeRep constraints to be deferred](#dont-allow-fixedruntimerep-constraints-to-be-deferred)
   * [Evidence for FixedRuntimeRep and code generation](#evidence-for-fixedruntimerep-and-code-generation)
     + [Alternative 1: store the representation](#alternative-1-store-the-representation)
     + [Alternative 2: cast to a fixed representation using a kind coercion](#alternative-2-cast-to-a-fixed-representation-using-a-kind-coercion)
@@ -70,6 +71,10 @@ When we emit a new wanted `FixedRuntimeRep` constraint, we also pass a `CtOrigin
 ### Don't suggest "add FixedRuntimeRep"
 
 We don't want to suggest the user add a `FixedRuntimeRep` constraint to their type signature, so we add a check to `GHC.Tc.Errors.ctxtFixes` to prevent GHC from making that suggestion.
+
+### Don't allow FixedRuntimeRep constraints to be deferred
+
+We don't want to allow `FixedRuntimeRep` constraints to be deferred, as polymorphic runtime representations can cause the code generator to panic. So we ensure that constraints whose `CtOrigin` is a `FixedRuntimeRepOrigin` can't be deferred in `GHC.Tc.Errors.nonDeferrableOrigin`.
 
 ## Evidence for FixedRuntimeRep and code generation
 
