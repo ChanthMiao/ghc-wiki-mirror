@@ -10,6 +10,7 @@ I move stuff here from the different sections that is on our radar at the moment
 - #20111, !6168: Bug in `exprMightThrowPreciseException`
   - Morally, we need a new `primOpHasExternallyVisibleSideEffects`. But that's a huge time sink with large potential for regression (#17653)
   - So just add `CatchOp` to "the list" for now?
+- #19001, #19970: Floating case expressions, realted to `Note [Case MFEs]`
 - #14816, !5349: Drop `reuseEnv` in DmdAnal
   - I got hung up on improving efficiency of fixed-point iteration which got more costly as a result. Should we worry? Maybe add GHC.Ix as a regression test and be done with it
 - #19584: Demand Analysis scales quadratically
