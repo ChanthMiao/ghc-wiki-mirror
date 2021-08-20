@@ -3,14 +3,19 @@
 I move stuff here from the different sections that is on our radar at the moment.
 
 - #19871, !5790 boxity analysis.  See also https://gitlab.haskell.org/ghc/ghc/-/issues/19824#note_353112
-  - Nice idea for a paper: DmdAnal, then Boxity analysis, which infers boxity for parameters and results.
+  - Nice idea for a paper: DmdAnal, (then termination analysis,) then Boxity analysis, which infers boxity for parameters and results.
 - !5667: Nested CPR light, part 2
 - #5075, !4229: CPR for sum types
-  - Maybe we have a shot at fixing this after !5667 lands; I feel like most of
-    its woes were due to CPR'ing lists.
-- Ultimately pick up the SAT work again #18962, but I feel like we need a better story for derived unfoldings here
-  - Maybe new unfolding source? Or attach unfolding deriving strategy to
-    InlineRHS. On the other hand, it would also be useful for stable unfoldings..
+  - Nearly no regressions after !5667 and simpler analysis code
+- #20111, !6168: Bug in `exprMightThrowPreciseException`
+  - Morally, we need a new `primOpHasExternallyVisibleSideEffects`. But that's a huge time sink with large potential for regression (#17653)
+  - So just add `CatchOp` to "the list" for now?
+- #14816, !5349: Drop `reuseEnv` in DmdAnal
+  - I got hung up on improving efficiency of fixed-point iteration which got more costly as a result. Should we worry? Maybe add GHC.Ix as a regression test and be done with it
+- #19584: Demand Analysis scales quadratically
+  - Many ideas there, but it is much more complicated than it seems. Monotonicity issues etc.
+  - !5583 might be a faintly related first step at improvement here
+  - I'm thinking that we need to properly track data dependencies, e.g., the unstable set idea
 
 # Simplifier and occurrence analysis
 
@@ -37,7 +42,7 @@ I move stuff here from the different sections that is on our radar at the moment
 
 # Demand Analysis
 
--  #19917: better w/w for bottoming functions
+- #19917: better w/w for bottoming functions
 
 - #18907 Product demands
 
@@ -58,8 +63,6 @@ I move stuff here from the different sections that is on our radar at the moment
     https://gitlab.haskell.org/ghc/ghc/-/issues/18885#note_315189
     for a summary.
 
-- #18983, !5145: RubbishLits for all reps to have absent unlifted coercions
-
 # Return-pattern specialisation
 
 - #16335 return pattern specialisation
@@ -77,6 +80,10 @@ I move stuff here from the different sections that is on our radar at the moment
   - We can try to "solve" stream fusion this way. See [the stream-fusion paper, section 7.2 "Static Argument Transformation"](http://fun.cs.tufts.edu/stream-fusion.pdf). The key missing features:
     - Managed to optimise that example, simply by SA analysing each binding of the mutually recursive group in isolation and then taking care not make specialisable functions loop-breakers
     - But running into tick-exhaustions on `>>=` on `CmdM`, so I opened some unwanted back door. How to debug?
+
+- Ultimately pick up the SAT work again #18962, but I feel like we need a better story for derived unfoldings here
+  - Maybe new unfolding source? Or attach unfolding deriving strategy to
+    InlineRHS. On the other hand, it would also be useful for stable unfoldings..
 
 # Join points
 
