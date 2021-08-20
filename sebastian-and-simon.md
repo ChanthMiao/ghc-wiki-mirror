@@ -16,6 +16,11 @@ I move stuff here from the different sections that is on our radar at the moment
   - Many ideas there, but it is much more complicated than it seems. Monotonicity issues etc.
   - !5583 might be a faintly related first step at improvement here
   - I'm thinking that we need to properly track data dependencies, e.g., the unstable set idea
+- Arity analysis vs. Termination analysis: What are the differences between `exprOkForSpec` and `exprIsCheap`?
+  - Divergence is cheap, but not speculatable
+  - Cheap means "Are we OK with evaluating it multiple times or not at all when normally we'd evaluate it exactly once?", e.g., may we defer and unshare the work?
+  - Speculatable means "Are we OK with evaluating it (once) when normally we might not evaluate it at all?"
+  - Why can't they share more code? It feels pretty similar; E.g., HNF things are both speculatable (ignoring the annoyance with eval'd unfoldings of case binders) and cheap
 
 # Simplifier and occurrence analysis
 
