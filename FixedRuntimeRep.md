@@ -62,6 +62,8 @@ Under the `GHC.Tc.Gen` module hierarchy. For instance, we simply add a call to `
 
 The constraint solver needs to be able to solve these newly emitted `FixedRuntimeRep` constraints. To do this, we add global instances in `GHC.Tc.Instance.Class.matchGlobalInst`, in the same way as for existing built-in constraints such as `Coercible`, `Typeable`, etc.
 
+One subtletly is due to Backpack: we want to allow a signature to declare an abstract `RuntimeRep` that is instantiated to a fixed `RuntimeRep` later. To allow the signature to typecheck, users must write an instance (this works much the same as user-defined instance for `KnownNat`, as outlined in Note [Instances of built-in classes in signature files] in `GHC.Tc.Validity`), which is picked up in `matchFixedRuntimeRep`.
+
 ## Reporting unsolved FixedRuntimeRep constraints
 
 ### CtOrigins
