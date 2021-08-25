@@ -92,6 +92,10 @@ If we allowed this, we would solve the `FixedRuntimeRep rep` Wanted (from the bi
 
 When we emit a new wanted `FixedRuntimeRep` constraint, we also pass a `CtOrigin` that provides further information about the nature of the check (are we checking a function application, a pattern match, ...?). When the error is reported, this further information will be supplied to the user.
 
+### reportWanteds
+
+We add a case to `reportWanteds` for `FixedRuntimeRep` constraints, to get a custom error message instead of `Could not deduce 'FixedRuntimeRep rep'`.
+
 ### Don't suggest "add FixedRuntimeRep"
 
 We don't want to suggest the user add a `FixedRuntimeRep` constraint to their type signature, so we add a check to `GHC.Tc.Errors.ctxtFixes` to prevent GHC from making that suggestion.
