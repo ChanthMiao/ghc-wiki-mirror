@@ -19,6 +19,8 @@ This page outlines a plan to move the representation polymorphism checks that cu
   * [Emitting FixedRuntimeRep constraints](#emitting-fixedruntimerep-constraints)
     + [Where specifically are we emitting these constraints?](#where-specifically-are-we-emitting-these-constraints)
   * [Solving FixedRuntimeRep constraints](#solving-fixedruntimerep-constraints)
+    + [User-written instances](#user-written-instances)
+    + [User-written Givens](#user-written-givens)
   * [Reporting unsolved FixedRuntimeRep constraints](#reporting-unsolved-fixedruntimerep-constraints)
     + [CtOrigins](#ctorigins)
     + [Don't suggest "add FixedRuntimeRep"](#dont-suggest-add-fixedruntimerep)
@@ -69,7 +71,20 @@ Under the `GHC.Tc.Gen` module hierarchy. For instance, we simply add a call to `
 
 The constraint solver needs to be able to solve these newly emitted `FixedRuntimeRep` constraints. To do this, we add global instances in `GHC.Tc.Instance.Class.matchGlobalInst`, in the same way as for existing built-in constraints such as `Coercible`, `Typeable`, etc.
 
+### User-written instances
+
 One subtletly is due to Backpack: we want to allow a signature to declare an abstract `RuntimeRep` that is instantiated to a fixed `RuntimeRep` later. To allow the signature to typecheck, users must write an instance (this works much the same as user-defined instance for `KnownNat`, as outlined in Note [Instances of built-in classes in signature files] in `GHC.Tc.Validity`), which is picked up in `matchFixedRuntimeRep`.
+
+### User-written Givens
+
+Users should not be allowed to specify Given `FixedRuntimeRep` constraints, e.g.:
+
+```haskell
+identity :: forall rep (a :: TYPE rep). FixedRuntimeRep rep => a -> a
+identity x = x
+```
+
+If we allowed this, we would solve the `FixedRuntimeRep rep` Wanted (from the binder `x` in the body of `identity`) using the provided Given, which is no good as we still can't compile this function as we don't know the representation of `x`.
 
 ## Reporting unsolved FixedRuntimeRep constraints
 
