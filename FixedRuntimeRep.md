@@ -23,6 +23,7 @@ This page outlines a plan to move the representation polymorphism checks that cu
     + [User-written Givens](#user-written-givens)
   * [Reporting unsolved FixedRuntimeRep constraints](#reporting-unsolved-fixedruntimerep-constraints)
     + [CtOrigins](#ctorigins)
+    + [reportWanteds](#reportwanteds)
     + [Don't suggest "add FixedRuntimeRep"](#dont-suggest-add-fixedruntimerep)
     + [Don't allow FixedRuntimeRep constraints to be deferred](#dont-allow-fixedruntimerep-constraints-to-be-deferred)
   * [Evidence for FixedRuntimeRep and code generation](#evidence-for-fixedruntimerep-and-code-generation)
