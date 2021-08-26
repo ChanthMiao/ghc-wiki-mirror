@@ -21,6 +21,7 @@ This page outlines a plan to move the representation polymorphism checks that cu
   * [Solving FixedRuntimeRep constraints](#solving-fixedruntimerep-constraints)
     + [User-written instances](#user-written-instances)
     + [User-written Givens](#user-written-givens)
+    + [Typed Template Haskell](#typed-template-haskell)
   * [Reporting unsolved FixedRuntimeRep constraints](#reporting-unsolved-fixedruntimerep-constraints)
     + [CtOrigins](#ctorigins)
     + [reportWanteds](#reportwanteds)
@@ -86,6 +87,42 @@ identity x = x
 ```
 
 If we allowed this, we would solve the `FixedRuntimeRep rep` Wanted (from the binder `x` in the body of `identity`) using the provided Given, which is no good as we still can't compile this function as we don't know the representation of `x`.
+
+### Typed Template Haskell
+
+There are, however, circumstances in one might want to accept user-specfied givens, such as with Typed Template Haskell, where we coul allow representation-polymorphic typed Template Haskell expressions as long as they are monomorphised at the splice site, as in the following example:
+
+```haskell
+module Mod1 where
+
+repPolyApp :: forall (r1 :: RuntimeRep) (r2 :: RuntimeRep)
+                     (a :: TYPE r1) (b :: TYPE r2)
+           . CodeQ ((a -> b) -> a -> b)
+repPolyApp = [|| \f x -> f x ||]
+
+---------------------------------------------------------
+
+module Mod2 where
+import Mod1
+
+ok1 :: Int
+ok1 = $$repPolyApp (+1) 7
+
+ok2 :: Int#
+ok2 = $$repPolyApp (+# 1#) 7#
+```
+
+`repPolyApp` is rejected as is, as `r1` is not known to have a fixed runtime representation which causes a problem with the function application `f x`. However, one could imagine:
+
+```
+repPolyApp :: forall (r1 :: RuntimeRep) (r2 :: RuntimeRep)
+                     (a :: TYPE r1) (b :: TYPE r2)
+           .  CodeC (FixedRuntimeRep r1)
+           => CodeQ ((a -> b) -> a -> b)
+repPolyApp = [|| \f x -> f x ||]
+```
+
+in which `CodeC (FixedRuntimeRep r1)` indicates that the `FixedRuntimeRep r1` constraint will be satisfied at the splice-site.
 
 ## Reporting unsolved FixedRuntimeRep constraints
 
