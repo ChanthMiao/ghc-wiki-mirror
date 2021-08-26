@@ -90,7 +90,7 @@ If we allowed this, we would solve the `FixedRuntimeRep rep` Wanted (from the bi
 
 ### Typed Template Haskell
 
-There are, however, circumstances in one might want to accept user-specfied givens, such as with Typed Template Haskell, where we coul allow representation-polymorphic typed Template Haskell expressions as long as they are monomorphised at the splice site, as in the following example:
+There are, however, circumstances in one might want to accept user-specfied `FixedRuntimeRep` Givens constraints, such as with Typed Template Haskell, where we coul allow representation-polymorphic typed Template Haskell expressions as long as they are monomorphised at the splice site, as in the following example:
 
 ```haskell
 module Mod1 where
