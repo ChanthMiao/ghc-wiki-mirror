@@ -57,45 +57,45 @@ These days the amount of stuff included this way is kept to a minimum.
 In particular, there are no function prototypes: all calls to C
 functions from `.hc` files are given types at the call site.
 
-- **[Stg.h](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/Stg.h)**
+- **[Stg.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/Stg.h)**
 
   The top of the hierarchy is `Stg.h`, which includes everything
 required by `.hc` code.  Most files `#included` by `Stg.h` are in the `stg` subdirectory.
 
-- **[ghcconfig.h](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/ghcconfig.h)**
+- **[ghcconfig.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/ghcconfig.h)**
 
   Configuration info derived by the `configure` script.
 
-- **[MachDeps.h](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/MachDeps.h)**
+- **[MachDeps.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/MachDeps.h)**
 
   Sizes of various basic types (should be in the `stg` subdirectory,
 but left here for backwards-compatibility reasons).
 
-- **[stg/DLL.h](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/stg/DLL.h)**
+- **[stg/DLL.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/stg/DLL.h)**
 
   Stuff related to Windows DLLs.
 
-- **[stg/MachRegs.h](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/stg/MachRegs.h)**
+- **[stg/MachRegs.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/stg/MachRegs.h)**
 
   Global register assignments for this processor.
 
-- **[stg/MiscClosures.h](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/stg/MiscClosures.h)**
+- **[stg/MiscClosures.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/stg/MiscClosures.h)**
 
   Declarations for closures & info tables built-in to the RTS
 
-- **[stg/Regs.h](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/stg/Regs.h)**
+- **[stg/Regs.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/stg/Regs.h)**
 
   "registers" in the virtual machine.
 
-- **[stg/SMP.h](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/stg/SMP.h)**
+- **[stg/SMP.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/stg/SMP.h)**
 
   Atomic memory operations for SMP support
 
-- **[stg/Ticky.h](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/stg/Ticky.h)**
+- **[stg/Ticky.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/stg/Ticky.h)**
 
   Declarations for ticky-ticky counters
 
-- **[stg/Types.h](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/stg/Types.h)**
+- **[stg/Types.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/stg/Types.h)**
 
   Basic types specific to the virtual machine (eg. `StgWord`).
 
@@ -103,26 +103,26 @@ but left here for backwards-compatibility reasons).
 ## The RTS external APIs
 
 
-The header [Rts.h](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/Rts.h)
+The header [Rts.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/Rts.h)
 includes all the headers below the `rts` subdirectory, which together
 define the RTS external API.  Virtually all RTS code `#includes``Rts.h`.
 
 
 The rts header files are divided into a few directories:
 
-- [includes/rts](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/rts): Most of
+- [includes/rts](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/rts): Most of
   the external RTS APIs, in separate header files per-subsystem
 
-- [includes/rts/storage](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/rts/storage): Definitions of the layout of heap and stack
+- [includes/rts/storage](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/rts/storage): Definitions of the layout of heap and stack
   objects, info tables, structures that define memory areas managed
   by the GC, and memory management APIs.
 
-- [includes/rts/prof](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/rts/prof):
+- [includes/rts/prof](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/rts/prof):
   Interfaces and definitions for profiling.
 
 ## Included into C-- (`.cmm`) code
 
-- **[Cmm.h](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/Cmm.h)**
+- **[Cmm.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/Cmm.h)**
 
   included into `.cmm` source only; provides useful macros for writing
 low-level C-- code for GHC.
