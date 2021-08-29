@@ -11,17 +11,17 @@ These are header files that define an external API to the RTS that can
 be used by client code.  These interfaces are intended to be
 relatively stable:
 
-- **[HsFFI.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/includes/HsFFI.h)**
+- **[HsFFI.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/HsFFI.h)**
 
   The external FFI api, as required by the FFI spec
 
-- **[RtsAPI.h](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/RtsAPI.h)**
+- **[RtsAPI.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/RtsAPI.h)**
 
   The API for calling into the RTS.  Used by the implementation
 of `foreign export` calls, but may also be used by external
 clients.
 
-- **[Rts.h](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/Rts.h)**
+- **[Rts.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/Rts.h)**
 
   This header file defines everything that is visible
 externally to the RTS.  It includes `Stg.h` and everything
