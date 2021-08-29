@@ -32,8 +32,8 @@ in the `rts` subdirectory.
 
 The canonical definition of certain structures are in C header files.
 For example, the layout of closures and info tables are defined in the
-headers [Closures.h](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/rts/storage/Closures.h) and
-[InfoTables.h](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/rts/storage/InfoTables.h) respectivesly.  How do we get the information about the
+headers [Closures.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/rts/storage/Closures.h) and
+[InfoTables.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/rts/storage/InfoTables.h) respectivesly.  How do we get the information about the
 layout of these structures to the parts of the system that are not
 written in C, such as the compiler itself, or the C-- code in the RTS?
 
