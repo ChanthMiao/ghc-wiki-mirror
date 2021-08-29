@@ -11,7 +11,7 @@ These are header files that define an external API to the RTS that can
 be used by client code.  These interfaces are intended to be
 relatively stable:
 
-- **[HsFFI.h](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/HsFFI.h)**
+- **[HsFFI.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/includes/HsFFI.h)**
 
   The external FFI api, as required by the FFI spec
 
