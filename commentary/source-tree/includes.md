@@ -110,14 +110,14 @@ define the RTS external API.  Virtually all RTS code `#includes``Rts.h`.
 
 The rts header files are divided into a few directories:
 
-- [includes/rts](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/rts): Most of
+- [rts/include/rts](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/rts): Most of
   the external RTS APIs, in separate header files per-subsystem
 
-- [includes/rts/storage](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/rts/storage): Definitions of the layout of heap and stack
+- [rts/include/rts/storage](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/rts/storage): Definitions of the layout of heap and stack
   objects, info tables, structures that define memory areas managed
   by the GC, and memory management APIs.
 
-- [includes/rts/prof](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/rts/prof):
+- [rts/include/rts/prof](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/rts/prof):
   Interfaces and definitions for profiling.
 
 ## Included into C-- (`.cmm`) code
