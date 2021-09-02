@@ -122,7 +122,9 @@ repPolyApp :: forall (r1 :: RuntimeRep) (r2 :: RuntimeRep)
 repPolyApp = [|| \f x -> f x ||]
 ```
 
-in which `CodeC (FixedRuntimeRep r1)` indicates that the `FixedRuntimeRep r1` constraint will be satisfied at the splice-site.
+in which `CodeC (FixedRuntimeRep r1)` indicates that the `FixedRuntimeRep r1` constraint will be satisfied at the splice-site.  
+
+For the moment, we simply avoid emitting `FixedRuntimeRep` Wanted constraints when type-checking typed Template Haskell quotes (the evidence would be thrown away anyway). This can change in the future once improvements to typed Template Haskell (such as the introduction of the `CodeC` constraint combinator) are implemented.
 
 ## Reporting unsolved FixedRuntimeRep constraints
 
