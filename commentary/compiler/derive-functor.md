@@ -88,7 +88,7 @@ instance for T is:
   $(fmap 'a 'a)          =  f
   $(fmap 'a '(b1,b2))    =  \x -> case x of (x1,x2) -> ($(fmap 'a 'b1) x1, $(fmap 'a 'b2) x2)
   $(fmap 'a '(T b1 b2))  =  fmap $(fmap 'a 'b2)   -- when a only occurs in the last parameter, b2
-  $(fmap 'a '(b -> c))   =  \x b -> $(fmap 'a' 'c) (x ($(cofmap 'a 'b) b))
+  $(fmap 'a '(b -> c))   =  \x b -> $(fmap 'a 'c) (x ($(cofmap 'a 'b) b))
 
 For functions, the type parameter 'a can occur in a contravariant position,
 which means we need to derive a function like:
