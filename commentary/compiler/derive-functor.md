@@ -70,7 +70,7 @@ derive Functor for the last position:
   data S a b = S1 [b] | S2 (a, T a b)
   instance Functor (S a) where
     fmap f (S1 bs)    = S1 (fmap f bs)
-    fmap f (S2 (p,q)) = S2 (a, fmap f q)
+    fmap f (S2 (p,q)) = S2 (p, fmap f q)
 
 However, we have special cases for
          - tuples
