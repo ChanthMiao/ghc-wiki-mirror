@@ -1,7 +1,6 @@
 This page outlines a plan to move the representation polymorphism checks that currently occur in the zonker and the desugarer to the typechecker.
 
 * Tickets:
-  * #17907
   * #17201 
   * #17113
   * #13105 
