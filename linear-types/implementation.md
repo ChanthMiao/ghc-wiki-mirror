@@ -491,7 +491,7 @@ It needs to be a `case_𝜔`, since `x` is not used. Despite the fact that the o
 
 #### Pushing function-type coercions
 
-
+(See also [multiplicity evidence](https://gitlab.haskell.org/ghc/ghc/-/wikis/linear-types/multiplicity-evidence))
 
 Coercions of kind `a -> b ~ c -> d` are routinely pushed through lambdas or application as follows
 
