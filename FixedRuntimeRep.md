@@ -6,6 +6,7 @@ This page outlines a plan to move the representation polymorphism checks that cu
   * #17113
   * #13105 
   * #17536 
+  * #17907 Full test coverage
   * #18170 (MP: probably) (SLD: first step towards a proper solution)
   * #20277 Unboxed sum types
   * #20330 Primops (arguments past their arity)
