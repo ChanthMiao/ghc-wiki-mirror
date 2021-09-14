@@ -32,8 +32,8 @@ This page outlines a plan to move the representation polymorphism checks that cu
     + [Alternative 1: store the representation](#alternative-1-store-the-representation)
     + [Alternative 2: cast to a fixed representation using a kind coercion](#alternative-2-cast-to-a-fixed-representation-using-a-kind-coercion)
       - [Implementation plan](#implementation-plan)
-        * [Step 1](#step-1)
-        * [Step 2](#step-2)
+        * [PHASE 1](#phase-1)
+        * [PHASE 2](#phase-2)
 
 # Motivation
 
@@ -226,11 +226,11 @@ Then the type of `x`, `a |> TYPE kco`, has kind `TYPE rep` where `rep` is a defi
 
 It is possible to implement this alternative in two steps.
 
-##### Step 1
+##### PHASE 1
 Don't insert any casts. That is, after constraint solving (and zonking), we insist that the coercion evidence obtained for any `FixedRuntimeRep rr` constraint must be `Refl`, and not a more general coercion.    
 This will not handle situations such as type family reduction of a `RuntimeRep`, but will be sufficient to subsume all the previous representation-polymorphism checks that are done in the desugarer.
 
-##### Step 2
+##### PHASE 2
 Introduce casts, in order to allow type-family reduction in `RuntimeRep`s.    
 These casts have knock-on consequences: additional casts will be required, to ensure everything remains well-typed.    
 
