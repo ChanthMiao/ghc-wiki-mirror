@@ -49,6 +49,8 @@ I move stuff here from the different sections that is on our radar at the moment
 
 # Demand Analysis
 
+- #20325: cost model for w/w (not hard)
+
 - #19917: better w/w for bottoming functions
 
 - #18907 Product demands
