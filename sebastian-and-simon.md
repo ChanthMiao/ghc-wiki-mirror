@@ -2,14 +2,16 @@
 
 I move stuff here from the different sections that is on our radar at the moment.
 
-- #20111, !6168: Bug in `exprMightThrowPreciseException`
-  - Morally, we need a new `primOpHasExternallyVisibleSideEffects`. But that's a huge time sink with large potential for regression (#17653)
-  - So just add `CatchOp` to "the list" for now?
-- #19970, #20269, #20273: Floating case expressions, related to `Note [Case MFEs]`
-  - In general it seems like non-cheap case scrutinees get in the way of eta-expanding PAPs
+- #20378, !6541: Estimating CaseAlt hottness
 - #19871, !5790 boxity analysis.  See also https://gitlab.haskell.org/ghc/ghc/-/issues/19824#note_353112
   - Nice idea for a paper: DmdAnal, (then termination analysis,) then Boxity analysis, which infers boxity for parameters and results.
 - !5667: Nested CPR light, part 2
+- #20111, !6168: Bug in `exprMightThrowPreciseException`
+  - Morally, we need a new `primOpHasExternallyVisibleSideEffects`. But that's a huge time sink with large potential for regression (#17653)
+  - So just add `CatchOp` to "the list" for now?
+- #20284: Giving up on strict-arg transformation in the Simplifier costs dearly
+- #19970, #20269, #20273: Floating case expressions, related to `Note [Case MFEs]`
+  - In general it seems like non-cheap case scrutinees get in the way of eta-expanding PAPs
 - #5075, !4229: CPR for sum types
   - Nearly no regressions after !5667 and simpler analysis code
 - #14816, !5349: Drop `reuseEnv` in DmdAnal
