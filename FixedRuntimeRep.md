@@ -55,7 +55,6 @@ the following are not:
 
   - `rep` (for a skolem type variable `rep :: RuntimeRep`),
   - `BoxedRep v` (for a skolem type variable `v :: Levity`),
-  - `F Bool` (for a type family `F`).
 
 To do this, we introduce a special predicate and associated type-class (similar to the internal unlifted primitive equality `(~#)` and the user-facing boxed equality `(~)`):
 
