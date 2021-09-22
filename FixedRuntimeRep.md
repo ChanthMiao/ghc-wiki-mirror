@@ -45,21 +45,36 @@ Similar mechanisms can be implemented in other circumstances:
 
 # Broad outline
 
-Introduce a new built-in class:
+We want to enforce that a `RuntimeRep` is concrete, expressed using only applications and (non-synonym) constructors. For example, the following are OK:
+
+  - BoxedRep Lifted
+  - TupleRep '[]
+  - SumRep '[ TupleRep '[], IntRep ]
+
+the following are not:
+
+  - rep (for a skolem type variable `rep :: RuntimeRep`),
+  - BoxedRep v (for a skolem type variable `v :: Levity`).
+
+To do this, we introduce a special predicate and associated type-class (similar to the internal unlifted primitive equality `(~#)` and the user-facing boxed equality `(~)`):
 
 ```haskell
-type FixedRuntimeRep :: RuntimeRep -> Constraint
-class FixedRuntimeRep rep where {}
+type Concrete# :: forall k. k -> TYPE (TupleRep '[])
+
+type Concrete :: forall k. k -> Constraint
+class Concrete ty
 ```
 
-Whenever a situation arises in which a `RuntimeRep` must be monomorphic, we emit a `FixedRuntimeRep rep` Wanted constraint. The constraint solver attempts to solve these Wanted constraints; if it can't, a type error is reported that tells the user that a representation-polymorphic type isn't allowed. Otherwise, it must provide some kind of evidence that code generation is possible: see the section [Evidence for FixedRuntimeRep and code generation](#evidence-for-fixedruntimerep-and-code-generation).
+Whenever a situation arises in which a type `ty` must be representation-monomorphic, we emit a `Concrete# ty` Wanted constraint (see §[Emitting FixedRuntimeRep constraints](#emitting-fixedruntimerep-constraints)).
+
+Solving `Concrete# ty` will provide us with evidence that `ty :: TYPE rep` for some concrete `rep :: RuntimeRep` (see §[Evidence for FixedRuntimeRep and code generation](#evidence-for-fixedruntimerep-and-code-generation) for what this evidence is and why it is important).
+
+If any of these Wanted `Concrete#` constraints go unsolved, we then report a representation polymorphism error to the user (see §[Reporting unsolved FixedRuntimeRep constraints](#reporting-unsolved-fixedruntimerep-constraints)).
 
 # Details
-## Emitting FixedRuntimeRep constraints
+## Emitting Concrete# constraints
 
-The point of emitting a `FixedRuntimeRep` constraint is to allow the typechecker to determine whether the `RuntimeRep` is actually fixed (e.g. performing type-family reduction if necessary). When encountering a type `ty :: k`,  to ensure it is representation-monomorphic, we first require that `k` be of the form `TYPE r`. If we can immediately determine that `r` is a specific `RuntimeRep` (e.g. `IntRep`), we're done; otherwise, we emit a `FixedRuntimeRep r` constraint, to be solved by the constraint solver.    
-
-Note that we must look through type synonyms to avoid unnecessarily emitting `FixedRuntimeRep` constraints, such as when handling the common case `type Type = TYPE ('BoxedRep 'Lifted)`.    
+Whenever we want to check that a type `ty` is not representation-polymorphic, we emit a `Concrete# ty` constraint.    
 
 ### Where specifically are we emitting these constraints?
 
@@ -70,28 +85,28 @@ Under the `GHC.Tc.Gen` module hierarchy. For instance, we simply add a call to `
   - `GHC.Tc.Gen.Expr.tcRecordField` for record fields,
   - ...
 
-## Solving FixedRuntimeRep constraints
+## Solving Concrete# constraints
 
-The constraint solver needs to be able to solve these newly emitted `FixedRuntimeRep` constraints. To do this, we add global instances in `GHC.Tc.Instance.Class.matchGlobalInst`, in the same way as for existing built-in constraints such as `Coercible`, `Typeable`, etc.
+The constraint solver needs to be able to solve these newly emitted `Concrete#` constraints. To do this, we add global instances in `GHC.Tc.Instance.Class.matchGlobalInst`, in the same way as for existing built-in constraints such as `Coercible`, `Typeable`, etc.
 
 ### User-written instances
 
-One subtletly is due to Backpack: we want to allow a signature to declare an abstract `RuntimeRep` that is instantiated to a fixed `RuntimeRep` later. To allow the signature to typecheck, users must write an instance (this works much the same as user-defined instance for `KnownNat`, as outlined in Note [Instances of built-in classes in signature files] in `GHC.Tc.Validity`), which is picked up in `matchFixedRuntimeRep`.
+One subtletly is due to Backpack: we want to allow a signature to declare an abstract `RuntimeRep` that is instantiated to a fixed `RuntimeRep` later. To allow the signature to typecheck, users must write an instance (this works much the same as user-defined instance for `KnownNat`, as outlined in Note [Instances of built-in classes in signature files] in `GHC.Tc.Validity`), which is picked up in `matchConcrete`.
 
 ### User-written Givens
 
-Users should not be allowed to specify Given `FixedRuntimeRep` constraints, e.g.:
+Users should not be allowed to specify Given `Concrete` constraints, e.g.:
 
 ```haskell
-identity :: forall rep (a :: TYPE rep). FixedRuntimeRep rep => a -> a
+identity :: forall rep (a :: TYPE rep). Concrete rep => a -> a
 identity x = x
 ```
 
-If we allowed this, we would solve the `FixedRuntimeRep rep` Wanted (from the binder `x` in the body of `identity`) using the provided Given, which is no good as we still can't compile this function as we don't know the representation of `x`.
+If we allowed this, we would solve the `Concrete# rep` Wanted (from the binder `x` in the body of `identity`) using the provided Given, which is no good as we still can't compile this function as we don't know the representation of `x`.
 
 ### Typed Template Haskell
 
-There are, however, circumstances in one might want to accept user-specfied `FixedRuntimeRep` Givens constraints, such as with Typed Template Haskell, where we could allow representation-polymorphic typed Template Haskell expressions as long as they are monomorphised at the splice site, as in the following example:
+There are, however, circumstances in one might want to accept user-specified `Concrete` Givens constraints, such as with Typed Template Haskell, where we could allow representation-polymorphic typed Template Haskell expressions as long as they are monomorphised at the splice site, as in the following example:
 
 ```haskell
 module Mod1 where
@@ -118,36 +133,36 @@ ok2 = $$repPolyApp (+# 1#) 7#
 ```
 repPolyApp :: forall (r1 :: RuntimeRep) (r2 :: RuntimeRep)
                      (a :: TYPE r1) (b :: TYPE r2)
-           .  CodeC (FixedRuntimeRep r1)
+           .  CodeC (Concrete r1)
            => CodeQ ((a -> b) -> a -> b)
 repPolyApp = [|| \f x -> f x ||]
 ```
 
-in which `CodeC (FixedRuntimeRep r1)` indicates that the `FixedRuntimeRep r1` constraint will be satisfied at the splice-site.  
+in which `CodeC (Concrete r1)` indicates that the `FixedRuntimeRep r1` constraint will be satisfied at the splice-site.  
 
-For the moment, we simply avoid emitting `FixedRuntimeRep` Wanted constraints when type-checking typed Template Haskell quotes (the evidence would be thrown away anyway). This can change in the future once improvements to typed Template Haskell (such as the introduction of the `CodeC` constraint combinator) are implemented.
+For the moment, we simply avoid emitting `Concrete#` Wanted constraints when type-checking typed Template Haskell quotes (the evidence would be thrown away anyway). This can change in the future once improvements to typed Template Haskell (such as the introduction of the `CodeC` constraint combinator) are implemented.
 
 ## Reporting unsolved FixedRuntimeRep constraints
 
 ### CtOrigins
 
-When we emit a new wanted `FixedRuntimeRep` constraint, we also pass a `CtOrigin` that provides further information about the nature of the check (are we checking a function application, a pattern match, ...?). When the error is reported, this further information will be supplied to the user.
+When we emit a new wanted `Concrete#` constraint, we also pass a `CtOrigin` that provides further information about the nature of the check (are we checking a function application, a pattern match, ...?). When the error is reported, this further information will be supplied to the user.
 
 ### reportWanteds
 
-We add a case to `reportWanteds` for `FixedRuntimeRep` constraints, to get a custom error message instead of `Could not deduce 'FixedRuntimeRep rep'`.
+We add a case to `reportWanteds` for `Concrete` constraints, to get a custom error message instead of `Could not deduce 'Concrete rep'`.
 
-### Don't suggest "add FixedRuntimeRep"
+### Don't suggest "add Concrete"
 
-We don't want to suggest the user add a `FixedRuntimeRep` constraint to their type signature, so we add a check to `GHC.Tc.Errors.ctxtFixes` to prevent GHC from making that suggestion.
+We don't want to suggest the user add a `Concrete` constraint to their type signature, so we add a check to `GHC.Tc.Errors.ctxtFixes` to prevent GHC from making that suggestion.
 
-### Don't allow FixedRuntimeRep constraints to be deferred
+### Don't allow Concrete constraints to be deferred
 
-We don't want to allow `FixedRuntimeRep` constraints to be deferred, as polymorphic runtime representations can cause the code generator to panic. So we ensure that constraints whose `CtOrigin` is a `FixedRuntimeRepOrigin` can't be deferred in `GHC.Tc.Errors.nonDeferrableOrigin`.
+We don't want to allow `Concrete` constraints to be deferred, as polymorphic runtime representations can cause the code generator to panic. So we ensure that constraints whose `CtOrigin` is a `FixedRuntimeRepOrigin` can't be deferred in `GHC.Tc.Errors.nonDeferrableOrigin`.
 
-## Evidence for FixedRuntimeRep and code generation
+## Evidence for Concrete# and code generation
 
-What kind of evidence do we want the solving of `FixedRuntimeRep` constraints to produce? We need to obtain enough information so that code-generation is possible (e.g. so that we know what kind of register to use when doing a function call).
+What kind of evidence do we want the solving of `Concrete#` constraints to produce? We need to obtain enough information so that code-generation is possible (e.g. so that we know what kind of register to use when doing a function call).
 
 ### Alternative 1: store the representation
 
@@ -201,7 +216,13 @@ Note that we don't change `Bind` as only the `BoxedRep Lifted` representation is
 
 ### Alternative 2: cast to a fixed representation using a kind coercion
 
-The evidence for a `FixedRuntimeRep rr` constraint is a (nominal) kind coercion between types of kind `RuntimeRep`; its LHS type is `rr` and its RHS type is `rep` for some `rep` which is a tree of constructors and applications like `mkTyConApp intRepTyCon []` or `mkTyConApp tupleRepTyCon [mkTyConApp nilTyCon [runtimeRepTy]]`. No variables, type synonyms or type families, etc.    
+The evidence for a `Concrete# ty` constraint is a kind coercion
+
+```haskell
+co :: ty ~# concrete_ty
+```
+
+where `concrete_ty` is a tree of constructors and applications like `mkTyConApp tYPETyCon [mkTyConApp intRepTyCon []]` or `mkTyConApp tYPETyCon [mkTyConApp tupleRepTyCon [mkTyConApp nilTyCon [runtimeRepTy]]]`. No variables, type synonyms or type families, etc.    
 
 We can re-use `HoleDest` at the typechecker stage to store a mutable hole to be filled in with evidence, later, by the constraint solver.      
 
@@ -210,24 +231,24 @@ The idea is that, while typechecking, we insert casts using these coercions, so 
 That is, we would never end up with Core like:
 
 ```haskell
-f = /\ ( a :: TYPE (F Int) ). \ ( x :: a ). some_expression
+f = /\ ( a :: F Int ). \ ( x :: a ). some_expression
 ```
 
 but rather:
 
 ```haskell
-f = /\ ( a :: TYPE (F Int) ). \ ( x :: ( a |> TYPE kco ) ). some_expression
+f = /\ ( a :: F Int ). \ ( x :: ( a |> kco ) ). some_expression
 ```
 
-where `kco` is the evidence for `FixedRuntimeRep (F Int)`.    
-Then the type of `x`, `a |> TYPE kco`, has kind `TYPE rep` where `rep` is a definite `RuntimeRep` such as `'IntRep`. This is what we wanted: we know which representation the binder `x` has, so the code generator can do its usual work. Calling `typePrimRep` will return the `[PrimRep]` that correspond to the `RuntimeRep` rep, which we recall is guaranteed to be a tree of constructors and applications. This is important, as `kindPrimRep` can't handle type-family applications such as `TYPE (F Int)` (as it doesn't have access to a typechecking environment, needed to look up type-family instances, etc).
+where `kco` is the evidence for `Concrete# (F Int)`.    
+Then the type of `x`, `a |> kco`, has kind `TYPE rep` where `rep` is a definite `RuntimeRep` such as `'IntRep`. This is what we wanted: we know which representation the binder `x` has, so the code generator can do its usual work. Calling `typePrimRep` will return the `[PrimRep]` that correspond to the `RuntimeRep` rep, which we recall is guaranteed to be a tree of constructors and applications. This is important, as `kindPrimRep` can't handle type-family applications such as `TYPE (G Rep)` (as it doesn't have access to a typechecking environment, needed to look up type-family instances, etc).
 
 #### Implementation plan
 
 It is possible to implement this alternative in two steps.
 
 ##### PHASE 1
-Don't insert any casts. That is, after constraint solving (and zonking), we insist that the coercion evidence obtained for any `FixedRuntimeRep rr` constraint must be `Refl`, and not a more general coercion.    
+Don't insert any casts. That is, after constraint solving (and zonking), we insist that the coercion evidence obtained for any `Concrete# ty` constraint must be `Refl`, and not a more general coercion.    
 This will not handle situations such as type family reduction of a `RuntimeRep`, but will be sufficient to subsume all the previous representation-polymorphism checks that are done in the desugarer.
 
 ##### PHASE 2
@@ -243,11 +264,10 @@ e :: a
 
 Now we perform a representation-polymorphism check on the application `f e`. Supposing all goes well:
 
-  - we find that `a :: TYPE rr`,
-  - we emit a Wanted `FixedRuntimeRep rr` constraint,
+  - we emit a Wanted `Concrete a` constraint,
   - this constraint gets solved with evidence `kco`.
 
-We now perform the cast `a |> TYPE kco` as explained [above](#alternative-2-cast-to-a-fixed-representation-using-a-kind-coercion), in order to achieve representation monomorphism in Core.    
+We now perform the cast `a |> kco` as explained [above](#alternative-2-cast-to-a-fixed-representation-using-a-kind-coercion), in order to achieve representation monomorphism in Core.    
 However, we can't simply end there, as we must now also insert a cast in the type of `f`, because it had expected an argument of type `a` when we instead desire to pass an argument of type `a |> TYPE kco`. So we cast in the opposite direction in the "argument" parameter of the function type:
 
 ```
@@ -257,7 +277,7 @@ f :: ( a -> b ) |> fun_co
 where
 
 ```
-fun_co = (->) ( SymCo (GRefl a (TYPE kco)) ) ( Refl b )
+fun_co = (->) ( SymCo kco ) ( Refl b )
 ```
 
 Each situation in which we desire to insert casts to allow for this extended form of representation polymorphism will require a similar treatment: adjust the surrounding types so that everything remains well-typed.
