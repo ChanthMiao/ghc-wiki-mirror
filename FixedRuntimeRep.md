@@ -47,14 +47,15 @@ Similar mechanisms can be implemented in other circumstances:
 
 We want to enforce that a `RuntimeRep` is concrete, expressed using only applications and (non-synonym) constructors. For example, the following are OK:
 
-  - BoxedRep Lifted
-  - TupleRep '[]
-  - SumRep '[ TupleRep '[], IntRep ]
+  - `BoxedRep Lifted`
+  - `TupleRep '[]`
+  - `SumRep '[ TupleRep '[], IntRep ]`
 
 the following are not:
 
-  - rep (for a skolem type variable `rep :: RuntimeRep`),
-  - BoxedRep v (for a skolem type variable `v :: Levity`).
+  - `rep` (for a skolem type variable `rep :: RuntimeRep`),
+  - `BoxedRep v` (for a skolem type variable `v :: Levity`),
+  - `F Bool` (for a type family `F`).
 
 To do this, we introduce a special predicate and associated type-class (similar to the internal unlifted primitive equality `(~#)` and the user-facing boxed equality `(~)`):
 
@@ -92,6 +93,22 @@ The constraint solver needs to be able to solve these newly emitted `Concrete#` 
 ### User-written instances
 
 One subtletly is due to Backpack: we want to allow a signature to declare an abstract `RuntimeRep` that is instantiated to a fixed `RuntimeRep` later. To allow the signature to typecheck, users must write an instance (this works much the same as user-defined instance for `KnownNat`, as outlined in Note [Instances of built-in classes in signature files] in `GHC.Tc.Validity`), which is picked up in `matchConcrete`.
+
+Note that we must allow users to declare that e.g. a list of `RuntimeRep`s is concrete, to allow more general reasoning:
+
+```haskell
+data Rep :: RuntimeRep
+data Reps :: [RuntimeRep]
+instance Concrete Rep
+instance Concrete Reps
+
+foo :: (x :: TYPE (SumRep ( Rep ': IntRep ': Reps ': Reps ))) -> ...
+foo x = ...
+```
+
+Here we need to be able to see that the `RuntimeRep` `SumRep ( Rep ': IntRep ': Reps ': Reps )` is concrete, and we can only really do that if we allow users to define that `Reps` is concrete.
+
+This is one important reason why we use a `Concrete :: forall k. k -> Constraint` class, as opposed to something specialised to `RuntimeRep` like `FixedRuntimeRep :: RuntimeRep -> Constraint` (which was the original design).
 
 ### User-written Givens
 
