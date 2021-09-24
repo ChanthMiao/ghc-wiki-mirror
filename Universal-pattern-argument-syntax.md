@@ -6,6 +6,8 @@ In expressions, the distinction doesn’t matter and both kind of arguments are 
 
 In an email thread started in Sept 2021, we brainstromed some syntactic ideas, which I (Joachim) collect here with brevity.
 
+More prior work in https://gitlab.haskell.org/ghc/ghc/-/issues/9671
+
 ## A Modifier
 
 Plain, simple, blunt.
