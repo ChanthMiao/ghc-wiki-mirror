@@ -71,12 +71,135 @@ Some of those Maps though may be very small (consisting of one less than 5 eleme
 We then construct a FlatSwitchPlan, which is a list SwitchPlans sepatated by an integer -- with the semantics being that if the expression is less than the integer we go to the left plan, otherwise the right plan.  During this construction, if we have a default, we interleave segments that jump to default between the maps.
 Finally we are ready to building the tree.  We split the plans in the FlatSwitchPlan in two, introduce an `IfLT` node to construct a node in the tree, and recurs on the left and right side of the list of plans.
 
+Deficiencies of the existing algorithm:
+---------------------------------------
+The algorithm works quite well producing fairly good plans with either simple values at the leafs or JumpTables.  If you stare at the generated plans for a bit though it's not difficult to see how we could do better.
 
-New algorithm:
---------------
-The algorithm works quite well producing fairly balanced binary trees, with either simple values at the leaves or JumpTables.  This proposal 
+Here are some examples:
+1. Sometimes it generates superfluous comparisons like for a example the issue https://gitlab.haskell.org/ghc/ghc/-/issues/19290 with an analysis by Henry on what goes wrong.
 
+2. For a function like the following:
+```
+data ZZ = A1 | A2 | A3 | A4 | A5 | A6
+
+f A1 = 1
+f A2 = 2
+f A3 = 2
+f A4 = 2
+f A5 = 3
+f A6 = 3
+```
+
+we would typically get a jump table as below:
+
+```
+.LcXT_info:
+	movq 8(%rbp),%rax
+	andl $7,%ebx
+	jmp *.LnYt(,%rbx,8)
+.LcY1:
+	movl $Foo_f1_closure+1,%r14d
+	movq %rax,%rbx
+	addq $16,%rbp
+	jmp stg_ap_p_fast
+.LcXY:
+	movl $Foo_f2_closure+1,%r14d
+	movq %rax,%rbx
+	addq $16,%rbp
+	jmp stg_ap_p_fast
+.LcY5:
+	movl $Foo_zdwf_closure,%ebx
+	jmp *-8(%r13)
+.LcXX:
+	movl $Foo_f3_closure+1,%r14d
+	movq %rax,%rbx
+	addq $16,%rbp
+	jmp stg_ap_p_fast
+	.size Foo_zdwf_info, .-Foo_zdwf_info
+.section .rodata
+.align 8
+.align 1
+.LnYt:
+	.quad	0
+	.quad	.LcXX
+	.quad	.LcXY
+	.quad	.LcXY
+	.quad	.LcXY
+	.quad	.LcY1
+	.quad	.LcY1
+```
+Jump tables have an O(1) cost of finding the  target label but they come with their own costs.  First, they take precious space in the cpu cache, space that would typically be used for instructions themselves.  Second, they obscure the continuation instruction, so the cpu can do no pre-fetching or analysis of the rest of the instruction stream until the actual array is indexed and the target fetched -- this decreases instruction level parallelism.
+
+In this case it only takes a minute of come up with a better plan:
+```
+  if (x < 5)
+    if (x < 2) return 1;
+    else return 2;  
+  else return 3;
+```
+what we have done here is used the structure of the target labels themselves, information that the existing algorithm never uses.  In assembly:
+```
+.LcZo_info:
+	movq 8(%rbp),%rax
+	andl $7,%ebx
+	cmpq $5,%rbx
+	jae .LcZw
+.LuZU:
+	cmpq $2,%rbx
+	jb .LcZs
+.LcZt:
+	movl $Foo_f2_closure+1,%r14d
+	movq %rax,%rbx
+	addq $16,%rbp
+	jmp stg_ap_p_fast
+.LcZs:
+	movl $Foo_f3_closure+1,%r14d
+	movq %rax,%rbx
+	addq $16,%rbp
+	jmp stg_ap_p_fast
+.LcZw:
+	movl $Foo_f1_closure+1,%r14d
+	movq %rax,%rbx
+	addq $16,%rbp
+	jmp stg_ap_p_fast
+```
+
+3. Consider the following function:
+```
+f :: Int -> Int
+f 0  = 10
+f 1  = 10
+f 2  = 10
+f 3  = 10  
+f 23 = 10
+f 44 = 10 
+f 60 = 10
+f 61 = 10
+f  _ =  100
+```
+
+This is now compiled into the following maze of if-statements:
+```
+ if (x >= 45)
+   if (x >= 61)
+     if (x < 62) return 10;
+     else return 100;
+   else
+     if (x < 60) return 100;
+     else return 10;
+else
+  if (x >= 4)
+    if (x >= 44) return 10;
+    else
+      if (x != 23) return 100;
+      else return 10;
+  else
+    if (x >= 3) return 10;
+    else
+      if (x >= 0) return 10;
+      else return 100;
+```
+Here 
 
 
 We want to note here that the binary tree produced, is balanced with respect to the various flat plans produced by the algorithm and may not be optimal.  For example suppose the input consisted of N consecutive cases in the beginning (with N large) and then M scattered values after that with M smaller than N.  The N values at the start would be considered 1 plan, and we would do binary search on the M + 1 values (it wouldn't be exactly M + 1 because of the introduction of more plans to deal with defaults but anyway).  But since N >> M a better plan here would be to first examine the boundary of the N values first because with one comparison you can identify the largest interval of interest.  So do binary search taking into account the weight (the number of cases being dispatched) by each of the leaves of the tree.
-
