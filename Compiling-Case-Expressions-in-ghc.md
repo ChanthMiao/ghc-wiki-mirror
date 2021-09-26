@@ -29,10 +29,20 @@ F T3 = 300
 ```
 we will be given:
 ```
-m        = Map.fromList [(1, label_100), (2, label_200), (2, label_300)]
+m        = Map.fromList [(1, label_100), (2, label_200), (3, label_300)]
 defOpt   = Nothing
 (lb, ub) = (1, 3)
 signed   = False
 ```
 Note that here we have no default label, so there is an entry in the map for every possible value of the range (1, 3).  This is typically the case, although this is not an invariant guranteed by the ghc compilation -- it is possible not to have a default and given some range (lb, ub) not to have entries in the map m for some integers in (lb, ub).  This can happen (during compilation of ADTs), when ghc can prove to itself that those integers can never happen (I have added an example in the code for those interested -- see Note [Denseness of Case Expressions Without Default]).
 
+Compiling such expressions in ghc proceeds by first identifying some cases we want to deal with bespoke code.  These are:
+
+1. A singleton Map [(x, label)] with defLabel. This we compile into:
+```
+   IfEqual x label defLabel
+```
+2. A map with two entries [(x1, label1), (x2, label2)] and no default (this would be an if expression). This we compile into:
+```
+  IfEqual x1 label1 label2
+```
