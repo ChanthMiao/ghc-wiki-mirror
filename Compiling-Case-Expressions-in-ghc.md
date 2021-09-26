@@ -46,3 +46,11 @@ Compiling such expressions in ghc proceeds by first identifying some cases we wa
 ```
   IfEqual x1 label1 label2
 ```
+3. Two alternatives [(x1, label1), (x2, label2)] with defLabel which we compile into:
+```
+  IfEqual x1 label1 (IfEqual x2 label2 defLabel)
+```
+
+If none of the above apply then we proceed as follows.  We split the case numbers into regions based on the location of holes (if two consecutive integers are a distance of > 7 apart then we consider a hole being present between them).  So now we have a list of Maps.  The intent is that each of those maps will become a MultuWayJump table in the compiled code.
+
+Some of those Maps though may be very small (consisting of one less than 5 elements), and we don't want those to become MultuWayJump tables -- so we break those up into singleton Maps.  So now we have a list of Maps, with some being singletons and the others maps with more than 5 elements.  All these maps will become the leaves of our binary search tree.
