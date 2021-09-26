@@ -11,10 +11,10 @@ f _ = 400
 ```
 we will be given:
 ```
-m = Map.fromList [(0, label_100), (1, label_200), (2, label_200)]
-defOpt = Just label_400
+m        = Map.fromList [(0, label_100), (1, label_200), (2, label_200)]
+defOpt   = Just label_400
 (lb, ub) = (INT_MIN, INT_MAX)
-signed = True
+signed   = True
 ```
 Notice that the previous ghc stages have identified common subexpressions so the labels for 1 and 2 are identical since in both cases we return 200 -- this happens not only for simple expessions like integers but also for any complex expression -- we will make use of this property in the new code generator to great effect.
 
@@ -29,9 +29,9 @@ F T3 = 300
 ```
 we will be given:
 ```
-m = Map.fromList [(1, label_100), (2, label_200), (2, label_300)]
-defOpt = Nothing
+m        = Map.fromList [(1, label_100), (2, label_200), (2, label_300)]
+defOpt   = Nothing
 (lb, ub) = (1, 3)
-signed = False
+signed   = False
 ```
 To be continued...
