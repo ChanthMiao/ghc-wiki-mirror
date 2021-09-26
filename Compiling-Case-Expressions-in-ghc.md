@@ -1,6 +1,6 @@
 This is a proposal for some new ways of compiling case expressions in ghc.  I'll set up the problem, describe what ghc currently does, and propose some new ideas on compiling case expressions.
 
-By the time we get to the Cmm level, case expressions are desugared into the much simpler problem of dispatching to the right Label given the expression integer.  So the input to the code generator is a Map Int Label, an optional default label, and a (lb, ub)representing the possible lower value and upper value an expression can have (we are also given signedness info on the case expression).  For example for this program:
+By the time we get to the Cmm level, case expressions are desugared into the much simpler problem of dispatching to the right Label given the expression integer.  So the input to the code generator is a Map Integer Label, an optional default label, and a (lb, ub)representing the possible lower value and upper value an expression can have (we are also given signedness info on the case expression).  For example for this program:
 
 ```
 f :: Int -> Int
