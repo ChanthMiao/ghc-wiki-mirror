@@ -199,7 +199,12 @@ else
       if (x >= 0) return 10;
       else return 100;
 ```
-Here 
+That is a lot of code.  Could we do better here?  Can we use the fact that this function is returning only two values somehow?  See below for answers.
+
+4.  Consider a function like the following:
+```
+
+```
 
 
 We want to note here that the binary tree produced, is balanced with respect to the various flat plans produced by the algorithm and may not be optimal.  For example suppose the input consisted of N consecutive cases in the beginning (with N large) and then M scattered values after that with M smaller than N.  The N values at the start would be considered 1 plan, and we would do binary search on the M + 1 values (it wouldn't be exactly M + 1 because of the introduction of more plans to deal with defaults but anyway).  But since N >> M a better plan here would be to first examine the boundary of the N values first because with one comparison you can identify the largest interval of interest.  So do binary search taking into account the weight (the number of cases being dispatched) by each of the leaves of the tree.
