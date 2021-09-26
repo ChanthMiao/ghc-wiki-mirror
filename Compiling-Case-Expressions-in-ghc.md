@@ -128,7 +128,7 @@ we would typically get a jump table as below:
 	.quad	.LcY1
 	.quad	.LcY1
 ```
-Jump tables have an O(1) cost of finding the  target label but they come with their own costs.  First, they take precious space in the cpu cache, space that would typically be used for instructions themselves.  Second, they obscure the continuation instruction, so the cpu can do no pre-fetching or analysis of the rest of the instruction stream until the actual array is indexed and the target fetched -- this decreases instruction level parallelism.
+Jump tables have an O(1) cost of finding the  target label but they come with their own costs.  First, they take precious space in the cpu cache, space that would typically be used for instructions themselves.  Moreover we sometimes tolerate missing values which end up as entries in the array that are never read, wasting even more space.  Second (and more importantly), they obscure the continuation instruction, so the cpu can do no pre-fetching or analysis of the rest of the instruction stream until the actual array is indexed and the target fetched -- this decreases instruction level parallelism.
 
 In this case it only takes a minute of come up with a better plan:
 ```
@@ -203,8 +203,34 @@ That is a lot of code.  Could we do better here?  Can we use the fact that this 
 
 4.  Consider a function like the following:
 ```
-
+f :: Int -> Int
+f 1  = 1
+f 2  = 2
+f 3  = 3
+f 4  = 4
+f 5  = 5
+...
+f N = 6       -- Here N is large
+f 100 = 7
+f 200 = 8
+f 300 = 9
+f 400 = 10
+f 500 = 7
+f 600 = 8
+f 700 = 9
+f 800 = 10
+f _ = 9999
 ```
+Here we have a large chunk at the start of the interval that is a perfect candidate for a JumpTable (consecutive values) followed by some scattered value at the end.
 
+The existing algorithm produces a binary tree with the JumpTable as a leaf, but the binary tree produced, is balanced with respect to the various flat plans produced by the algorithm and is not be optimal.  For the N consecutive cases in the beginning (with N large) and then M scattered values after that with M smaller than N.  The N values at the start would be considered 1 plan, and we would do binary search on the M + 1 values (it wouldn't be exactly M + 1 because of the introduction of more plans to deal with defaults but anyway).  But since N >> M a better plan here would be to first examine the boundary of the N values first because with one comparison you can identify the largest interval of interest.  So it is always better to do binary search taking into account the weight (the number of cases being dispatched) of each of the leaves of the tree and not the number of leaves that you have.
 
-We want to note here that the binary tree produced, is balanced with respect to the various flat plans produced by the algorithm and may not be optimal.  For example suppose the input consisted of N consecutive cases in the beginning (with N large) and then M scattered values after that with M smaller than N.  The N values at the start would be considered 1 plan, and we would do binary search on the M + 1 values (it wouldn't be exactly M + 1 because of the introduction of more plans to deal with defaults but anyway).  But since N >> M a better plan here would be to first examine the boundary of the N values first because with one comparison you can identify the largest interval of interest.  So do binary search taking into account the weight (the number of cases being dispatched) by each of the leaves of the tree.
+New algorithm:
+First we propose 3 new kinds of segment types (leafs) to be added to the current list of 1 (the JumpTable aka MultiWayJump) that we have now.  A segment type is a sequence of [(Int, Label)] pairs that can be implemented (can dispatch to the right label) in O(1) fashion.
+
+The now four segments are:
+1. ContiguousRegions segments.
+2. TwoLabels segments.
+3. FourLabels segments.
+4. MultiWayJump segments.
+
