@@ -199,7 +199,7 @@ else
       if (x >= 0) return 10;
       else return 100;
 ```
-That is a lot of code.  Could we do better here?  Can we use the fact that this function is returning only two values somehow?  See below for answers.
+That is a lot of code.  Could we do better here?  Can we use the fact that this function is returning only two values somehow?  See below for a new approach.
 
 4.  Consider a function like the following:
 ```
@@ -209,12 +209,12 @@ f 2  = 2
 f 3  = 3
 f 4  = 4
 f 5  = 5
-...
-f N = 6       -- Here N is large
+...           -- Consecutive values up to N
+f N = 6       -- with N is large
 f 100 = 7
 f 200 = 8
 f 300 = 9
-f 400 = 10
+f 400 = 10    -- M scattered values with M << N
 f 500 = 7
 f 600 = 8
 f 700 = 9
@@ -223,14 +223,45 @@ f _ = 9999
 ```
 Here we have a large chunk at the start of the interval that is a perfect candidate for a JumpTable (consecutive values) followed by some scattered value at the end.
 
-The existing algorithm produces a binary tree with the JumpTable as a leaf, but the binary tree produced, is balanced with respect to the various flat plans produced by the algorithm and is not be optimal.  For the N consecutive cases in the beginning (with N large) and then M scattered values after that with M smaller than N.  The N values at the start would be considered 1 plan, and we would do binary search on the M + 1 values (it wouldn't be exactly M + 1 because of the introduction of more plans to deal with defaults but anyway).  But since N >> M a better plan here would be to first examine the boundary of the N values first because with one comparison you can identify the largest interval of interest.  So it is always better to do binary search taking into account the weight (the number of cases being dispatched) of each of the leaves of the tree and not the number of leaves that you have.
+The existing algorithm produces a binary tree with the JumpTable as a leaf, but the binary tree produced, is balanced with respect to the various flat plans produced by the algorithm.  This is not optimal if our goal is to minimize the expected number of comparisons and proceed with the rest of the computation as quickly as possible.  The N values at the start would be considered 1 plan, and we would do binary search on the M + 1 values (it wouldn't be exactly M + 1 because of the introduction of more plans to deal with defaults).  But since N >> M a better plan here would be to first examine the boundary of the N values first because with one comparison you can identify the largest interval of interest.  So it is always better to do binary search taking into account the weight (the number of cases being dispatched) of each of the leaves of the tree and not the number of leaves that you have.  Assuming the cases occur uniformly, this approach minimizes the expected number of comparisons until the label is found.
 
 New algorithm:
-First we propose 3 new kinds of segment types (leafs) to be added to the current list of 1 (the JumpTable aka MultiWayJump) that we have now.  A segment type is a sequence of [(Int, Label)] pairs that can be implemented (can dispatch to the right label) in O(1) fashion.
+First we propose 3 new kinds of segment types (leafs) to be added to the current list of 1 (the JumpTable) that we have now.  A segment type is a sequence of [(Int, Label)] pairs that can be compiled into code that executes in O(1) number of comparisons.  As you will see below, the new segments are motivated by the number of structure of the labels the cases jump to.
 
-The now four segments are:
+The new segment types are:
 1. ContiguousRegions segments.
 2. TwoLabels segments.
 3. FourLabels segments.
-4. MultiWayJump segments.
 
+We go through each of them in turn.
+Contiguous segments:
+This kind of segment is trying to capture the pattern when consecutive integers go to the same label.  Here is an example:
+```
+data KindOfHexDigit = IsUpper | IsLower | IsDigit | IsNone
+
+isHexDigit :: Char -> KindOfHexDigit
+isHexDigit '0' = IsDigit
+isHexDigit '1' = IsDigit
+isHexDigit '2' = IsDigit
+isHexDigit '3' = IsDigit
+isHexDigit '4' = IsDigit
+isHexDigit '5' = IsDigit
+isHexDigit '6' = IsDigit
+isHexDigit '7' = IsDigit
+isHexDigit '8' = IsDigit
+isHexDigit '9' = IsDigit
+isHexDigit 'a' = IsLower
+isHexDigit 'b' = IsLower
+isHexDigit 'c' = IsLower
+isHexDigit 'd' = IsLower
+isHexDigit 'e' = IsLower
+isHexDigit 'f' = IsLower
+isHexDigit 'A' = IsUpper
+isHexDigit 'B' = IsUpper
+isHexDigit 'C' = IsUpper
+isHexDigit 'D' = IsUpper
+isHexDigit 'E' = IsUpper
+isHexDigit 'F' = IsUpper
+isHexDigit _   = IsNone
+```
+We limit the number
