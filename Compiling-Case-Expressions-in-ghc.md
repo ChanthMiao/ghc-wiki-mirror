@@ -226,6 +226,7 @@ Here we have a large chunk at the start of the interval that is a perfect candid
 The existing algorithm produces a binary tree with the JumpTable as a leaf, but the binary tree produced, is balanced with respect to the various flat plans produced by the algorithm.  This is not optimal if our goal is to minimize the expected number of comparisons and proceed with the rest of the computation as quickly as possible.  The N values at the start would be considered 1 plan, and we would do binary search on the M + 1 values (it wouldn't be exactly M + 1 because of the introduction of more plans to deal with defaults).  But since N >> M a better plan here would be to first examine the boundary of the N values first because with one comparison you can identify the largest interval of interest.  So it is always better to do binary search taking into account the weight (the number of cases being dispatched) of each of the leaves of the tree and not the number of leaves that you have.  Assuming the cases occur uniformly, this approach minimizes the expected number of comparisons until the label is found.
 
 New algorithm:
+--------------
 First we propose 3 new kinds of segment types (leafs) to be added to the current list of 1 (the JumpTable) that we have now.  A segment type is a sequence of [(Int, Label)] pairs that can be compiled into code that executes in O(1) number of comparisons.  As you will see below, the new segments are motivated by the number of structure of the labels the cases jump to.
 
 The new segment types are:
@@ -235,6 +236,7 @@ The new segment types are:
 
 We go through each of them in turn.
 Contiguous segments:
+--------------------
 This kind of segment is trying to capture the pattern when consecutive integers go to the same label.  Here is an example:
 ```
 data KindOfHexDigit = IsUpper | IsLower | IsDigit | IsNone
