@@ -285,13 +285,13 @@ if (x < '0')
   goto DefaultLabel;
 if (x <= '9')
   goto isDigitLabel;
-if (x < 'a')
-  goto DefaultLabel;
-if (x <= 'f')
-  goto isLowerLabel;
 if (x < 'A')
   goto DefaultLabel;
 if (x <= 'F')
+  goto isLowerLabel;
+if (x < 'a')
+  goto DefaultLabel;
+if (x <= 'f')
   goto isUpperLabel;
 goto DefaultLabel;
 ```
