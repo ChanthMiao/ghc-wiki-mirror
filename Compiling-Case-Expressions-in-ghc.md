@@ -257,18 +257,18 @@ isHexDigit '6' = IsDigit
 isHexDigit '7' = IsDigit
 isHexDigit '8' = IsDigit
 isHexDigit '9' = IsDigit
-isHexDigit 'a' = IsLower
-isHexDigit 'b' = IsLower
-isHexDigit 'c' = IsLower
-isHexDigit 'd' = IsLower
-isHexDigit 'e' = IsLower
-isHexDigit 'f' = IsLower
 isHexDigit 'A' = IsUpper
 isHexDigit 'B' = IsUpper
 isHexDigit 'C' = IsUpper
 isHexDigit 'D' = IsUpper
 isHexDigit 'E' = IsUpper
 isHexDigit 'F' = IsUpper
+isHexDigit 'a' = IsLower
+isHexDigit 'b' = IsLower
+isHexDigit 'c' = IsLower
+isHexDigit 'd' = IsLower
+isHexDigit 'e' = IsLower
+isHexDigit 'f' = IsLower
 isHexDigit _   = IsNone
 ```
 In this kind of segment we identify regions with cases consecutive going to the same label.  For the above we would have identified three such regions:
