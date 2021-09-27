@@ -140,7 +140,8 @@ In this case it only takes a minute of come up with a better plan:
     else return 2;  
   else return 3;
 ```
-what we have done here is used the structure of the target labels themselves which the existing algorithm makes limited use of.  In assembly:
+what we have done here is used the structure of the target labels themselves which the existing algorithm makes limited use of. The jump table is gone -- two comparisons are always going to be better than a jump table.
+Here is the assembly produced:
 ```
 .LcZo_info:
 	movq 8(%rbp),%rax
