@@ -59,6 +59,8 @@ In compiling case expressions ghc proceeds by first identifying some cases we wa
 ```
   IfEqual x1 label1 label2
 ```
+See Note [Two alts + default] for a justification of this rule in Switch.hs -- this will be relevant to our discussions below.
+
 3. Two alternatives [(x1, label1), (x2, label2)] with defLabel which we compile into:
 ```
   IfEqual x1 label1 (IfEqual x2 label2 defLabel)
@@ -69,7 +71,8 @@ If none of the above apply then we proceed as follows.  We split the case number
 Some of those Maps though may be very small (consisting of one less than 5 elements), and we don't want those to become MultuWayJump tables -- so we break those up into singleton Maps.  So now we have a list of Maps, with some being singletons and the others maps with more than 5 elements.  All these maps will become the leaves of our binary search tree.
 
 We then construct a FlatSwitchPlan, which is a list SwitchPlans sepatated by an integer -- with the semantics being that if the expression is less than the integer we go to the left plan, otherwise the right plan.  During this construction, if we have a default, we interleave segments that jump to default between the maps.
-Finally we are ready to building the tree.  We split the plans in the FlatSwitchPlan in two, introduce an `IfLT` node to construct a node in the tree, and recurs on the left and right side of the list of plans.
+
+Following that, we perform an optimization that replaces two less-than branches by a single equal-to-test (findSingleValues in the source), and finally we are ready to building the tree.  We split the plans in the FlatSwitchPlan in two, introduce an `IfLT` node to construct a node in the tree, and recurs on the left and right side of the list of plans.
 
 Deficiencies of the existing algorithm:
 ---------------------------------------
@@ -137,7 +140,7 @@ In this case it only takes a minute of come up with a better plan:
     else return 2;  
   else return 3;
 ```
-what we have done here is used the structure of the target labels themselves, information that the existing algorithm never uses.  In assembly:
+what we have done here is used the structure of the target labels themselves which the existing algorithm makes limited use of.  In assembly:
 ```
 .LcZo_info:
 	movq 8(%rbp),%rax
@@ -223,7 +226,7 @@ f _ = 9999
 ```
 Here we have a large chunk at the start of the interval that is a perfect candidate for a JumpTable (consecutive values) followed by some scattered value at the end.
 
-The existing algorithm produces a binary tree with the JumpTable as a leaf, but the binary tree produced, is balanced with respect to the various flat plans produced by the algorithm.  This is not optimal if our goal is to minimize the expected number of comparisons and proceed with the rest of the computation as quickly as possible.  The N values at the start would be considered 1 plan, and we would do binary search on the M + 1 values (it wouldn't be exactly M + 1 because of the introduction of more plans to deal with defaults).  But since N >> M a better plan here would be to first examine the boundary of the N values first because with one comparison you can identify the largest interval of interest.  So it is always better to do binary search taking into account the weight (the number of cases being dispatched) of each of the leaves of the tree and not the number of leaves that you have.  Assuming the cases occur uniformly, this approach minimizes the expected number of comparisons until the label is found.
+The existing algorithm produces a binary tree with the JumpTable as a leaf, but the binary tree produced, is balanced with respect to the various flat plans produced by the algorithm.  This is not optimal if our goal is to minimize the expected number of comparisons and proceed with the rest of the computation as quickly as possible.  The N values at the start are considered 1 plan, and we do binary search on the M + 1 values (it wouldn't be exactly M + 1 because of the introduction of more plans to deal with defaults but the point remains).  But since N >> M a better plan here would be to first examine the boundary of the N values first because with one comparison you can identify the largest interval of interest.  So it is always better to do binary search taking into account the weight (the number of cases being dispatched) of each of the leaves of the tree and not the number of leaves that you have.  Assuming the cases occur uniformly, this approach minimizes the expected number of comparisons until the label is found.
 
 New algorithm:
 --------------
@@ -266,4 +269,34 @@ isHexDigit 'E' = IsUpper
 isHexDigit 'F' = IsUpper
 isHexDigit _   = IsNone
 ```
-We limit the number
+In this kind of segment we identify regions with cases consecutive going to the same label.  For the above we would have identified three such regions:
+```
+region1 = { label = IsDigitLabel, lb = '0', ub = '9' }
+region2 = { label = IsLower, lb = 'a', ub = 'f' }
+region3 = { label = IsUpper, lb = 'A', ub = 'F' }
+```
+Note that the regions don't have to be consecutive among themselves, only within.  But if they are this provides us with more opportunities for better plans -- we explore this below.
+
+This is then compiled into the following:
+```
+if (x < '0')
+  goto DefaultLabel;
+if (x <= '9')
+  goto isDigitLabel;
+if (x < 'a')
+  goto DefaultLabel;
+if (x <= 'f')
+  goto isLowerLabel;
+if (x < 'A')
+  goto DefaultLabel;
+if (x <= 'F')
+  goto isUpperLabel;
+goto DefaultLabel;
+```
+If there is default we limit the number of labels we allow the pattern to capture to <= 3 and if there isn't to <= 4.  This segment type can be thought of the special case of our existing algorithm described in Note [Two alts + default] in Switch.hs with the number of alts increased 
+by one.  We do that because it affords us the flexibility to find better plans we certain cases as we describe below.  The number of segments is 4 for the no-default case because typically the fourth segment is identified for free due to the constrains imposed by input ADT (we will see examples below).
+
+Compilation of Contiguous Regions Segment:
+------------------------------------------
+No-default case:
+----------------
