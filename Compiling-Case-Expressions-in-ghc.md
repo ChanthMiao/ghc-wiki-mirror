@@ -76,7 +76,7 @@ Following that, we perform an optimization that replaces two less-than branches 
 
 Deficiencies of the existing algorithm:
 ---------------------------------------
-The algorithm works quite well producing fairly good plans with either simple values at the leafs or JumpTables.  If you stare at the generated plans for a bit though it's not difficult to see how we could do better.
+The algorithm works quite well producing fairly good plans with either simple values at the leaves or JumpTables.  If you stare at the generated plans for a bit though it's not difficult to see how we could do better.
 
 Here are some examples:
 1. Sometimes it generates superfluous comparisons like for a example the issue https://gitlab.haskell.org/ghc/ghc/-/issues/19290 with an analysis by Henry on what goes wrong.
@@ -231,7 +231,7 @@ The existing algorithm produces a binary tree with the JumpTable as a leaf, but 
 
 New algorithm:
 --------------
-First we propose 3 new kinds of segment types (leafs) to be added to the current list of 1 (the JumpTable) that we have now.  A segment type is a sequence of [(Int, Label)] pairs that can be compiled into code that executes in O(1) number of comparisons.  As you will see below, the new segments are motivated by the number of structure of the labels the cases jump to.
+First we propose 3 new kinds of segment types (leaves) to be added to the current list of 1 (the JumpTable) that we have now.  A segment type is a sequence of [(Int, Label)] pairs that can be compiled into code that executes in O(1) number of comparisons.  As you will see below, the new segments are motivated by the number of structure of the labels the cases jump to.
 
 The new segment types are:
 1. ContiguousRegions segments.
