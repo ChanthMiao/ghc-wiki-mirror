@@ -313,11 +313,10 @@ of changes it means the build will fail.
   When set to `YES`, these build the sphinx documentation (e.g. the
 users guide) as HTML and PDF respectively.
 
-- **`INTEGER_LIBRARY`**
+- **`BIGNUM_BACKEND`**
 
-  By default this is set to `integer-gmp`, which means Integer is implemented
-on top of the C GMP library. If you set it to `integer-simple` then a
-simple, BSD-licensed Haskell implementation will be used instead.
+  By default this is set to `gmp`, which means Integer is implemented
+on top of the C GMP library. If you set it to `native` then a BSD-licensed Haskell implementation will be used instead.
 
 - **`BUILD_DPH`**
 
