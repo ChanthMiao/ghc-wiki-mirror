@@ -295,7 +295,7 @@ if (x <= 'f')
   goto isUpperLabel;
 goto DefaultLabel;
 ```
-If there is default we limit the number of labels we allow the pattern to capture to <= 3 and if there isn't to <= 4.  This segment type can be thought of the special case of our existing algorithm described in Note [Two alts + default] in Switch.hs with the number of alts increased 
+If there is default we limit the number of labels we allow the pattern to capture to <= 3 and if there isn't to <= 4.  This segment type can be thought of a generalization of the special case of our existing algorithm described in Note [Two alts + default] in Switch.hs with the number of alts increased 
 by one.  We do that because it affords us the flexibility to find better plans we certain cases as we describe below.  The number of segments is 4 for the no-default case because typically the fourth segment is identified for free due to the constrains imposed by input ADT (we will see examples below).
 
 Compilation of Contiguous Regions Segment:
