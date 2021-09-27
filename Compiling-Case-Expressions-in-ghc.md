@@ -238,6 +238,7 @@ The new segment types are:
 3. FourLabels segments.
 
 We go through each of them in turn.
+
 Contiguous segments:
 --------------------
 This kind of segment is trying to capture the pattern when consecutive integers go to the same label.  Here is an example:
@@ -298,5 +299,6 @@ by one.  We do that because it affords us the flexibility to find better plans w
 
 Compilation of Contiguous Regions Segment:
 ------------------------------------------
+
 No-default case:
 ----------------
