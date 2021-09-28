@@ -47,7 +47,7 @@ data SwitchPlan
     | IfLT Bool Integer SwitchPlan SwitchPlan
     | JumpTable SwitchTargets
 ```
-It should be obvious from their names what the four constructors mean.
+It should be obvious from their names what the four constructors mean (the Bool is the IfLT constructor just tells us if the input case expression is signed or not so that the right Cmm operators will be used for the comparison -- for equality sign doesn't matter).
 
 In compiling case expressions ghc proceeds by first identifying some cases we want to deal with bespoke code.  These are:
 
