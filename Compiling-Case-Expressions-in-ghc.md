@@ -131,9 +131,9 @@ we would typically get a jump table as below:
 	.quad	.LcY1
 	.quad	.LcY1
 ```
-Jump tables have an O(1) cost of finding the  target label but they come with their own costs.  First, they take precious space in the cpu cache, space that would typically be used for instructions themselves.  Moreover we sometimes tolerate missing values which end up as entries in the array that are never read, wasting even more space.  Second (and more importantly), they obscure the continuation instruction, so the cpu can do no pre-fetching or analysis of the rest of the instruction stream until the actual array is indexed and the target fetched -- this decreases instruction level parallelism.
+Jump tables have an O(1) cost of finding the target label which is great, but they come with other hidden  costs.  First our executables tend to be larger.  Second they take precious space in the cpu cache, space that would typically be used for instructions themselves.  Moreover we sometimes tolerate missing values which end up as entries in the array that are never read, wasting even more space.  Third (and more importantly), they obscure the continuation instruction, so the cpu can do no pre-fetching or analysis of the rest of the instruction stream until the actual array is indexed and the target fetched -- this decreases instruction level parallelism, drugging down performance.
 
-In this case it only takes a minute of come up with a better plan:
+In this particular case it only takes a minute of come up with a better plan than the jump table:
 ```
   if (x < 5)
     if (x < 2) return 1;
@@ -181,8 +181,7 @@ f 60 = 10
 f 61 = 10
 f  _ =  100
 ```
-
-This is now compiled into the following maze of if-statements:
+Our integers are interspersed, so no jump table, so we get a binary tree.  The compiled code is now the following maze of if-statements:
 ```
  if (x >= 45)
    if (x >= 61)
@@ -295,7 +294,7 @@ if (x <= 'f')
   goto isUpperLabel;
 goto DefaultLabel;
 ```
-If there is default we limit the number of labels we allow the pattern to capture to <= 3 and if there isn't to <= 4.  This segment type can be thought of a generalization of the special case of our existing algorithm described in Note [Two alts + default] in Switch.hs with the number of alts increased 
+If there is default we limit the number of labels we allow the pattern to capture to <= 3 and if there isn't to <= 4.  This segment type can be thought of a generalization of the special case of the existing algorithm described in Note [Two alts + default] in Switch.hs with the number of alts increased 
 by one.  We do that because it affords us the flexibility to find better plans we certain cases as we describe below.  The number of segments is 4 for the no-default case because typically the fourth segment is identified for free due to the constrains imposed by input ADT (we will see examples below).
 
 Compilation of Contiguous Regions Segment:
