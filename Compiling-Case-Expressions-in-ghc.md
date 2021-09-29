@@ -168,6 +168,67 @@ Here is the assembly produced:
 	jmp stg_ap_p_fast
 ```
 
+This is ever more pronounced in the following prodicate-like function:
+```
+data I = A1 | A2 | A3 | A4 | A5 | A6
+data R = R1 | R2
+
+foo A1 = R1
+foo A2 = R2
+foo A3 = R2
+foo A4 = R2
+foo A5 = R2
+foo A6 = R2
+```
+for which we currently get a switch table:
+```
+.LcTN_info:
+	andl $7,%ebx
+	jmp *.LnUn(,%rbx,8)
+.LcTS:
+	movl $Foo_R2_closure+2,%ebx
+	addq $8,%rbp
+	jmp *(%rbp)
+.LcTR:
+	movl $Foo_R1_closure+1,%ebx
+	addq $8,%rbp
+	jmp *(%rbp)
+.LcTZ:
+	movl $Foo_foo_closure,%ebx
+	jmp *-8(%r13)
+	.size Foo_foo_info, .-Foo_foo_info
+.section .rodata
+.align 8
+.align 1
+.LnUn:
+	.quad	0
+	.quad	.LcTR
+	.quad	.LcTS
+	.quad	.LcTS
+	.quad	.LcTS
+	.quad	.LcTS
+	.quad	.LcTS
+```
+but clearly all we need is simple if-statement:
+```
+   IfEqual 1 LabelR1 (Unconditionally LabelR2)
+```
+in assembly:
+```
+.LcSI_info:
+	andl $7,%ebx
+	cmpq $1,%rbx
+	je .LcSM
+.LcSN:
+	movl $Foo_R2_closure+2,%ebx
+	addq $8,%rbp
+	jmp *(%rbp)
+.LcSM:
+	movl $Foo_R1_closure+1,%ebx
+	addq $8,%rbp
+	jmp *(%rbp)
+```
+
 3. Consider the following function:
 ```
 f :: Int -> Int
