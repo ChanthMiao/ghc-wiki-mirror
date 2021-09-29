@@ -168,7 +168,7 @@ Here is the assembly produced:
 	jmp stg_ap_p_fast
 ```
 
-This is ever more pronounced in the following prodicate-like function:
+This is ever more pronounced in the following predicate-like function:
 ```
 data I = A1 | A2 | A3 | A4 | A5 | A6
 data R = R1 | R2
