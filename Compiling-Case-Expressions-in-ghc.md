@@ -76,9 +76,9 @@ Following that, we perform an optimization that replaces two less-than branches 
 
 Deficiencies of the existing algorithm:
 ---------------------------------------
-The algorithm works quite well producing fairly good plans with either simple values at the leaves or JumpTables.  If you stare at the generated plans for a bit though it's not difficult to see how we could do better.
+The algorithm works quite well producing fairly good plans with either simple values at the leaves or JumpTables.  This proposal is about some new ideas that could allow us to do better for certain (I want to claim wide) range of cases occurring in practice.
 
-Here are some examples:
+Here are some examples where the existing algorithm doesn't do so well:
 1. Sometimes it generates superfluous comparisons like for a example the issue https://gitlab.haskell.org/ghc/ghc/-/issues/19290 with an analysis by Henry on what goes wrong.
 
 2. For a function like the following:
@@ -93,7 +93,7 @@ f A5 = 3
 f A6 = 3
 ```
 
-we would typically get a jump table as below:
+we would get a jump table as below:
 
 ```
 .LcXT_info:
@@ -131,7 +131,7 @@ we would typically get a jump table as below:
 	.quad	.LcY1
 	.quad	.LcY1
 ```
-Jump tables have an O(1) cost of finding the target label which is great, but they come with other hidden  costs.  First our executables tend to be larger.  Second they take precious space in the cpu cache, space that would typically be used for instructions themselves.  Moreover we sometimes tolerate missing values which end up as entries in the array that are never read, wasting even more space.  Third (and more importantly), they obscure the continuation instruction, so the cpu can do no pre-fetching or analysis of the rest of the instruction stream until the actual array is indexed and the target fetched -- this decreases instruction level parallelism, drugging down performance.
+Jump tables have an O(1) cost of finding the target label which is great, but they come with other hidden  costs.  First our executables tend to be larger.  Second they take precious space in the cpu cache, space that would typically be used for instructions themselves.  Moreover since we  tolerate missing values in the lookup arrays, which end up as more wasted space in the cache as entries that are never actually read, wasting even more space.  Third (and more importantly), they obscure the continuation instruction, so the cpu can do no pre-fetching or analysis of the rest of the instruction stream until the array is actually indexed and the target fetched -- this decreases instruction level parallelism, drugging down performance.
 
 In this particular case it only takes a minute of come up with a better plan than the jump table:
 ```
