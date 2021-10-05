@@ -11,6 +11,19 @@ This page outlines a plan to move the representation polymorphism checks that cu
   * #20330 Primops (arguments past their arity)
 * Merge request: !6164
 
+After !6164 (which takes the first step, of moving representation-polymorphism checks to the typechecker), several further improvements can be made:
+
+* Defaulting of variables of kind RuntimeRep/Levity.
+  * Only default a metavariable `ty` when we have a leftover `Concrete# ty` constraint, item 1 in #17201
+  * Don't default per declaration (do defaulting of `RuntimeRep`s of groups of declarations at once), item 2 in #17201
+  * Support user-supplied default declarations, e.g. `default (UnliftedRep)`
+  * Don't default in type families, #17536
+* Type families/GADTs (phase 2)
+  * Support type families/GADTs #13105
+  * Once we have casts, we can support `-fdefer-type-errors` for representation polymorphism
+* Relaxing the levity restriction #15532
+* When `CodeC` constraints are implemented in Typed Template Haskell, a better solution to #18170
+
 
 # Table of contents
 
