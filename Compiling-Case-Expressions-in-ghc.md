@@ -152,17 +152,17 @@ Here is the assembly produced:
 	cmpq $2,%rbx
 	jb .LcZs
 .LcZt:
-	movl $Foo_f2_closure+1,%r14d
+	movl $Foo_f2_closure+1,%r14d      -- return 2
 	movq %rax,%rbx
 	addq $16,%rbp
 	jmp stg_ap_p_fast
 .LcZs:
-	movl $Foo_f3_closure+1,%r14d
+	movl $Foo_f3_closure+1,%r14d      -- return 1
 	movq %rax,%rbx
 	addq $16,%rbp
 	jmp stg_ap_p_fast
 .LcZw:
-	movl $Foo_f1_closure+1,%r14d
+	movl $Foo_f1_closure+1,%r14d      -- return 3
 	movq %rax,%rbx
 	addq $16,%rbp
 	jmp stg_ap_p_fast
