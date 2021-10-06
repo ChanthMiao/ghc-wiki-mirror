@@ -101,17 +101,17 @@ we would get a jump table as below:
 	andl $7,%ebx
 	jmp *.LnYt(,%rbx,8)
 .LcY1:
-	movl $Foo_f1_closure+1,%r14d
+	movl $Foo_f1_closure+1,%r14d       -- return 3
 	movq %rax,%rbx
 	addq $16,%rbp
 	jmp stg_ap_p_fast
 .LcXY:
-	movl $Foo_f2_closure+1,%r14d
+	movl $Foo_f2_closure+1,%r14d       -- return 2
 	movq %rax,%rbx
 	addq $16,%rbp
 	jmp stg_ap_p_fast
 .LcY5:
-	movl $Foo_zdwf_closure,%ebx
+	movl $Foo_zdwf_closure,%ebx        -- return 1
 	jmp *-8(%r13)
 .LcXX:
 	movl $Foo_f3_closure+1,%r14d
@@ -123,7 +123,7 @@ we would get a jump table as below:
 .align 8
 .align 1
 .LnYt:
-	.quad	0
+	.quad	0                          -- wasted space
 	.quad	.LcXX
 	.quad	.LcXY
 	.quad	.LcXY
