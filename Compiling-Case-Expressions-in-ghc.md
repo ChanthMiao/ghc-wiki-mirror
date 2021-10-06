@@ -334,8 +334,8 @@ isHexDigit _   = IsNone
 In this kind of segment we identify regions with cases consecutive going to the same label.  For the above we would have identified three such regions:
 ```
 region1 = { label = IsDigitLabel, lb = '0', ub = '9' }
-region2 = { label = IsLower, lb = 'a', ub = 'f' }
-region3 = { label = IsUpper, lb = 'A', ub = 'F' }
+region2 = { label = IsLowerLabel, lb = 'a', ub = 'f' }
+region3 = { label = IsUpperLabel, lb = 'A', ub = 'F' }
 ```
 Note that the regions don't have to be consecutive among themselves, only within.  But if they are this provides us with more opportunities for better plans -- we explore this below.  Also note that we impose no restriction on the number of labels, only on the number of regions.  The label for region2 and region3 could for example have been the same and we also take advantage of such happy coincidences as we will see below.
 
