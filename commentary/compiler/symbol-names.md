@@ -209,8 +209,8 @@ Any other character is encoded as a 'z' followed by its hex code (lower case, va
 <tr><th> <tt>foo##</tt>   </th>
 <th> <tt>foozhzh</tt> 
 </th></tr>
-<tr><th> <tt>foo##1</tt> </th>
-<th> <tt>foozhzh1</tt> 
+<tr><th> <tt>foo##h</tt> </th>
+<th> <tt>foozhzhh</tt> 
 </th></tr>
 <tr><th> <tt>fooZ</tt>     </th>
 <th> <tt>fooZZ</tt> 
@@ -230,5 +230,3 @@ Any other character is encoded as a 'z' followed by its hex code (lower case, va
 <tr><th> <tt>(#,,,,#)</tt>  </th>
 <th> <tt>Z5H</tt> 
 </th></tr></table>
-
-
