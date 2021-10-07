@@ -1,7 +1,7 @@
 The documentation and implementation of Backpack both deserve attention, as outlined in #17525. In its current state, the Backpack ecosystem presents a few difficulties:
 
 - the lack of user-facing documentation means that users find it difficult to get started using Backpack, slowing adoption,
-- the lack of a detailed specification means that GHC maintainers don't know how to resolve problems that arise from interactions with Backpack.
+- the lack of a detailed specification means that GHC maintainers struggle to resolve problems that arise from interactions with Backpack.
 
 This page aims to give an overview of the current (as of October 2021) state of the documentation, specification and implementation of Backpack. The goal is to help GHC developers orient themselves around the feature, in order to better understand which aspects to prioritise.
 
