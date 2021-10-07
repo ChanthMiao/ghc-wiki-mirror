@@ -32,4 +32,7 @@ In modules which deal specifically with Backpack, one often sees the reverse. Fo
 
 The `.bkp` file format is used internally in GHC for testing Backpack; it permits a more concise syntax in which different units are defined in a single file, as opposed to needing separate files and an associated `.cabal` file.
 
-However, this file format is not specified or documented anywhere. Moreover, it doesn't support some important developer functionality such as `-ddump-tc-trace` (#20396).
+However, the .bkp framework:
+  - is not specified or documented anywhere,
+  - doesn't support some important developer functionality such as `-ddump-tc-trace` (#20396),
+  - doesn't report mistakes such as a mis-spelled unit name (#20487), causing a compiler crash which doesn't detail the source of the problem.
