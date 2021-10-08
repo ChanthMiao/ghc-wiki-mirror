@@ -33,6 +33,18 @@ Currently, the errors reported by Backpack are often quite confusing:
 
 The implementation of Backpack suffers from a lack of modularity, as many functions throughout the compiler contain ad-hoc special cases to handle Backpack, often quite inscrutably. MP TODO: add some examples.
 
+### KnotVars
+
+One of the unresolved implementation questions is why backpack needs KnotVars at all. The KnotVars structure is used to compile
+module loops, but backpack signature files never participate in loops. There's quite a few examples of places where KnotVars
+has to be set just because of backpack but without any clear justification. I (MP) often run into cases in the driver where
+I am refactoring things to do with KnotVars and cause backpack tests to fail for unknown reasons.
+
+One recent example is a patch which removes unsets KnotVars when reading an interface file
+into the EPS (https://gitlab.haskell.org/ghc/ghc/-/merge_requests/6697).
+
+### Backpack specific modules
+
 In modules which deal specifically with Backpack, one often sees the reverse. For example, in `GHC.Tc.Utils.Backpack`, concerns about typechecking and loading of interfaces are interwoven in a very complex way. Some of this is perhaps inevitable given the nature of Backpack, but because of this it is quite difficult to maintain/modify.
 
 ## Testing: the .bkp file format
