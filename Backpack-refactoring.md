@@ -5,6 +5,12 @@ The documentation and implementation of Backpack both deserve attention, as outl
 
 This page aims to give an overview of the current (as of October 2021) state of the documentation, specification and implementation of Backpack. The goal is to help GHC developers orient themselves around the feature, in order to better understand which aspects to prioritise.
 
+# Existing Documentation
+
+* [ICFP 16 paper - Backpack to work](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/07/backpack-2016.pdf)
+* [PhD Thesis: Backpack: Towards practical mix-in linking in Haskell](https://github.com/ezyang/thesis/releases/download/rev20170925/main.pdf)
+* [Backpack proposal](https://github.com/ezyang/ghc-proposals/blob/9bdb9de01b2853298efa9b154f7af94db8bbc215/proposals/0000-backpack.rst)
+* [Backpack (implementation)](https://github.com/ezyang/ghc-proposals/blob/backpack-impl/proposals/0000-backpack-impl.rst)
 
 # User experience
 
