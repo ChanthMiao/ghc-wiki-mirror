@@ -36,3 +36,7 @@ However, the .bkp framework:
   - is not specified or documented anywhere,
   - doesn't support some important developer functionality such as `-ddump-tc-trace` (#20396),
   - doesn't report mistakes such as a mis-spelled unit name (#20487), causing a compiler crash which doesn't detail the source of the problem.
+
+### Assorted list of hacks
+
+* Special case in `dontLeakTheHPT` for --backpack mode.. which should only be for testing purposes.g
