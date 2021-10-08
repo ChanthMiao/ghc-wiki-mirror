@@ -11,6 +11,7 @@ This page aims to give an overview of the current (as of October 2021) state of 
 * [PhD Thesis: Backpack: Towards practical mix-in linking in Haskell](https://github.com/ezyang/thesis/releases/download/rev20170925/main.pdf)
 * [Backpack proposal](https://github.com/ezyang/ghc-proposals/blob/9bdb9de01b2853298efa9b154f7af94db8bbc215/proposals/0000-backpack.rst)
 * [Backpack (implementation)](https://github.com/ezyang/ghc-proposals/blob/backpack-impl/proposals/0000-backpack-impl.rst)
+* [Backpack wiki page](https://gitlab.haskell.org/ghc/ghc/-/wikis/backpack)
 
 # User experience
 
