@@ -130,7 +130,7 @@ we would get a jump table as below:
 	.quad	.LcY1
 	.quad	.LcY1
 ```
-Jump tables have an O(1) cost of finding the target label which is great, but they come with other hidden  costs.  First our executables tend to be larger.  Second they take precious space in the cpu cache, space that would typically be used for instructions themselves.  Moreover since we  tolerate missing values in the lookup arrays, which end up as more wasted space in the cache as entries that are never actually read, wasting even more space.  Third (and more importantly), they obscure the continuation instruction, so the cpu can do no pre-fetching or analysis of the rest of the instruction stream until the array is actually indexed and the target fetched -- this decreases instruction level parallelism, drugging down performance.
+Jump tables have an O(1) cost of finding the target label which is great, but they come with other hidden  costs.  First our executables tend to be larger because we need space for the table.  Second these tables take precious space in the cpu cache, space that would typically be used for instructions themselves.  Moreover since we  tolerate missing values in the lookup arrays, which end up as more wasted space in the cache as entries that are never actually read, wasting even more space.  Third (and more importantly), they obscure the continuation instruction, so the cpu can do no pre-fetching or analysis of the rest of the instruction stream until the array is actually indexed and the target fetched -- this decreases instruction level parallelism, drugging down performance.
 
 In this particular case it only takes a minute of come up with a better plan than the jump table:
 ```
@@ -139,7 +139,7 @@ In this particular case it only takes a minute of come up with a better plan tha
     else return 2;  
   else return 3;
 ```
-what we have done here is used the structure of the target labels themselves which the existing algorithm makes limited use of. The jump table is gone -- two comparisons are always going to be better than a jump table.
+What we have done here is used the structure of the target labels themselves which the existing algorithm makes limited use of. The jump table is gone -- two comparisons are always going to be better than a jump table.
 Here is the assembly produced:
 ```
 .LcZo_info:
@@ -241,7 +241,7 @@ f 60 = 10
 f 61 = 10
 f  _ =  100
 ```
-Our integers are interspersed, so no jump table, so we get a binary tree.  The compiled code is now the following maze of if-statements:
+Our integers are interspersed, thus no jump table, so we get a binary tree.  The compiled code is now the following maze of if-statements:
 ```
  if (x >= 45)
    if (x >= 61)
@@ -333,26 +333,14 @@ isHexDigit _   = IsNone
 In this kind of segment we identify regions with cases consecutive going to the same label.  For the above we would have identified three such regions:
 ```
 region1 = { label = IsDigitLabel, lb = '0', ub = '9' }
-region2 = { label = IsLowerLabel, lb = 'a', ub = 'f' }
-region3 = { label = IsUpperLabel, lb = 'A', ub = 'F' }
+region2 = { label = IsUpperLabel, lb = 'A', ub = 'F' }
+region3 = { label = IsLowerLabel, lb = 'a', ub = 'f' }
 ```
-Note that the regions don't have to be consecutive among themselves, only within.  But if they are this provides us with more opportunities for better plans -- we explore this below.  Also note that we impose no restriction on the number of labels, only on the number of regions.  The label for region2 and region3 could for example have been the same and we also take advantage of such happy coincidences as we will see below.
+Note that the regions don't have to be consecutive among themselves, only within.  But if they are, this provides us with more opportunities for better plans -- we explore this below.  Also note that we impose no restriction on the number of labels, only on the number of regions.  The label for region2 and region3 could for example have been the same and we also take advantage of such happy coincidences as we will see below.
 
 This is then compiled into the following:
 ```
-if (x < '0')
-  goto DefaultLabel;
-if (x <= '9')
-  goto isDigitLabel;
-if (x < 'A')
-  goto DefaultLabel;
-if (x <= 'F')
-  goto isLowerLabel;
-if (x < 'a')
-  goto DefaultLabel;
-if (x <= 'f')
-  goto isUpperLabel;
-goto DefaultLabel;
+put correct code here...
 ```
 If there is default we limit the number of labels we allow the pattern to capture to <= 3 and if there isn't to <= 4.  This segment type can be thought of a generalization of the special case of the existing algorithm described in Note [Two alts + default] in Switch.hs with the number of alts increased by one.  We do that because it affords us the flexibility to find better plans we certain cases as we describe below.  The number of segments is 4 for the no-default case because typically the fourth segment is identified for free due to the constrains imposed by input ADT (we will see examples below).
 
