@@ -33,13 +33,10 @@ After !6164 (which takes the first step, of moving representation-polymorphism c
   * [Emitting FixedRuntimeRep constraints](#emitting-fixedruntimerep-constraints)
     + [Where specifically are we emitting these constraints?](#where-specifically-are-we-emitting-these-constraints)
   * [Solving FixedRuntimeRep constraints](#solving-fixedruntimerep-constraints)
-    + [User-written instances](#user-written-instances)
-    + [User-written Givens](#user-written-givens)
     + [Typed Template Haskell](#typed-template-haskell)
   * [Reporting unsolved FixedRuntimeRep constraints](#reporting-unsolved-fixedruntimerep-constraints)
     + [CtOrigins](#ctorigins)
     + [reportWanteds](#reportwanteds)
-    + [Don't suggest "add FixedRuntimeRep"](#dont-suggest-add-fixedruntimerep)
     + [Don't allow FixedRuntimeRep constraints to be deferred](#dont-allow-fixedruntimerep-constraints-to-be-deferred)
   * [Evidence for FixedRuntimeRep and code generation](#evidence-for-fixedruntimerep-and-code-generation)
     + [Alternative 1: store the representation](#alternative-1-store-the-representation)
@@ -100,42 +97,11 @@ Under the `GHC.Tc.Gen` module hierarchy. For instance, we simply add a call to `
 
 ## Solving Concrete# constraints
 
-The constraint solver needs to be able to solve these newly emitted `Concrete#` constraints. To do this, we add global instances in `GHC.Tc.Instance.Class.matchGlobalInst`, in the same way as for existing built-in constraints such as `Coercible`, `Typeable`, etc.
-
-### User-written instances
-
-One subtletly is due to Backpack: we want to allow a signature to declare an abstract `RuntimeRep` that is instantiated to a fixed `RuntimeRep` later. To allow the signature to typecheck, users must write an instance (this works much the same as user-defined instance for `KnownNat`, as outlined in Note [Instances of built-in classes in signature files] in `GHC.Tc.Validity`), which is picked up in `matchConcrete`.
-
-Note that we must allow users to declare that e.g. a list of `RuntimeRep`s is concrete, to allow more general reasoning:
-
-```haskell
-data Rep :: RuntimeRep
-data Reps :: [RuntimeRep]
-instance Concrete Rep
-instance Concrete Reps
-
-foo :: (x :: TYPE (SumRep ( Rep ': IntRep ': Reps ': Reps ))) -> ...
-foo x = ...
-```
-
-Here we need to be able to see that the `RuntimeRep` `SumRep ( Rep ': IntRep ': Reps ': Reps )` is concrete, and we can only really do that if we allow users to define that `Reps` is concrete.
-
-This is one important reason why we use a `Concrete :: forall k. k -> Constraint` class, as opposed to something specialised to `RuntimeRep` like `FixedRuntimeRep :: RuntimeRep -> Constraint` (which was the original design).
-
-### User-written Givens
-
-Users should not be allowed to specify Given `Concrete` constraints, e.g.:
-
-```haskell
-identity :: forall rep (a :: TYPE rep). Concrete rep => a -> a
-identity x = x
-```
-
-If we allowed this, we would solve the `Concrete# rep` Wanted (from the binder `x` in the body of `identity`) using the provided Given, which is no good as we still can't compile this function as we don't know the representation of `x`.
+The constraint solver needs to be able to solve these newly emitted `Concrete#` constraints. This is done by canonicalising, see `GHC.Tc.Canonical.canConcretePrim`.
 
 ### Typed Template Haskell
 
-There are, however, circumstances in one might want to accept user-specified `Concrete` Givens constraints, such as with Typed Template Haskell, where we could allow representation-polymorphic typed Template Haskell expressions as long as they are monomorphised at the splice site, as in the following example:
+There are, however, circumstances in one might want a mechanism to allow users to declare that a type is concrete. For example, with Typed Template Haskell, we could allow representation-polymorphic typed Template Haskell expressions as long as they are monomorphised at the splice site, as in the following example:
 
 ```haskell
 module Mod1 where
@@ -181,13 +147,9 @@ When we emit a new wanted `Concrete#` constraint, we also pass a `CtOrigin` that
 
 We add a case to `reportWanteds` for `Concrete` constraints, to get a custom error message instead of `Could not deduce 'Concrete rep'`.
 
-### Don't suggest "add Concrete"
+### Don't allow Concrete# constraints to be deferred
 
-We don't want to suggest the user add a `Concrete` constraint to their type signature, so we add a check to `GHC.Tc.Errors.ctxtFixes` to prevent GHC from making that suggestion.
-
-### Don't allow Concrete constraints to be deferred
-
-We don't want to allow `Concrete` constraints to be deferred, as polymorphic runtime representations can cause the code generator to panic. So we ensure that constraints whose `CtOrigin` is a `FixedRuntimeRepOrigin` can't be deferred in `GHC.Tc.Errors.nonDeferrableOrigin`.
+We don't want to allow `Concrete#` constraints to be deferred, as polymorphic runtime representations can cause the code generator to panic. So we ensure that constraints whose `CtOrigin` is a `FixedRuntimeRepOrigin` can't be deferred in `GHC.Tc.Errors.nonDeferrableOrigin`.
 
 ## Evidence for Concrete# and code generation
 
