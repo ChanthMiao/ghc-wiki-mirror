@@ -472,6 +472,7 @@ Foo_zdwisHexDigit_info:
 	movl $Foo_IsUpper_closure+1,%ebx      -- return IsUpper
 	jmp *(%rbp)
 ```
+
 If there is default we limit the number of labels we allow the pattern
 to capture to <= 3 and if there isn't to <= 4.  This segment type can
 be thought of a generalization of the special case of the existing
@@ -484,7 +485,147 @@ constrains imposed by input ADT (we will see examples below).
 
 Compilation of Contiguous Regions Segment:
 ------------------------------------------
-We now go through the details of how Contiguous Regions are compiled.  We deal with the the presence and absence of default label separately.
+We now go through the details of how Contiguous Regions are compiled.
+We deal with the the presence and absence of default label separately.
 
 No-default case:
 ----------------
+
+First we try to build what we call a Dichotomy Plan.  Suppose `m` is
+a `Map Label [Integer]` formed by reversing the association between
+integers and labels and merging integers going to the label into a
+list.  If the number of labels is 2 (equivalently if `M.size m == 2`)
+and there is in `m` a list of Integers of size <= 2 (let's pretend it
+is found in the pair (Label, [n1, n2])) then this means that there a
+label that <= 2 integers go to it.  Since there are in total only 2
+labels total, we can form the simple plan of:
+```
+  IfEqual n1 Label (IfEqual n2 Label (Unconditionally otherLabel))
+```
+where otherLabel is the other label found in the map (remember there
+were only two).
+
+Here is an example where the dichotomy plan kicks in.
+
+```
+data Z = A1 | A2 | A3 | A4 | A5 | A6
+
+f :: Z -> Int
+f A1 = 2
+f A2 = 1
+f A3 = 2
+f A4 = 2
+f A5 = 2
+f A6 = 1
+```
+We have 4 regions ([2], [1], [2,2,2], [1]) but only two labels.  The
+label for 1, has exactly 2 integers going to it (those corresponding
+to A2 and A6).  So our plan is:
+```
+IfEqual 6 LabelFor1 (IfEqual 2 LabelFor1 (Unconditionally LabelFor2))
+```
+In assembly:
+```
+.LcS6_info:
+	andl $7,%ebx
+	cmpq $6,%rbx
+	je .LcSb
+.LuSq:
+	cmpq $2,%rbx
+	je .LcSb
+.LcSa:
+	movl $stg_INTLIKE_closure+289,%ebx
+	addq $8,%rbp
+	jmp *(%rbp)
+.LcSb:
+	movl $stg_INTLIKE_closure+273,%ebx
+	addq $8,%rbp
+	jmp *(%rbp)
+```
+The existing algorithm produces identical code here (because of the
+findSingleValues optimization we described above).
+
+If a dichotomy plan is not possible, we then proceed to build a
+standard plan.  First we determine the `Heaviness` of the regions
+where heaviness is the ADT:
+```
+  data Heaviness
+    = LeftHeavy
+    | Balanced
+    | RightHeavy
+```
+Let regions = [r0, r1, ..., rn] (n as we described earlier is <= 3 if
+there is default, and <= 4 if there isn't).  We sum up the number of
+elements of each region in first half of the list, and in the last
+half of the list (if the list has an odd number of regions the middle
+region is ignored).  Let `prefix` be the left sum and `postfix` the
+right sum.  Let `total` be the sum of all regions including the middle
+region (if there is one).
+
+We consider the list `LeftHeavy` if 'prefix > (4 / 7) * total',
+`RightHeavy` if 'postfix > (4 / 7) * total' and `Balanced` otherwise.
+
+The Heaviness of the list or regions tells us whether we should
+generate a left-leaning or a right-leaning plan.  A left-leaning plan
+proceeds by comparing the input expression to the upper bound of r0 --
+since the regions are adjacent to each other with no gaps (a
+consequence of no-default), this allows up to dispatch of `r0`
+(meaning we know if we are in r0 or not) in one comparison.  Then we
+compare against the upper bound bound of r1 etc. For example for the
+following program:
+
+```
+f :: data Z = A1 | A2 | A3 | A4 | A5 | A6 | A7
+
+f A1 = 1
+f A2 = 1
+f A3 = 1
+f A4 = 2
+f A5 = 2
+f A6 = 2
+f A7 = 3
+```
+we generate the following left-leaning plan:
+```
+  IfLE False 3
+    (Unconditionally LabelFor1)
+    (IfLE False 6
+      (Unconditionally LabelFor2)
+      (Unconditionally LabelFor3))
+```
+while if the function was defined as follows:
+```
+f :: data Z = A1 | A2 | A3 | A4 | A5 | A6 | A7
+
+f A1 = 1
+f A2 = 2
+f A3 = 2
+f A4 = 3
+f A5 = 3
+f A6 = 3
+f A7 = 3
+```
+then we would generate a right leaning plan as follows:
+```
+  IfLT False 4
+    (IfLT False 2
+      (Unconditionally LabelFor1)
+      (Unconditionally LabelFor2))
+    (Unconditionally LabelFor3)
+```
+This way (under the assumption of uniformity) we minimize the number
+of comparisons until the label is found.
+
+Here is an example when we are dealing with 4 labels:
+```
+
+f :: data Z = A1 | A2 | A3 | A4 | A5 | A6 | A7
+
+f A1 = 1
+f A2 = 2
+f A3 = 2
+f A4 = 3
+f A5 = 3
+f A6 = 3
+f A7 = 4
+```
