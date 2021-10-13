@@ -392,7 +392,7 @@ Foo_zdwisHexDigit_info:
 	cmpq $102,%r14
 	ja .LcT5
 .LcTm:
-	movl $Foo_IsLower_closure+2,%ebx
+	movl $Foo_IsLower_closure+2,%ebx       -- return IsLower
 	jmp *(%rbp)
 .LuTv:
 	cmpq $48,%r14
@@ -401,13 +401,13 @@ Foo_zdwisHexDigit_info:
 	cmpq $57,%r14
 	ja .LcT5
 .LcT6:
-	movl $Foo_IsDigit_closure+3,%ebx
+	movl $Foo_IsDigit_closure+3,%ebx       -- return IsDigit
 	jmp *(%rbp)
 .LcT5:
-	movl $Foo_IsNone_closure+4,%ebx
+	movl $Foo_IsNone_closure+4,%ebx       -- return IsNone
 	jmp *(%rbp)
 .LcTg:
-	movl $Foo_IsUpper_closure+1,%ebx
+	movl $Foo_IsUpper_closure+1,%ebx      -- return IsUpper
 	jmp *(%rbp)
 ```
 If there is default we limit the number of labels we allow the pattern to capture to <= 3 and if there isn't to <= 4.  This segment type can be thought of a generalization of the special case of the existing algorithm described in Note [Two alts + default] in Switch.hs with the number of alts increased by one.  We do that because it affords us the flexibility to find better plans we certain cases as we describe below.  The number of segments is 4 for the no-default case because typically the fourth segment is identified for free due to the constrains imposed by input ADT (we will see examples below).
