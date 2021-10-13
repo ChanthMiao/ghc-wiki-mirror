@@ -300,7 +300,7 @@ else
       if (x >= 0) return 10;
       else return 100;
 ```
-That is a lot of code.  Could we do better here?  Can we use the fact that this function is returning only two values somehow?  We describe our new approach below which now generates for following.
+That is a lot of code.  Could we do better here?  Can we use the fact that this function is returning only two values somehow?  We describe our new approach below which now generates the following code:
 
 ```
 .Lc15M_info:
