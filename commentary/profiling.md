@@ -20,7 +20,7 @@ Cost-center profiling in GHC, e.g. of SCCs, consists of the following components
 - The `StgSCC` constructor in STG, and code generation for it [compiler/GHC/StgToCmm/Prof.hs](https://gitlab.haskell.org/ghc/ghc/blob/master/compiler/GHC/StgToCmm/Prof.hs)
 - A pass over STG in [compiler/profiling/SCCfinal.hs](https://gitlab.haskell.org/ghc/ghc/blob/master/compiler/profiling/SCCfinal.hs) to collect cost centres so that they can be statically declared by [compiler/GHC/Driver/CodeOutput.hs](https://gitlab.haskell.org/ghc/ghc/blob/master/compiler/GHC/Driver/CodeOutput.hs), and add extra SCCs in the case of `-fprof-auto`; see also [compiler/profiling-notes](https://gitlab.haskell.org/ghc/ghc/blob/master/compiler/profiling-notes)
 - Code-generation for setting labels found in [compiler/GHC/StgToCmm/Prof.hs](https://gitlab.haskell.org/ghc/ghc/blob/master/compiler/GHC/StgToCmm/Prof.hs), in particular saving and restoring CC labels and well as counting ticks; note that cost-centres even get their own constructor in C-- as CC_Labels (cost-centre labels).
-- Runtime support for initializing and manipulating the actual runtime `CostCentre` structs which store information, in [rts/Profiling.c](https://gitlab.haskell.org/ghc/ghc/blob/master/rts/Profiling.c); headers are located in [includes/rts/prof/CCS.h](https://gitlab.haskell.org/ghc/ghc/blob/master/includes/rts/prof/CCS.h)
+- Runtime support for initializing and manipulating the actual runtime `CostCentre` structs which store information, in [rts/Profiling.c](https://gitlab.haskell.org/ghc/ghc/blob/master/rts/Profiling.c); headers are located in [includes/rts/prof/CCS.h](https://gitlab.haskell.org/ghc/ghc/blob/master/rts/include/rts/prof/CCS.h)
 
 ## Ticky-ticky profiling
 

@@ -21,7 +21,7 @@ We begin by discussing the basic abstractions used in the scheduler.
 ## OS Threads
 
 
-Source files: [includes/rts/OSThreads.h](https://gitlab.haskell.org/ghc/ghc/blob/master/includes/rts/OSThreads.h),
+Source files: [includes/rts/OSThreads.h](https://gitlab.haskell.org/ghc/ghc/blob/master/rts/include/rts/OSThreads.h),
 [rts/win32/OSThreads.c](https://gitlab.haskell.org/ghc/ghc/blob/master/rts/win32/OSThreads.c), [rts/posix/OSThreads.c](https://gitlab.haskell.org/ghc/ghc/blob/master/rts/posix/OSThreads.c)
 
 
@@ -46,7 +46,7 @@ When running on an SMP, we begin by creating the number of OS threads specified 
 
 
 The RTS provides a platform-independent abstraction layer for OS
-threads in [includes/rts/OSThreads.h](https://gitlab.haskell.org/ghc/ghc/blob/master/includes/rts/OSThreads.h).
+threads in [includes/rts/OSThreads.h](https://gitlab.haskell.org/ghc/ghc/blob/master/rts/include/rts/OSThreads.h).
 
 ## Tasks
 

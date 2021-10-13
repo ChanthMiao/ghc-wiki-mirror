@@ -25,12 +25,12 @@ Unlifted types cannot currently be used to represent terminating functions: an u
 ## Heap Objects
 
 
-All heap objects have the same basic layout, embodied by the type `StgClosure` in [Closures.h](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/rts/storage/Closures.h).  The diagram below shows the layout of a heap object:
+All heap objects have the same basic layout, embodied by the type `StgClosure` in [Closures.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/rts/storage/Closures.h).  The diagram below shows the layout of a heap object:
 
 ![](heap-object.png)
 
 
-A heap object always begins with a *header*, defined by `StgHeader` in [Closures.h](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/rts/storage/Closures.h):
+A heap object always begins with a *header*, defined by `StgHeader` in [Closures.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/rts/storage/Closures.h):
 
 ```c
 typedef struct {
@@ -59,7 +59,7 @@ The compiler also needs to know the layout of heap objects, and the way this inf
 ## Info Tables
 
 
-The info table contains all the information that the runtime needs to know about the closure.  The layout of info tables is defined by `StgInfoTable` in [InfoTables.h](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/rts/storage/InfoTables.h).  The basic info table layout looks like this:
+The info table contains all the information that the runtime needs to know about the closure.  The layout of info tables is defined by `StgInfoTable` in [InfoTables.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/rts/storage/InfoTables.h).  The basic info table layout looks like this:
 
 ![](basic-itbl.png)
 
@@ -68,8 +68,8 @@ Where:
   
 
 - The *closure type* is a constant describing the kind of closure this is (function, thunk, constructor etc.).  All
-  the closure types are defined in [ClosureTypes.h](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/rts/storage/ClosureTypes.h), and many of them have corresponding C struct
-  definitions in [Closures.h](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/rts/storage/Closures.h).
+  the closure types are defined in [ClosureTypes.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/rts/storage/ClosureTypes.h), and many of them have corresponding C struct
+  definitions in [Closures.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/rts/storage/Closures.h).
 
 - The *SRT bitmap* field is used to support [garbage collection of CAFs](commentary/rts/storage/gc/CAFs).
 
@@ -136,9 +136,9 @@ The payload consists of a mixture of pointers and non-pointers, described by a b
 The size field gives the size of the payload, and each bit of the bitmap is 0 if the corresponding word of payload contains a pointer to a live object.
 
 
-The macros `MK_SMALL_BITMAP`, `BITMAP_SIZE`, and `BITMAP_BITS` in [InfoTables.h](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/rts/storage/InfoTables.h) provide ways to conveniently operate on small bitmaps.
+The macros `MK_SMALL_BITMAP`, `BITMAP_SIZE`, and `BITMAP_BITS` in [InfoTables.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/rts/storage/InfoTables.h) provide ways to conveniently operate on small bitmaps.
 
-**Large bitmaps.** If the size of the stack frame is larger than the 27 words that a small bitmap can describe, then the fallback mechanism is the large bitmap.  A large bitmap is a separate structure, containing a single word size and a multi-word bitmap: see `StgLargeBitmap` in [InfoTables.h](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/rts/storage/InfoTables.h).
+**Large bitmaps.** If the size of the stack frame is larger than the 27 words that a small bitmap can describe, then the fallback mechanism is the large bitmap.  A large bitmap is a separate structure, containing a single word size and a multi-word bitmap: see `StgLargeBitmap` in [InfoTables.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/rts/storage/InfoTables.h).
 
 ---
 
@@ -161,7 +161,7 @@ To find out whether a particular object is dynamic or static, use the [HEAP_ALLO
 Dynamic objects have a minimum size, because every object must be big
 enough to be overwritten by a
 forwarding pointer ([Forwarding Pointers](#forwarding-pointers)) during GC.
-The minimum size of the payload is given by `MIN_PAYLOAD_SIZE` in [includes/rts/Constants.h](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/rts/Constants.h).
+The minimum size of the payload is given by `MIN_PAYLOAD_SIZE` in [includes/rts/Constants.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/rts/Constants.h).
 
 ### Static objects
 
@@ -179,7 +179,7 @@ all the static objects in order to [garbage collect CAFs](commentary/rts/CAFs).
 The static link field resides after the normal payload, so that the
 static variant of an object has compatible layout with the dynamic
 variant.  To access the static link field of a closure, use the
-`STATIC_LINK()` macro from [includes/rts/storage/ClosureMacros.h](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/rts/storage/ClosureMacros.h).
+`STATIC_LINK()` macro from [includes/rts/storage/ClosureMacros.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/rts/storage/ClosureMacros.h).
 
 ---
 
@@ -540,7 +540,7 @@ TSOs are ordinary objects that live in the heap, so we can use the existing allo
 GHC keeps divides stacks into stack chunks, with logic to handle stack underflow and overflow: [https://www.haskell.org/ghc/blog/20101215-stack-chunks.html](https://www.haskell.org/ghc/blog/20101215-stack-chunks.html)
 
 
-The TSO structure contains several fields.  For full details see [includes/rts/storage/TSO.h](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/rts/storage/TSO.h).  Some of the more important fields are:
+The TSO structure contains several fields.  For full details see [includes/rts/storage/TSO.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/rts/storage/TSO.h).  Some of the more important fields are:
 
 - *link*: field for linking TSOs together in a list.  For example, the threads blocked on an `MVar` are kept in
   a queue threaded through the link field of each TSO.
@@ -553,7 +553,7 @@ The TSO structure contains several fields.  For full details see [includes/rts/s
   - `ThreadRelocated`: this thread ran out of stack and has been relocated to a larger TSO; the link field points
     to its new location.
   - `ThreadComplete`: this thread has finished and can be garbage collected when it is unreachable.
-- *why_blocked*: for a blocked thread, indicates why the thread is blocked.  See [includes/rts/Constants.h](https://gitlab.haskell.org/ghc/ghc/tree/master/includes/rts/Constants.h) for
+- *why_blocked*: for a blocked thread, indicates why the thread is blocked.  See [includes/rts/Constants.h](https://gitlab.haskell.org/ghc/ghc/tree/master/rts/include/rts/Constants.h) for
   the list of possible values.
 - *block_info*: for a blocked thread, gives more information about the reason for blockage, eg. when blocked on an
 
@@ -584,16 +584,16 @@ There are two “levels” at which a new object can be added. The simplest way 
 You also will need to define primops to manipulate your new object type, if you want to manipulate it from Haskell-land (and not have it be RTS-only).  See [wiki:Commentary/PrimOps](commentary/prim-ops) for more details.
 
 
-An object defined this way is completely unknown to the code generator, so it tends to be pretty inflexible.  However, GHC defines lots of these, esp. of the nullary kind; they’re a convenient way of getting non-NULL sentinel values for important pieces of the runtime (e.g. `END_TSO_QUEUE`).  A particularly complicated example of an object of this kind is `StgMVarTSOQueue`, which even has a definition in [includes/rts/storage/Closures.h](https://gitlab.haskell.org/ghc/ghc/blob/master/includes/rts/storage/Closures.h), but is simply has closure type `PRIM`. When you use a pre-existing closure type, you must follow their layout; for example, `PRIM` must have pointers first, non-pointers after, and you can’t do anything fancy (like have attached variable size payloads, e.g. for arrays.)
+An object defined this way is completely unknown to the code generator, so it tends to be pretty inflexible.  However, GHC defines lots of these, esp. of the nullary kind; they’re a convenient way of getting non-NULL sentinel values for important pieces of the runtime (e.g. `END_TSO_QUEUE`).  A particularly complicated example of an object of this kind is `StgMVarTSOQueue`, which even has a definition in [includes/rts/storage/Closures.h](https://gitlab.haskell.org/ghc/ghc/blob/master/rts/include/rts/storage/Closures.h), but is simply has closure type `PRIM`. When you use a pre-existing closure type, you must follow their layout; for example, `PRIM` must have pointers first, non-pointers after, and you can’t do anything fancy (like have attached variable size payloads, e.g. for arrays.)
 
 
 To go the whole hog, you need to add a new closure type. This is considerably more involved:
 
-- [includes/rts/storage/ClosureTypes.h](https://gitlab.haskell.org/ghc/ghc/blob/master/includes/rts/storage/ClosureTypes.h): Add the new closure type
-- [includes/rts/storage/ClosureMacros.h](https://gitlab.haskell.org/ghc/ghc/blob/master/includes/rts/storage/ClosureMacros.h): Add a case to `closure_sizeW` for your struct. However, if your structure is really simple (i.e. can be completely described by the info table, an entry here is not necessary.
-- [includes/rts/storage/Closures.h](https://gitlab.haskell.org/ghc/ghc/blob/master/includes/rts/storage/Closures.h): Define a struct for the closure, including the *header* as well as your payloads. Sometimes, you will have more than one info table per struct, e.g. if you have `DIRTY` and `CLEAN` variants. As a general rule, GC'd pointers should go before general fields.
+- [includes/rts/storage/ClosureTypes.h](https://gitlab.haskell.org/ghc/ghc/blob/master/rts/include/rts/storage/ClosureTypes.h): Add the new closure type
+- [includes/rts/storage/ClosureMacros.h](https://gitlab.haskell.org/ghc/ghc/blob/master/rts/include/rts/storage/ClosureMacros.h): Add a case to `closure_sizeW` for your struct. However, if your structure is really simple (i.e. can be completely described by the info table, an entry here is not necessary.
+- [includes/rts/storage/Closures.h](https://gitlab.haskell.org/ghc/ghc/blob/master/rts/include/rts/storage/Closures.h): Define a struct for the closure, including the *header* as well as your payloads. Sometimes, you will have more than one info table per struct, e.g. if you have `DIRTY` and `CLEAN` variants. As a general rule, GC'd pointers should go before general fields.
 - [utils/deriveConstants/Main.hs](https://gitlab.haskell.org/ghc/ghc/blob/master/utils/deriveConstants/Main.hs): Tell the deriveConstants script to generate a bunch of accessors so you can manipulate the struct from C-- code.
-- [rts/ClosureFlags.c](https://gitlab.haskell.org/ghc/ghc/blob/master/rts/ClosureFlags.c): Update the closure flags (see [includes/rts/storage/InfoTables.h](https://gitlab.haskell.org/ghc/ghc/blob/master/includes/rts/storage/InfoTables.h) for info on what the flags mean "Closure flags") and the sanity check at the bottom of the file
+- [rts/ClosureFlags.c](https://gitlab.haskell.org/ghc/ghc/blob/master/rts/ClosureFlags.c): Update the closure flags (see [includes/rts/storage/InfoTables.h](https://gitlab.haskell.org/ghc/ghc/blob/master/rts/include/rts/storage/InfoTables.h) for info on what the flags mean "Closure flags") and the sanity check at the bottom of the file
 - [rts/Linker.c](https://gitlab.haskell.org/ghc/ghc/blob/master/rts/Linker.c): Add your info tables so they are linked correctly
 - [rts/Printer.c](https://gitlab.haskell.org/ghc/ghc/blob/master/rts/Printer.c): Print out a description of the closure. You need to handle all of the info tables you defined.
 - [rts/sm/Sanity.c](https://gitlab.haskell.org/ghc/ghc/blob/master/rts/sm/Sanity.c): Update sanity checks so they know about your new closure type

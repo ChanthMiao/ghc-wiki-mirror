@@ -14,7 +14,7 @@ The code generator needs to know the layout of heap objects, because it generate
 
 Currently we solve the problem this way:
 
-- C types representing heap objects are defined in the C header files, see for example [includes/rts/storage/Closures.h](https://gitlab.haskell.org/ghc/ghc/blob/master/includes/rts/storage/Closures.h).
+- C types representing heap objects are defined in the C header files, see for example [includes/rts/storage/Closures.h](https://gitlab.haskell.org/ghc/ghc/blob/master/rts/include/rts/storage/Closures.h).
 
 - A C program, [includes/mkDerivedConstants.c](https://gitlab.haskell.org/ghc/ghc/blob/master/includes/mkDerivedConstants.c),  `#includes` the runtime headers.
   This program is built and run when you type `make` or `make boot` in `includes/`.  It is
