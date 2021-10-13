@@ -78,9 +78,47 @@ Deficiencies of the existing algorithm:
 The algorithm works quite well producing fairly good plans with either simple values at the leaves or JumpTables.  This proposal is about some new ideas that could allow us to do better for certain (I want to claim wide) range of cases occurring in practice.
 
 Here are some examples where the existing algorithm doesn't do so well:
-1. Sometimes it generates superfluous comparisons like for a example the issue https://gitlab.haskell.org/ghc/ghc/-/issues/19290 with an analysis by Henry on what goes wrong.
+1. Sometimes it generates superfluous comparisons as in the following example:
+```
+data DD = A1 | A2 | A3 | A4 | A5 
 
-2. For a function like the following:
+f2 :: DD -> Bool
+f2 A1 = False
+f2 A2 = True
+f2 A3 = True
+f2 A4 = True
+f2 A5 = True
+```
+
+ghc 8.8.4 (at -O2) generates the following assembly code:
+
+```
+.Lc1dy_info:
+.Lc1dy:
+	andl $7,%ebx
+	cmpq $5,%rbx     <<<  superfluous
+	jae .Lc1dD       <<<  superfluous
+.Lu1e0:
+	cmpq $2,%rbx
+	jae .Lc1dD
+.Lc1dC:
+	movl $ghczmprim_GHCziTypes_False_closure+1,%ebx
+	addq $8,%rbp
+	jmp *(%rbp)
+.Lc1dD:
+	movl $ghczmprim_GHCziTypes_True_closure+2,%ebx
+	addq $8,%rbp
+	jmp *(%rbp)
+.Lc1dJ:
+	movl $ZZZZ_f2_closure,%ebx
+	jmp *-8(%r13)
+```
+
+The 2nd and 3rd instructions are superfluous.  All we need here is the test against 2 and if we are greater or equal to 2 we can return True.  Comparing against 5 does nothing.
+
+See issue https://gitlab.haskell.org/ghc/ghc/-/issues/19290 with an analysis by Henry on what goes wrong.
+
+2. The only tool of the current algorithm for producing efficiently compiled leaves is the jump table.  For a function like the following:
 ```
 data ZZ = A1 | A2 | A3 | A4 | A5 | A6
 
@@ -284,9 +322,9 @@ f 700 = 9
 f 800 = 10
 f _ = 9999
 ```
-Here we have a large chunk at the start of the interval that is a perfect candidate for a JumpTable (consecutive values) followed by some scattered value at the end.
+Here we have a large chunk at the start of the interval that is a perfect candidate for a JumpTable (which the current algorithm correctly identifies), followed by some scattered value at the end.
 
-The existing algorithm produces a binary tree with the JumpTable as a leaf, but the binary tree produced, is balanced with respect to the various flat plans produced by the algorithm.  This is not optimal if our goal is to minimize the expected number of comparisons and proceed with the rest of the computation as quickly as possible.  The N values at the start are considered 1 plan, and we do binary search on the M + 1 values (it wouldn't be exactly M + 1 because of the introduction of more plans to deal with defaults but the point remains).  But since N >> M a better plan here would be to first examine the boundary of the N values first because with one comparison you can identify the largest interval of interest.  So it is always better to do binary search taking into account the weight (the number of cases being dispatched) of each of the leaves of the tree and not the number of leaves that you have.  Assuming the cases occur uniformly, this approach minimizes the expected number of comparisons until the label is found.
+The existing algorithm produces a binary tree with the JumpTable as a leaf, but the binary tree produced, is balanced with respect to the various flat plans produced by the algorithm.  This is not optimal if our goal is to minimize the expected number of comparisons and proceed with the rest of the computation as quickly as possible.  The N values at the start are considered 1 leaf, and we do binary search on the M + 1 leaves (it wouldn't be exactly M + 1 because of the introduction of more plans to deal with defaults but the point remains).  But since N >> M a better plan here would be to first examine the boundary of the N values first because with one comparison you can identify the largest interval of interest.  Under the assumption of uniformity, it is always better to do binary search taking into account the weight (the number of cases being dispatched) of each of the leaves of the tree and not the number of leaves that you have.  This approach minimizes the expected number of comparisons until the label is found.
 
 New algorithm:
 --------------
@@ -332,9 +370,9 @@ isHexDigit _   = IsNone
 ```
 In this kind of segment we identify regions with cases consecutive going to the same label.  For the above we would have identified three such regions:
 ```
-region1 = { label = IsDigitLabel, lb = '0', ub = '9' }
-region2 = { label = IsUpperLabel, lb = 'A', ub = 'F' }
-region3 = { label = IsLowerLabel, lb = 'a', ub = 'f' }
+region1 = { label = IsDigitLabel, lb = '0', ub = '9' }   -- 48 to 57
+region2 = { label = IsUpperLabel, lb = 'A', ub = 'F' }   -- 65 to 90
+region3 = { label = IsLowerLabel, lb = 'a', ub = 'f' }   -- 97 to 122
 ```
 Note that the regions don't have to be consecutive among themselves, only within.  But if they are, this provides us with more opportunities for better plans -- we explore this below.  Also note that we impose no restriction on the number of labels, only on the number of regions.  The label for region2 and region3 could for example have been the same and we also take advantage of such happy coincidences as we will see below.
 
