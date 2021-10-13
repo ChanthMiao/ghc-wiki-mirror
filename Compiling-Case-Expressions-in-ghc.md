@@ -371,14 +371,44 @@ isHexDigit _   = IsNone
 In this kind of segment we identify regions with cases consecutive going to the same label.  For the above we would have identified three such regions:
 ```
 region1 = { label = IsDigitLabel, lb = '0', ub = '9' }   -- 48 to 57
-region2 = { label = IsUpperLabel, lb = 'A', ub = 'F' }   -- 65 to 90
-region3 = { label = IsLowerLabel, lb = 'a', ub = 'f' }   -- 97 to 122
+region2 = { label = IsUpperLabel, lb = 'A', ub = 'F' }   -- 65 to 70
+region3 = { label = IsLowerLabel, lb = 'a', ub = 'f' }   -- 97 to 102
 ```
 Note that the regions don't have to be consecutive among themselves, only within.  But if they are, this provides us with more opportunities for better plans -- we explore this below.  Also note that we impose no restriction on the number of labels, only on the number of regions.  The label for region2 and region3 could for example have been the same and we also take advantage of such happy coincidences as we will see below.
 
 This is then compiled into the following:
 ```
-put correct code here...
+Foo_zdwisHexDigit_info:
+.LcTs:
+	cmpq $65,%r14
+	jb .LuTv
+.LuTx:
+	cmpq $70,%r14
+	jbe .LcTg
+.LuTy:
+	cmpq $97,%r14
+	jb .LcT5
+.LuTz:
+	cmpq $102,%r14
+	ja .LcT5
+.LcTm:
+	movl $Foo_IsLower_closure+2,%ebx
+	jmp *(%rbp)
+.LuTv:
+	cmpq $48,%r14
+	jb .LcT5
+.LuTw:
+	cmpq $57,%r14
+	ja .LcT5
+.LcT6:
+	movl $Foo_IsDigit_closure+3,%ebx
+	jmp *(%rbp)
+.LcT5:
+	movl $Foo_IsNone_closure+4,%ebx
+	jmp *(%rbp)
+.LcTg:
+	movl $Foo_IsUpper_closure+1,%ebx
+	jmp *(%rbp)
 ```
 If there is default we limit the number of labels we allow the pattern to capture to <= 3 and if there isn't to <= 4.  This segment type can be thought of a generalization of the special case of the existing algorithm described in Note [Two alts + default] in Switch.hs with the number of alts increased by one.  We do that because it affords us the flexibility to find better plans we certain cases as we describe below.  The number of segments is 4 for the no-default case because typically the fourth segment is identified for free due to the constrains imposed by input ADT (we will see examples below).
 
