@@ -562,8 +562,8 @@ region is ignored).  Let `prefix` be the left sum and `postfix` the
 right sum.  Let `total` be the sum of all regions including the middle
 region (if there is one).
 
-We consider the list `LeftHeavy` if 'prefix > (4 / 7) * total',
-`RightHeavy` if 'postfix > (4 / 7) * total' and `Balanced` otherwise.
+We consider the list `LeftHeavy` if `prefix > (4 / 7) * total`,
+`RightHeavy` if `postfix > (4 / 7) * total` and `Balanced` otherwise.
 
 The Heaviness of the list or regions tells us whether we should
 generate a left-leaning or a right-leaning plan.  A left-leaning plan
