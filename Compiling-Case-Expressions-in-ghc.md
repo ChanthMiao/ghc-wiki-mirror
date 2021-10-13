@@ -412,10 +412,9 @@ Foo_zdwisHexDigit_info:
 ```
 If there is default we limit the number of labels we allow the pattern to capture to <= 3 and if there isn't to <= 4.  This segment type can be thought of a generalization of the special case of the existing algorithm described in Note [Two alts + default] in Switch.hs with the number of alts increased by one.  We do that because it affords us the flexibility to find better plans we certain cases as we describe below.  The number of segments is 4 for the no-default case because typically the fourth segment is identified for free due to the constrains imposed by input ADT (we will see examples below).
 
-One may question whether this is indeed a good plan -- if for example the input expression is > 'f' we will do 6 comparisons until we discover that.  We address this concern 
-
 Compilation of Contiguous Regions Segment:
 ------------------------------------------
+We now go through the details of how Contiguous Regions are compiled.  We deal with the the presence and absence of default label separately.
 
 No-default case:
 ----------------
