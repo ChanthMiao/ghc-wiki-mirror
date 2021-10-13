@@ -55,7 +55,7 @@ In compiling case expressions ghc proceeds by first identifying some cases we wa
 ```
    IfEqual x label defLabel
 ```
-2. A map with two entries [(x1, label1), (x2, label2)] and no default (this would be an if expression). This we compile into:
+2. A map with two entries [(x1, label1), (x2, label2)] and no default (this could be for example an if expression). This we compile into:
 ```
   IfEqual x1 label1 label2
 ```
