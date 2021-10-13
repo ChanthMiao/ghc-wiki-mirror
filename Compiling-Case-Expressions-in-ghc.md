@@ -71,7 +71,7 @@ Some of those Maps though may be very small (consisting of one less than 5 eleme
 
 We then construct a FlatSwitchPlan, which is a list SwitchPlans sepatated by an integer -- with the semantics being that if the expression is less than the integer we go to the left plan, otherwise the right plan.  During this construction, if we have a default, we interleave segments that jump to default between the maps.
 
-Following that, we perform an optimization that replaces two less-than branches by a single equal-to-test (findSingleValues in the source), and finally we are ready to building the tree.  We split the plans in the FlatSwitchPlan in two, introduce an `IfLT` node to construct a node in the tree, and recurs on the left and right side of the list of plans.
+Following that, we perform an optimization that replaces two less-than branches by a single equal-to-test (findSingleValues in the source), and finally we are ready to building the tree.  We split the plans in the FlatSwitchPlan in two by introducing an `IfLT` node, and recur on the left and right side of the list of plans.
 
 Deficiencies of the existing algorithm:
 ---------------------------------------
