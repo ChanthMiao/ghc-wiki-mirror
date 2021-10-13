@@ -18,7 +18,7 @@ signed   = True
 ```
 Notice that the previous ghc stages have identified common subexpressions so the labels for 1 and 2 are identical since in both cases we return 200 -- this happens not only for simple expessions like integers but also for any complex expression -- we will make use of this property in the new code generator to great effect.
 
-As a second example for a program like the following:
+As a second example consider a program doing case on an ADT:
 ```
 data T = T1 | T2 | T3
 
