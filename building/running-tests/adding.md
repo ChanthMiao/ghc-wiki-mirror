@@ -232,6 +232,8 @@ test('prog013', extra_files(['Bad.hs','Good.hs']), ghci_script,['prog013.script'
 
 - **req_interp**            require the interpreter (i.e. one of ghci, annotations, TH, etc)
 
+- **req_hadrian(["target0","target1"])**           requires hadrian targets "target0" and "target1"
+
 - **ignore_stdout**         don't try to compare stdout output
 - **ignore_stderr**         don't try to compare stderr output
 - **normalise_errmsg_fun(f)**  pass the stderr through `f` before comparing
