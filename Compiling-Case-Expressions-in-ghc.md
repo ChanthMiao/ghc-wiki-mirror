@@ -670,7 +670,7 @@ in assembly:
 	jmp stg_ap_p_fast
 ```
 
-In instead f was defined as follows:
+Instead if `f` was defined as follows:
 ```
 data Z = A1 | A2 | A3 | A4 | A5 | A6 | A7
 
