@@ -618,7 +618,6 @@ of comparisons until the label is found.
 
 Here is an example when we are dealing with 4 labels:
 ```
-
 f :: data Z = A1 | A2 | A3 | A4 | A5 | A6 | A7
 
 f A1 = 1
@@ -628,4 +627,101 @@ f A4 = 3
 f A5 = 3
 f A6 = 3
 f A7 = 4
+```
+The four regions here are (LabelFor1, [1]), (LabelFor2, [2,2]),
+(LabelFor3, [3,3,3]), and (LabelFor4, [4]).  This layout turns out to
+be balanced (because `(1 + 2) <= (4 / 7) * 7 && (3 + 1) <= (4 / 7) *
+7`) so we produce the balanced plan:
+```
+  IfLT False 4 (IfLT False 2 LabelFor1 LabelFor2) (IfLE False 6 LabelFor3 LabelFor4)
+```
+in assembly:
+```
+.LcWp_info:
+	movq 8(%rbp),%rax
+	andl $7,%ebx
+	cmpq $4,%rbx
+	jb .LuWZ
+.LuX0:
+	cmpq $6,%rbx
+	jbe .LcWw
+.LcWz:
+	movl $Foo_f1_closure+1,%r14d    -- return 4
+	movq %rax,%rbx
+	addq $16,%rbp
+	jmp stg_ap_p_fast
+.LcWw:
+	movl $Foo_f2_closure+1,%r14d    -- return 3
+	movq %rax,%rbx
+	addq $16,%rbp
+	jmp stg_ap_p_fast
+.LuWZ:
+	cmpq $2,%rbx
+	jb .LcWt
+.LcWu:
+	movl $Foo_f3_closure+1,%r14d     -- return 2
+	movq %rax,%rbx
+	addq $16,%rbp
+	jmp stg_ap_p_fast
+.LcWt:
+	movl $Foo_f4_closure+1,%r14d     -- return 1
+	movq %rax,%rbx
+	addq $16,%rbp
+	jmp stg_ap_p_fast
+```
+
+In instead f was defined as follows:
+```
+data Z = A1 | A2 | A3 | A4 | A5 | A6 | A7
+
+f A1 = 1
+f A2 = 2
+f A3 = 3
+f A4 = 4
+f A5 = 4
+f A6 = 4
+f A7 = 4
+```
+it would be considered right-heavy (since `5 > (4 / 7) * 7`) for 
+which we generate the following plan:
+```
+  IfLT False 4 (IfLT False 3 (IfLT False 2 LabelFor1 LabelFor2) LabelFor3) LabelFor4
+```
+so we determine that LabelFor4 is the correct target label in just one comparison.
+In assembly:
+```
+.LcWp_info:
+	movq 8(%rbp),%rax
+	andl $7,%ebx
+	cmpq $4,%rbx
+	jae .LcWw
+.LuWZ:
+	cmpq $3,%rbx
+	jae .LcWv
+.LuX0:
+	cmpq $2,%rbx
+	jb .LcWt
+.LcWu:
+	movl $Foo_f3_closure+1,%r14d     -- return 2
+	movq %rax,%rbx
+	addq $16,%rbp
+	jmp stg_ap_p_fast
+.LcWt:
+	movl $Foo_f4_closure+1,%r14d     -- return 1
+	movq %rax,%rbx
+	addq $16,%rbp
+	jmp stg_ap_p_fast
+.LcWw:
+	movl $Foo_f1_closure+1,%r14d     -- return 4
+	movq %rax,%rbx
+	addq $16,%rbp
+	jmp stg_ap_p_fast
+.LcWC:
+	movl $Foo_zdwf_closure,%ebx
+	jmp *-8(%r13)
+.LcWv:
+	movl $Foo_f2_closure+1,%r14d     -- return 3
+	movq %rax,%rbx
+	addq $16,%rbp
+	jmp stg_ap_p_fast
 ```
