@@ -68,12 +68,9 @@ If you have any questions along the way don't hesitate to reach out to the commu
 
 ### Finding a ticket
 
-
-
 Now that you can build GHC, let's get hacking. But first, you'll need to identify a goal. GHC's GitLab tickets are a great place to find starting points. You are encouraged to ask for a starting point on IRC or the `ghc-devs` [mailing list](mailing-lists-and-irc). There someone familiar with the process can help you find a ticket that matches your expertise and help you when you get stuck.
 
 If you want to get a taste for possible starting tasks, the ~newcomer label collects tickets that appear to be "low-hanging fruit" -- things that might be reasonable for a newcomer to GHC hacking. Of course, we can't ever be sure of how hard a task is before doing it, so apologies if one of these is too hard.
-
 
 ### Advice
 
@@ -95,5 +92,18 @@ If you want to get a taste for possible starting tasks, the ~newcomer label coll
 
 - There is a blog post series by Stephen Diehl that provides an overview of many important data structures and contains links to other sources of information: [Dive into GHC](http://www.stephendiehl.com/posts/ghc_01.html)
 
+### Further reading
+ There are many places in GHC where acronyms and terms are used to refer to specific optimizations. If you are new to working on the compiler these can be a barrier. Below is a list of references which should help you make sense of various `[Note]`s in GHC.
+
+ - [Constructed Product Result](https://www.microsoft.com/en-us/research/publication/constructed-product-result-analysis-haskell/) (CPR) analysis
+ - The [Worker/Wrapper](https://www.cs.nott.ac.uk/~pszgmh/wrapper.pdf) transformation
+ - [Lambda lifting](https://arxiv.org/abs/1910.11717)
+ - [Join points](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/11/join-points-pldi17.pdf)
+ - There are several techniques described in Andre Santos' [thesis](https://www.microsoft.com/en-us/research/publication/compilation-transformation-non-strict-functional-languages/). The thesis is quite good and has a lot of descriptive code examples, so it is worth reading. Here is an (incomplete) list of techniques and relevant sections in the thesis:
+   - Local Optimization, such as dead code elimination, case merging,case elimination, Constructor reuse and much more (see Section 3)
+   - Let floating (See Section 3, 5)
+   - Inlining     (See Section 6)
+   - Static Argument Transformation (See Section 7)
+ - See also [this](https://www.microsoft.com/en-us/research/wp-content/uploads/1998/09/comp-by-trans-scp.pdf) overview paper by Santos and SPJ.
 
 Happy hacking!
