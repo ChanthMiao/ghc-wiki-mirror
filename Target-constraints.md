@@ -47,7 +47,7 @@
 
   - **Does Asterius use function-local variables for anything?**
 
-  - Control flow must be structured.  (Structured control flow can be recovered from a CFG; see [Asterius #22](https://github.com/tweag/asterius/issues/22).)
+  - Control flow must be structured.  (Structured control flow can be recovered from a CFG; see [Asterius #22](https://github.com/tweag/asterius/issues/22).)  (Now transitioned back to Binaryen relooper.)
 
   - The contents of a WebAssembly call stack are inaccessible at run time, even in principle.
 
@@ -58,6 +58,10 @@
   - Memory is byte-addressed and is little-endian.  Multibyte accesses need not be aligned, but for performance reasons, alignment may be desirable.
 
   - Indirect branches are available for function calls only, and in principle, an indirect branch requires a dynamic type check (to make sure the call meets expectations for the operand stack).
+
+  - Cross-compilation is fundamental: We expect the development model to be "develop on the desktop, deploy to WASM."  When running GHC, can't the baselibs from the native platform; need a mechanism to get the WASM base libs.  (Problem is solved using Nix.)  Nix builds the right thing and puts them in the right places.
+    (Run Hadrian from within the Nix build.)  Generates some header files and .hs files. 
+
 
 
 ## POSIX address space running LLVM code
@@ -75,6 +79,17 @@ And see https://gitlab.haskell.org/ghc/ghc/-/issues/20370#note_378096
 ## Asterius wish list
 
   - 32-bit pointers from GHC (pointer tagging presumed OK in least significant _two_ bits)
+
+  - Cross-platform development model
+
+  - Principled way to add a back end to GHC (currently being done with the patched hooks) 
+
+  - Sane story about baselibs, ideally solve
+  
+  - (Structured control flow, if it wouldn't compromise native performance.)
+
+  - Would prefer to go through LLVM.
+  
 
 ## LLVM wish list
 
