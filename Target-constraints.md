@@ -62,6 +62,7 @@
   - Cross-compilation is fundamental: We expect the development model to be "develop on the desktop, deploy to WASM."  When running GHC, can't the baselibs from the native platform; need a mechanism to get the WASM base libs.  (Problem is solved using Nix.)  Nix builds the right thing and puts them in the right places.
     (Run Hadrian from within the Nix build.)  Generates some header files and .hs files. 
 
+  - External tool chain can coalesce local variables, so Asterius/GHC doesn't have to.
 
 
 ## POSIX address space running LLVM code
@@ -89,6 +90,8 @@ And see https://gitlab.haskell.org/ghc/ghc/-/issues/20370#note_378096
   - (Structured control flow, if it wouldn't compromise native performance.)
 
   - Would prefer to go through LLVM.
+  
+  - Abstract over calling convention, use registers more effectively (also would help LLVM) 
   
 
 ## LLVM wish list
