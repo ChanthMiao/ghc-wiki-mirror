@@ -13,3 +13,6 @@ As it depends on `-I.hie-bios/stage0/lib` being initialized, it only works in co
 If you're using [ghc.nix](https://github.com/alpmestan/ghc.nix), you'll very likely want use it the provide the dependencies for the previously described plugins.
 
 This can easily be done with the [Nix Environment Selector](https://marketplace.visualstudio.com/items?itemName=arrterian.nix-env-selector) plugin.
+
+## Git Submodules
+By default VSCode only detects 10 Git submodules. That's less than the number of submodules the GHC project uses. To fix this increase the setting `git.detectSubmodulesLimit`.
