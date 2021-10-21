@@ -79,6 +79,9 @@ And see https://gitlab.haskell.org/ghc/ghc/-/issues/20370#note_378096
 
 ## Asterius wish list
 
+  - Better support for foreign imports from JavaScript (centered
+    around type checking and desugaring of foreign code)
+
   - 32-bit pointers from GHC (pointer tagging presumed OK in least significant _two_ bits)
 
   - Cross-platform development model
@@ -92,6 +95,17 @@ And see https://gitlab.haskell.org/ghc/ghc/-/issues/20370#note_378096
   - Would prefer to go through LLVM.
   
   - Abstract over calling convention, use registers more effectively (also would help LLVM) 
+
+  - Relieve this pain point: a global register like `R1` might be used
+    as a pointer in some places and as a non-pointer in others.  Life
+    would be easier if the kind of `R1` did not change.
+    
+  - Support within the GHC run-time system for `JSVal`
+
+  - A way of dealing with 8-bit and 16-bit computation that can be
+    shared with other platforms that, like WebAssembly, provide
+    computations only down to 32 bits
+    
   
 
 ## LLVM wish list
