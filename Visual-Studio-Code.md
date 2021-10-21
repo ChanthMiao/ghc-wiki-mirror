@@ -15,4 +15,4 @@ If you're using [ghc.nix](https://github.com/alpmestan/ghc.nix), you'll very lik
 This can easily be done with the [Nix Environment Selector](https://marketplace.visualstudio.com/items?itemName=arrterian.nix-env-selector) plugin.
 
 ## Git Submodules
-By default VSCode only detects 10 Git submodules. That's less than the number of submodules the GHC project uses. To fix this increase the setting `git.detectSubmodulesLimit`.
+By default VSCode only detects 10 Git submodules. That's less than the number of submodules the GHC project uses (at the time of writing: 29). To fix this increase the setting `git.detectSubmodulesLimit`. Otherwise, many submodules won't show up in the version control panel.
