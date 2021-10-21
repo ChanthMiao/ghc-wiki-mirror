@@ -44,9 +44,13 @@ build docs             # generate documentation
 
 The `./validate` script uses Hadrian by default and can be used to build GHC, produce and install a bindist and run the testsuite against it in one simple command. You can read more about this in [Validating patches](https://gitlab.haskell.org/ghc/ghc/-/wikis/testing-patches).
 
-## Subsequent Builds
+## Subsequent builds and tests
 
-To speed up subsequent builds, you will often want to avoid rebuilding the stage 1 compiler by passing `--freeze1` to `build`.
+To rebuild GHC after pulling upstream changes, you may need to update the submodules via `git submodule update --init --recursive`. Alternatively you can configure git to do this for you automatically: `git config --local submodule.recurse true`.
+
+To speed up subsequent builds, you will often want to add this option to `build`:
+
+  - `--freeze1` (avoid rebuilding the stage 1 compiler) documentation tests
 
 A good compromise between a fast compiler which passes most the testsuite and fast rebuilds is building with the following options.
 
@@ -54,7 +58,12 @@ A good compromise between a fast compiler which passes most the testsuite and fa
  ./hadrian/build --flavour=default+no_profiled_libs+omit_pragmas --freeze1 -j
 ```
 
-After pulling upstream changes, you may need to update the submodules via `git submodule update --init --recursive`. Alternatively you can configure git to do this for you automatically: `git config --local submodule.recurse true`.
+To speed up testing of your modified GHC, you may want to add these options to `test`:
+
+  - `--docs=none` (disable documentation tests)
+  - `--skip-perf` (disable performance tests)
+
+
 
 ## Going further
 
