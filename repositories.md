@@ -3,20 +3,24 @@
 
 This page lists the active repositories relating to GHC. These are Git repositories, so you should learn [about Git](working-conventions/git) first. For instructions on actually getting a GHC source tree, see [Getting The Sources](building/getting-the-sources). For information on using these repositories (via submodules), see [the Submodules page](working-conventions/git/submodules).
 
-## `git.haskell.org`
+## `gitlab.haskell.org`
 
 
-Many GHC repositories and its core packages can be found at `git.haskell.org`, which can be accessed via,
+Many GHC repositories and its core packages can be found at `gitlab.haskell.org`, which can be accessed via,
 
-- `https://git.haskell.org`
-- `git://git.haskell.org`
-- `git@git.haskell.org` (for those with commit access)
+- `https://gitlab.haskell.org`
+- `git://gitlab.haskell.org`
+- `git@gitlab.haskell.org` (for those with commit access)
 
 
-The SSH host keys of `git.haskell.org` are,
+The SSH host keys of `gitlab.haskell.org` are,
 
-- `ecdsa`: `91:4e:95:fa:2e:34:6c:ba:68:af:71:29:ba:66:12:b0`
-- `rsa`: `08:63:b5:86:3e:ae:e2:3c:b1:ea:c6:05:2d:71:db:5a`
+- ~~`ecdsa`: `91:4e:95:fa:2e:34:6c:ba:68:af:71:29:ba:66:12:b0`~~
+- ~~`rsa`: `08:63:b5:86:3e:ae:e2:3c:b1:ea:c6:05:2d:71:db:5a`~~
+- `4096 MD5:1f:cf:c1:2b:ec:8f:6f:b2:8a:75:43:6a:af:1e:50:aa gitlab.haskell.org` (RSA)
+- `256 MD5:51:94:9e:ef:c4:b8:59:d0:f4:a2:8f:4e:c0:30:fe:5e gitlab.haskell.org` (ED25519)
+
+as reported by `ssh-keyscan` and `ssh-keygen -l -E md5`.
 
 
 These are also mirrored to GitHub under the `ghc` [organization](https://github.com/ghc). Note that we do not use GitHub as the primary upstream since GitHub does not allow us to use Git hooks. These hooks are invaluable for verifying consistency between submodules (e.g. that the `ghc` repository refers only to submodule commits which are available upstream, see #8251).
@@ -42,7 +46,7 @@ Here is the setup in more detail:
 
 - **Mirror repo**.
 
-  - If the upstream repo is not at `git.haskell.org`, then we maintain a **mirror** repo at `git.haskell.org`.
+  - If the upstream repo is not at `gitlab.haskell.org`, then we maintain a **mirror** repo at `gitlab.haskell.org`.
   - Pulling and cloning happens from the mirror repo, so that we can build GHC without relying on lots of other machines being up.
   - The mirror should be updated from the upstream repo at least every minute or so.
   - The authoritative info for the mirror URL is in the file `.gitmodules` in the root directory of the main GHC repo.
@@ -80,7 +84,7 @@ Here are the submodules we use, and where their upstreams point:
 <th><b>Req&apos;d to build[2]</b></th></tr>
 <tr><th>utils/hsc2hs</th>
 <td>           </td>
-<th>https://git.haskell.org/hsc2hs.git</th>
+<th>https://gitlab.haskell.org/hsc2hs.git</th>
 <td> </td>
 <th>master</th>
 <td> </td>
@@ -98,7 +102,7 @@ Here are the submodules we use, and where their upstreams point:
 <th>No</th></tr>
 <tr><th>nofib</th>
 <td>                  </td>
-<th>https://git.haskell.org/nofib.git</th>
+<th>https://gitlab.haskell.org/nofib.git</th>
 <td> </td>
 <th>master</th>
 <td> </td>
@@ -107,7 +111,7 @@ Here are the submodules we use, and where their upstreams point:
 <th>N/A</th></tr>
 <tr><th>libraries/array</th>
 <td>        </td>
-<th>https://git.haskell.org/packages/array.git</th>
+<th>https://gitlab.haskell.org/packages/array.git</th>
 <td> </td>
 <th>master</th>
 <td> </td>
@@ -188,7 +192,7 @@ Here are the submodules we use, and where their upstreams point:
 <th>Yes</th></tr>
 <tr><th>libraries/haskell98</th>
 <td>    </td>
-<th>https://git.haskell.org/packages/haskell98.git</th>
+<th>https://gitlab.haskell.org/packages/haskell98.git</th>
 <td> </td>
 <th>master</th>
 <td> </td>
@@ -197,7 +201,7 @@ Here are the submodules we use, and where their upstreams point:
 <th>Yes</th></tr>
 <tr><th>libraries/haskell2010</th>
 <td>  </td>
-<th>https://git.haskell.org/packages/haskell2010.git</th>
+<th>https://gitlab.haskell.org/packages/haskell2010.git</th>
 <td> </td>
 <th>master</th>
 <td> </td>
@@ -206,7 +210,7 @@ Here are the submodules we use, and where their upstreams point:
 <th>Yes</th></tr>
 <tr><th>libraries/hoopl</th>
 <td>        </td>
-<th>https://git.haskell.org/packages/hoopl.git</th>
+<th>https://gitlab.haskell.org/packages/hoopl.git</th>
 <td> </td>
 <th>master</th>
 <td> </td>
@@ -215,7 +219,7 @@ Here are the submodules we use, and where their upstreams point:
 <th>Yes</th></tr>
 <tr><th>libraries/hpc</th>
 <td>          </td>
-<th>https://git.haskell.org/packages/hpc.git</th>
+<th>https://gitlab.haskell.org/packages/hpc.git</th>
 <td> </td>
 <th>master</th>
 <td> </td>
@@ -224,7 +228,7 @@ Here are the submodules we use, and where their upstreams point:
 <th>Yes</th></tr>
 <tr><th>libraries/old-locale</th>
 <td>   </td>
-<th>https://git.haskell.org/packages/old-locale.git</th>
+<th>https://gitlab.haskell.org/packages/old-locale.git</th>
 <td> </td>
 <th>master</th>
 <td> </td>
@@ -233,7 +237,7 @@ Here are the submodules we use, and where their upstreams point:
 <th>Yes</th></tr>
 <tr><th>libraries/old-time</th>
 <td>     </td>
-<th>https://git.haskell.org/packages/old-time.git</th>
+<th>https://gitlab.haskell.org/packages/old-time.git</th>
 <td> </td>
 <th>master</th>
 <td> </td>
@@ -332,7 +336,7 @@ Here are the submodules we use, and where their upstreams point:
 <th>No</th></tr>
 <tr><th>libraries/dph</th>
 <td>          </td>
-<th>https://git.haskell.org/packages/dph.git</th>
+<th>https://gitlab.haskell.org/packages/dph.git</th>
 <td> </td>
 <th>master</th>
 <td> </td>
@@ -350,7 +354,7 @@ Here are the submodules we use, and where their upstreams point:
 <th>No</th></tr>
 <tr><th>libraries/stm</th>
 <td>          </td>
-<th>https://git.haskell.org/packages/stm.git</th>
+<th>https://gitlab.haskell.org/packages/stm.git</th>
 <td> </td>
 <th>master</th>
 <td> </td>
@@ -364,13 +368,13 @@ Here are the submodules we use, and where their upstreams point:
 - \[2\] These libraries are not required to build the compiler, but may be used for tests or other libraries. Right now, most of these are based on whether you build DPH. At the moment, DPH is turned off. To build these libraries, set `BUILD_DPH=YES` in `mk/build.mk`. You can skip haddock by setting `HADDOCK_DOCS=NO` in `mk/build.mk`. TODO Explain how to skip `deepseq`, since it seems to only be used for tests.
 
 
-The table above is maintained manually and can sometimes get out of sync. If in doubt, the primary data source is  the [packages](http://git.haskell.org/ghc.git/blob_plain/HEAD:/packages) file in the top-level `ghc.git` repo folder.
+The table above is maintained manually and can sometimes get out of sync. If in doubt, the primary data source is  the [packages](http://gitlab.haskell.org/ghc.git/blob_plain/HEAD:/packages) file in the top-level `ghc.git` repo folder.
 
 
 ## `transformers`
 
 
-The `transformers` library's upstream uses `darcs`. In order to track this library, we maintain a git mirror ([http://git.haskell.org/darcs-mirrors/transformers.git](http://git.haskell.org/darcs-mirrors/transformers.git)) generated using `darcs export` mirror which is periodically updated by `git.haskell.org`. However, due to the tendency for the import mechanism to produce non-fast-forward branches, the commits in this mirror need to be manually pulled into the submodule used by GHC, `git@git.haskell.org:packages/transformers`.
+The `transformers` library's upstream uses `darcs`. In order to track this library, we maintain a git mirror ([http://gitlab.haskell.org/darcs-mirrors/transformers.git](http://gitlab.haskell.org/darcs-mirrors/transformers.git)) generated using `darcs export` mirror which is periodically updated by `gitlab.haskell.org`. However, due to the tendency for the import mechanism to produce non-fast-forward branches, the commits in this mirror need to be manually pulled into the submodule used by GHC, `git@gitlab.haskell.org:packages/transformers`.
 
 ## Infrastructure
 
