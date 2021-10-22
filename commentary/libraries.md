@@ -48,7 +48,7 @@ These distinctions are described in the following sub-sections.
 ## Required or optional
 
 
-Most boot packages **required** to build `ghc-stage2`, or one of the supporting utilities such as `ghc-pkg`, `hsc2hs`, etc.
+Most boot packages are **required** to build `ghc-stage2`, or one of the supporting utilities such as `ghc-pkg`, `hsc2hs`, etc.
 
 
 However a few are **optional**, and are built only
@@ -80,10 +80,10 @@ Independent libraries may have a master repository somewhere separate from the G
 Since GHC's source code imports the boot packages, *even the bootstrap compiler must have the boot packages available*.  (Or, more precisely, all the types and values that are imported must be available from some package in the bootstrap compiler; the exact set of packages does not need to be identical.)
 
 
-For the most part we simply assume that the bootstrap compiler already has the boot packages installed.  The **Zero-boot Packages** are a set of packages for which this assumption does not hold. Two reasons dominate:
+For the most part we simply assume that the bootstrap compiler already has the boot packages installed.  A package that is _not_ installed in the bootstrap compiler is a **zero-boot package.**   Most often, such a package is a zero-boot package for one of two reasons:
 
-- For certain fast-moving boot packages (notably `Cabal`), we don't want to rely on the user having installed a bang-up-to-date version of the package.
-- The only packages that we can "assume that the bootstrap compiler already has" are those packages that come with GHC itself; i.e. the installed boot packages.  So non-installed boot packages are also zero-boot packages.  Example: `bin-package-db` or `hoopl`.
+- GHC might rely on a certain version of a fast-moving boot package (notably `Cabal`), and we don't want to rely on the bootstrap compiler having a bang-up-to-date version of the package.
+- The only packages that we can "assume that the bootstrap compiler already has" are those packages that come with GHC itself; i.e. the installed boot packages.  So every non-installed boot package is also a zero-boot package.  Example: `bin-package-db` or `hoopl`.
 
 
 So we begin the entire build process by installing the zero-boot packages in the bootstrap compiler.  (This installation is purely local to the build tree.)  This is done in `ghc.mk` by setting `PACKAGES_STAGE0` to the list of zero-boot packages; indeed this is the only way in which zero-boot packages are identified in the build system.
