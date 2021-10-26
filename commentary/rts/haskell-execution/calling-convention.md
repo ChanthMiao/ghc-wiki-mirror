@@ -3,6 +3,24 @@
 
 Entry conventions are very conventional: the first N arguments in registers and the rest on the stack.
 
+You can generally find the mapping of STG to machine registers in `MachRegs.h`.
+
+For convenience here are the x86-64 mappings for the gp registers:
+
+```
+#define REG_Base  r13
+#define REG_Sp    rbp
+#define REG_Hp    r12
+#define REG_R1    rbx
+#define REG_R2    r14
+#define REG_R3    rsi
+#define REG_R4    rdi
+#define REG_R5    r8
+#define REG_R6    r9
+#define REG_SpLim r15
+#define REG_MachSp  rsp
+```
+
 # Return Convention
 
 
