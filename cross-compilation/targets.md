@@ -87,6 +87,13 @@ the same platform as the host.  But more could be added after the fact.
 
 I have these questions:
 
+  - To make this picture happen, what part of Hadrian should I focus on?
+    
+  - Is there any reason to limit a standalone RTS build to the host
+    platform?  I expect not.  That is, if I'm running on AMD64,
+    I should nevertheless be able to build an ARM package for the
+    run-time system yes?  (Provided I have a suitable toolchain installed.)
+
   - What sort of linker fu is used to be sure that generated code is
     linked with the correct version and way (and possibly target)?
     "ABI hashes"?  How do they work?
@@ -94,8 +101,6 @@ I have these questions:
   - Would it be possible or useful to build and ship a compiler
     without any run-time system?
 
-  - To make this picture happen, what part of Hadrian should I focus on?
-    
 
 ## Bread crumbs worth following
 
