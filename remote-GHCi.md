@@ -18,8 +18,7 @@ There are several reasons for wanting to do this:
 
 - We can have **stack traces in interpreted code** (#11047), without the compiler itself having to be profiled.
 
-- It separates the decision about whether to use the dynamic linker for interpreted code from whether GHC itself must be dynamically linked.  We could **go back to a statically-linked GHC, which should be faster.
-  **
+- It separates the decision about whether to use the dynamic linker for interpreted code from whether GHC itself must be dynamically linked.  We could **go back to a statically-linked GHC, which should be faster.**
 
 - We could **use dynamic linking in GHCi on Windows**, which was previously blocked because GHC itself is too big to make into a dynamic library. (whether this is a good idea or not is debatable, but at least it's technically possible now)
 
