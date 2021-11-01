@@ -120,3 +120,5 @@ I have these questions:
   - [Ben's notes from meeting of 25 October 2021](https://edit.smart-cactus.org/5KTMmI22R3-_onn3oqhkZg#)
 
   - #11470, support changing cross-compiler target at [compile] time
+
+#### Footnotes
