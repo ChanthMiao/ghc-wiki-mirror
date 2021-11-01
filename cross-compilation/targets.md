@@ -104,7 +104,7 @@ I have these questions:
 
 ## Bread crumbs worth following
 
-  - The [cross-compilation road map](roadmap)
+  - The [cross-compilation road map](./roadmap)
 
   - [!5965](https://gitlab.haskell.org/ghc/ghc/-/merge_requests/5965)
     simplifies configuration of GHC by pulling headers from the `rts`
