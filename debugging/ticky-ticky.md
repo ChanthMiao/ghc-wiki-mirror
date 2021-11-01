@@ -60,7 +60,7 @@ Here is what I do:
 
 - In both build trees, edit `build.mk` as described above.  That makes the libraries generate ticky-ticky information.
 
-- Run `nofib` in both trees and use `nofib-analyse` to compare, as described in [Building/RunningNoFib](building/running-no-fib).
+- Run `nofib` in both trees and use `nofib-analyse` to compare, as described in [Building/RunningNoFib](building/running-nofib).
 
 - Find one where the performance changes in the wrong direction, say `x2n1`. It is often best, at least at first, to use allocation as a proxy for execution time; allocation has the huge merit of being repeatable and measurable at a fine grain.
 
