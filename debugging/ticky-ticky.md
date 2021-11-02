@@ -23,7 +23,10 @@ To *really* see everything you need to compile all the libraries with `-ticky`. 
 
 ```wiki
 # Build all libraries with -ticky
-GhcLibHcOpts += -ticky
+GhcLibHcOpts += -ticky -ticky-allocd -ticky-dyn-thunk
+
+# Also build Stage-2 with -ticky
+GhcStage2HcOpts += -ticky -ticky-allocd -ticky-dyn-thunk
 
 # Currently ticky is incompatible with threading
 GhcThreaded = NO
