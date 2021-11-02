@@ -9,7 +9,7 @@ unit p where
 ```
 Here, we can think of `A` as a piece of code that depends on a certain collection of things specified in the signature `H`; for instance `H` might specify an interface for container-like structures and `A` is code that works with anything that implements this interface.   
 
-The way this is set up in Backpack, we **should not** think of `H` as a module in unit `p`. Instead, it's an **input** to unit `p`: a hole to be filled in later by the implementor.
+The way this is set up in Backpack, we *should not* think of `H` as a module in unit `p`. Instead, it's an **input** to unit `p`: a hole to be filled in later by the implementor.
 To instantiate `p` with an implementation for `H`, say with `Data.IntMap`, we use the following notation: `p[H=Data.IntMap]`. To refer to something in this instantiation, we use `:` as above, e.g. to refer to the version of `A` we obtain under this instantiation, we write `p[H=Data.IntMap]:A`. In this case, we say that `Data.IntMap` is the **semantic module** which implements the signature `H`.
 When we are typechecking `p` on its own, we "fill in" `H` with a standalone **hole module** `<H>`, which is not part of unit `p` but instead lives in its own **hole unit**. We write this as `p[H=<H>]`, and we can think of the **signature module** `H` as meaning `p[H=<H>]:H`. (This is sometimes also called the **identity module** for `H`, to distinguish it from semantic modules for `H` which are implementations of `H`).
 
