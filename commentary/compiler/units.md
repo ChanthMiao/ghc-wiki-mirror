@@ -10,7 +10,7 @@ Terminology related to units can be very confusing especially because it has cha
 
 * [Package] **component**: packages may contain several components (libraries, executables, testsuite). The most interesting ones for GHC are libraries because they can be reused by other components.
 
-* **Unit**: a compiled library component. Contains interfaces and object codes for the library modules (and even Haskell code for Backpack indefinite units).
+* **Unit**: a compiled library component. Contains interfaces and object codes for the library modules.
 
 * **Unit key**: units may be compiled in different ways. There are assigned (by Cabal) a unit key (usually composed of the package name, the package version, the component name, and a hash of the compiling options and dependencies unit keys)
 
