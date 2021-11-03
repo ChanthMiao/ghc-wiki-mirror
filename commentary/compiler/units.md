@@ -1,5 +1,3 @@
-This is a work in progress by @hsyl20, stay tuned.
-
 GHC's handling of units (a.k.a. GHC's "packages" but see the terminology below) has been under heavy lifting for some time to accommodate new needs (e.g. IDE support) and to fix long standing bugs (e.g. support for compiler plugins in cross-compiling GHC). This page summarizes the current plan.
 
 ## Background
@@ -45,7 +43,7 @@ This is the terminology for the entities only used inside the compiler.
 
 * G0: generic unit code enhancement/documentation/simplification
 * G1: add support for plugins in cross-compiling GHCs #14335
-* G2: add support for more than one active home-unit in a session (e.g. to load several components in GHCi)
+* G2: add support for more multiple home-units in a session (e.g. to load several components in GHCi)
 
 ### Current implementation overview
 
