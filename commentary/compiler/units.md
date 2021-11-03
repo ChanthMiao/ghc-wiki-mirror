@@ -14,7 +14,7 @@ Terminology related to units can be very confusing especially because it has cha
 
 * **Unit key**: units may be compiled in different ways. There are assigned (by Cabal) a unit key (usually composed of the package name, the package version, the component name, and a hash of the compiling options and dependencies unit keys)
 
-* **Unit id**: another unit identifier used to declare unique symbols. Usually unit id = unit key, except for some boot packages which must use fixed symbol names (cf -this-unit-id flag). E.g. `base` package can have `unit id = base` and `unit key = base-4.16.0`.
+* **Unit id**: another unit identifier used to declare unique symbols. Usually unit id = unit key, except for some boot packages which must use fixed symbol names. E.g. `base` package can have `unit id = base` and `unit key = base-4.16.0`. The unit-id is given to GHC via `-this-unit-id` command-line flag.
 
 * **Unit database**: a set of installed units. Often referred to as a “package database”. GHC doesn’t deal with units directly but with unit databases. However it can only read them, while ghc-pkg program can read/write them (it depends on Cabal library while GHC doesn’t).
 
@@ -26,15 +26,15 @@ Terminology related to units can be very confusing especially because it has cha
 
 This is the terminology for the entities only used inside the compiler.
 
-* **Home unit**: a/the unit for which GHC is currently type-checking/compiling some module(s). One of our goals is to add support for more than one home unit at the same time (e.g. to load projects consisting of several units into GHCi or in an IDE).
+* **Home unit**: a/the unit for which GHC is currently type-checking/compiling some module(s). The home-unit unit-id is given to GHC with `-this-unit-id` command-line flag.
 
 * **External unit**: a unit installed in a unit database and used as a dependency or loaded into GHCi.
 
-* **Unit state**: consolidated virtual database of units. We want to split it into an external unit database and external unit view to help supporting plugins in cross-compilers and multiple home-units (home units share the external unit database but not necessarily the external unit view).
+* **Unit state**: consolidated virtual database of units.
 
 * **ExternalPackageState (EPS)**: a cache for things read from external units.
 
-* **HomePackageTable (HPT)**: cache for home unit’s already compiled modules.
+* **HomePackageTable (HPT)**: cache for home-unit’s modules already compiled.
 
 
 ## Work in progress
