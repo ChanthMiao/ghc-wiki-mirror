@@ -100,10 +100,11 @@ If you want to get a taste for possible starting tasks, the ~newcomer label coll
  - [Lambda lifting](https://arxiv.org/abs/1910.11717)
  - [Join points](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/11/join-points-pldi17.pdf)
  - There are several techniques described in Andre Santos' [thesis](https://www.microsoft.com/en-us/research/publication/compilation-transformation-non-strict-functional-languages/). The thesis is quite good and has a lot of descriptive code examples, so it is worth reading. Here is an (incomplete) list of techniques and relevant sections in the thesis:
-   - Local Optimization, such as dead code elimination, case merging,case elimination, Constructor reuse and much more (see Section 3)
+   - Local Optimization, such as dead code elimination, case merging, case elimination, Constructor reuse and much more (see Section 3)
    - Let floating (See Section 3, 5)
    - Inlining     (See Section 6)
    - Static Argument Transformation (See Section 7)
  - See also [this](https://www.microsoft.com/en-us/research/wp-content/uploads/1998/09/comp-by-trans-scp.pdf) overview paper by Santos and SPJ.
+  - For more inlining see the paper [Secrets of the GHC inliner](https://www.microsoft.com/en-us/research/wp-content/uploads/2002/07/inline.pdf)
 
 Happy hacking!
