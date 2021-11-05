@@ -1,33 +1,67 @@
-# GHC targets: sketch of ideas
+# Cross-compilation via GHC targets
 
-## Big picture: Compile-time cross-compilation
+## Why Cross-Compilation Matters
 
 Cross-compilation serves users who want to compile Haskell code on one
-platform but run it on another:
+platform but run it on another.  The need for cross-compilation is
+driven primarily by the availability of cheap single-board computers
+such as Raspberry Pi and by the rise of mobile computing (e.g.,
+Android and iOS).
 
-  - A developer creating a phone app  may need to compile for an ARM
-    target, but would prefer to develop, compile, and debug code on a
-    beefy x86 desktop equipped with a keyboard, large screen,
-    massive RAM, and a fast solid-state drive.  A developer creating
-    code for a Raspberry Pi has similar needs.
+  - On a single-board computer like Raspberry Pi, native compilation
+    is conceivable in principle, provided you have a machine with
+    enough memory.  But memory is a real limitation, and compared with
+    a desktop computer or build server, a single-board computer is
+    wildly underpowered.  An acceptable development experience demands a
+    beefy machine equipped with massive RAM and a fast solid-state
+    drive.
 
-    EXAMPLES INCLUDE
+  - On Android, it might be possible to attempt native compilation,
+    but the same performance considerations apply.  And because
+    Android was not designed for this use case, the attempt would
+    likely be annoying and painful.
 
-  - A developer creating a web app my need to compile for WebAssembly,
-    but they may wish to compile code on a desktop, where they can
-    enjoy such conveniences as a filesystem and a network.
+  - On Apple's iPhones, iPads, and Apple TVs, native compilation is
+    virtually impossible---the toolchain provided by Apple supports
+    cross-compilation only.
 
-    EXAMPLES INCLUDE
+  - On the relatively new WebAssembly platform, the same constraints
+    apply: the toolchain supports cross-compilation only.
 
-These use cases require GHC to be able to run on one platform while
-generating code for another, which is *cross-compilation*.
-At present, GHC supports cross-compilation awkwardly.  Any given GHC
-understands only one target at a time, which must be configured when
-GHC is built.  This limitation has been an annoyance at least since
-Apple migrated its architecture from Power to x86: a developer needed
-two complete installations (one to generate Power code for current
-hardware, and one to generate code for the x86 emulator).  Requiring
-two simultaneous installations of GHC is not a good model.
+  - In the AWS cloud, developers may want to save money by compiling
+    for AWS's Graviton (ARM) machines, even if their host platform is x86.
+
+Who cares about cross-compilation?
+
+  - Obsidian Systems is very invested in Haskell on mobile devices.
+
+  - IOG (formerly IOHK) have been cross-compiling from Linux to
+    Windows, as Linux provides a better CI experience.
+
+  - IOG are working on blockchain with a Proof of Stake model.  This
+    model demands relatively few computing resources (a strength), and
+    IOG are interested in running it on single-board computers and
+    other low-energy platforms.
+
+  - Cardano smart contracts will include client code that runs off the
+    blockchain, on client machines.  To enable users to participate
+    independent of the computing, that client code needs to be
+    cross-platform.  At present, Plutus (Cardano’s smart contract
+    system) uses GHCJS to compile client code to Javascript, but the
+    aim is to move to WebAssembly.
+
+
+## New model: Select cross-compiler at compile time
+
+
+At present, GHC supports cross-compilation awkwardly.  Any given `ghc`
+binary understands only one target at a time, which must be configured
+when `ghc` is built ("compiler-configuration time").  This limitation
+has been an annoyance at least since Apple migrated its architecture
+from Power to x86: a developer needed two complete installations (one
+to generate Power code for current hardware, and one to generate code
+for the x86 emulator).  Requiring two simultaneous installations of
+GHC is not a good model.
 
 A better model for development is a single installation that enables a
 developer to choose a target platform at compile time (for example, by
@@ -56,8 +90,8 @@ libraries).  Libraries are often orchestrated by Cabal.
 
 We would like cross-platform support to be similar:
 
-  - Any `ghc` compiler can include logic for every supported target
-    platform. 
+  - Any `ghc` compiler would include logic for every supported target
+    platform.
 
   - A run-time system compiled for a target platform might be
     installed by `ghcup`.  Eventually a run-time system might be
@@ -95,7 +129,7 @@ How this model might be supported is discussed below.
 
 ## Targets
 
-The new model would be organized around *targets*.  A target might be
+A new model could be organized around *targets*.  A target might be
 characterized by the following properties:
 
   - A target has both internal and external components.
@@ -108,8 +142,8 @@ characterized by the following properties:
     component*, like an assembler or linker.
 
   - Internal components are part of GHC's source code.  Every
-    installation of a GHC release ships with all targets that are
-    known to GHC as of that release.
+    installation of a GHC release ships with the internal components
+    of every target that is known to GHC (as of that release).
 
   - External components can be identified by information on disk.
     Such information might take the form of an association list, like
@@ -118,26 +152,31 @@ characterized by the following properties:
     see below.)
 
 If we want to stretch the idea of "component," we can also consider a
-collection of compiled Haskell libraries to be an external component.
+collection of compiled Haskell libraries (or perhaps a package
+database) to be an external component.
 
 For any supported target, GHC should be capable of building its
 run-time system in a standalone package for that target.  Presumably
 this package contains a collection of `libHSrts*.a` and `libHSrts*.so`
-files, one for each (supported) way.  It will be useful to be able to
-build and ship such a package without a bundled compiler.
+files, one for each (supported) way.  Such a package should be able to
+be built and shipped without a bundled compiler.
 
 To help with external components, automatic-configuration logic can be
 built into GHC.  Whenever internal components are present, GHC can
-look for the corresponding external components.  This might mean
-moving some autoconf things to Haskell.  But it means for example that
-if user runs `ghc -target arm64`, GHC can respond "I don't have all
-the components I need to target arm64; do you want me to look for
-them?"
+search for the corresponding external components.  For example, if a
+user runs `ghc -target aarch64`, GHC can respond "I don't have all the
+components I need to target aarch64; do you want me to look for them?"
+Implementing the
+search might require moving some autoconf things to Haskell.  
+(This model could even be used for the host platform, so that a `ghc`
+could ship without *any* run-time system or libraries---they would
+instead _all_ be build on demand.)
 
-This model can support an "unzippable" GHC---that is, one that can
-be unpacked and used in place, without a configure script.
-An unzippable GHC would ship with only one target, which would be
-the same platform as the host.  But more could be added after the fact.
+This model can support an "unzippable" GHC---that is, one that can be
+unpacked and used in place, without an additional
+configuration/installation step.  An unzippable GHC would ship with
+only one target, which would be the same platform as the host.  But
+more could be added after the fact.
 
 ## Template Haskell
 
@@ -154,8 +193,6 @@ one tell which code must be compiled for the host?  (Perhaps the
 coward's way out is to go ahead and compile it all---make things work
 and let someone else make them fast.)
 
-  
-
 ## Questions
 
 I have these questions:
@@ -165,19 +202,23 @@ I have these questions:
   - Is there any reason to limit a standalone RTS build to the host
     platform?  I expect not.  That is, if I'm running on AMD64,
     I should nevertheless be able to build an ARM package for the
-    run-time system yes?  (Provided I have a suitable toolchain installed.)
+    run-time system, yes?  (Provided I have a suitable toolchain installed.)
 
   - What sort of linker fu is used to be sure that generated code is
     linked with the correct version and way (and possibly target)?
     "ABI hashes"?  How do they work?
 
-  - Would it be possible or useful to build and ship a compiler
+  - Should the host's run-time system get special treatment, or could
+    we go ahead and (under the hood) build and ship the compiler
     without any run-time system?
 
 
 ## Bread crumbs worth following
 
 ### Cross-compilation
+
+  - [Moritz Angermann's series of blog posts](https://log.zw3rk.com/),
+    which address both cross-compilation and Template Haskell
 
   - The [cross-compilation road map](./roadmap)
 
@@ -192,11 +233,14 @@ I have these questions:
 
   - !6803 gives the RTS its own `configure` script.
 
-  - [Ben's notes from meeting of 25 October 2021](https://edit.smart-cactus.org/5KTMmI22R3-_onn3oqhkZg#)
+  - [Ben Gamari's notes from a meeting of 25 October 2021](https://edit.smart-cactus.org/5KTMmI22R3-_onn3oqhkZg#)
 
   - #11470, support changing cross-compiler target at ~~run~~ compile time
 
 ### Template Haskell
+
+  - A series of three blog posts from Moritz, of which the first is at
+    https://log.zw3rk.com/posts/2017-05-23-template-haskell/ 
 
   - [GHC Proposal
     412](https://github.com/ghc-proposals/ghc-proposals/pull/412)
