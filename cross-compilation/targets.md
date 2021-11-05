@@ -33,7 +33,7 @@ Android and iOS).
 
 Who cares about cross-compilation?
 
-  - Obsidian Systems is very invested in Haskell on mobile devices.
+  - Obsidian Systems is very invested in Haskell in web browsers and on mobile devices
 
   - IOG (formerly IOHK) have been cross-compiling from Linux to
     Windows, as Linux provides a better CI experience.
@@ -222,20 +222,28 @@ I have these questions:
 
   - The [cross-compilation road map](./roadmap)
 
+  - [!6216] enabled future simplification of the build system by moving headers to the `rts` directory so they can become part of the RTS package.
+    The few headers GHC itself needed (that shouldn't come from the previous RTS GHC itself is linked with, but the next RTS GHC will generate code linking to) are manually copied to the `compiler/` directory.
+    Those ones alone would be part of the compiler package unrelated to their RTS function (since one many RTS builds are possible to use with a single multi-target GHC build), and would be in a GHC sdist were we to upload GHC to hackage.
+
   - [!5965](https://gitlab.haskell.org/ghc/ghc/-/merge_requests/5965)
-    simplifies configuration of GHC by pulling headers from the `rts`
-    package.  This change will help isolate the RTS from autoconf?
+    provides a `Setup.hs` to build all generated code for GHC such that it can be a regular Haskell package.
+    It started with an earlier version of what became [!6216], motivating that PR.
+    With [!6216] landed, it is now quite simple.
 
   - #19896 suggests making the `ghc` package *reinstallable* like a
     normal Hackage package.
 
   - #17957 carries much water toward making GHC multi-target
 
-  - !6803 gives the RTS its own `configure` script.
+  - #17191 discussing giving the RTS its own `configure` script.
+    That is still WIP but a bunch of preperatory work has landed, which might be useful as an example of "untangling" the build system.
 
   - [Ben Gamari's notes from a meeting of 25 October 2021](https://edit.smart-cactus.org/5KTMmI22R3-_onn3oqhkZg#)
 
   - #11470, support changing cross-compiler target at ~~run~~ compile time
+
+[!6216]: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/6216
 
 ### Template Haskell
 
