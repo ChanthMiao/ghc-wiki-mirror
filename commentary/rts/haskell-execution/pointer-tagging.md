@@ -30,7 +30,7 @@ We say that a pointer is **properly tagged** if the tag bits in the pointer are 
 * Most pointers are not required to be properly tagged, in which case their tag bits are zero, meaning "don't know". 
 * However, if a pointer has non-zero tag bits, they must accurately reflect the object they point to, as in the above list.
 
-The garbage collector makes all pointers properly tagged, as it runs.  **Question** Is this true?
+The garbage collector makes all pointers properly tagged, as it runs.  **Question** Is this true? (AndreasK: I think it *only* shorts out indirections, but doesn't try to apply tags otherwise).
 
 ### Tagging of large and small families
 
