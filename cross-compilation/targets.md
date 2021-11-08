@@ -245,6 +245,8 @@ I have these questions:
 
   - #11470, support changing cross-compiler target at ~~run~~ compile time
 
+  - #19877 tracks the task of supporting multiple target toolchains
+
 [!6216]: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/6216
 
 ### Template Haskell
