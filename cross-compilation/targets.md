@@ -1,5 +1,7 @@
 # Cross-compilation via GHC targets
 
+[[_TOC_]]
+
 ## Why Cross-Compilation Matters
 
 Cross-compilation serves users who want to compile Haskell code on one
