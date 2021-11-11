@@ -49,7 +49,7 @@ We would still need to enforce right-biasedness: never use ```(co `TransCo` dco_
 It might also make sense to cache the RHS type, as it might now be costly to compute. For example, in ```co `TransCo` (dco_1 `TransDCo` ... `TransDCo` dco_n)```, we would need to go through each of the directed coercions from left to right `dco_1`, ..., `dco_n` to compute the RHS type given the LHS type.  
 Ups & downs of this approach: 
   - **Upside**: This gives us a stronger guarantee that we are not storing redundant information.
-  - **Downside:** Tt's a bit of a roundabout way of doing the embedding: if we want to turn a lone `DCoercion` into a `Coercion`, we have to write ```Refl ty `TransCo` dco```, which seems a bit silly.
+  - **Downside:** It's a bit of a roundabout way of doing the embedding: if we want to turn a lone `DCoercion` into a `Coercion`, we have to write ```Refl ty `TransCo` dco```, which seems a bit silly.
 
 ### Embedding coercions in directed coercions
 
