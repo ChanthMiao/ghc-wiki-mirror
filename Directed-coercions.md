@@ -64,3 +64,7 @@ Should we use directed kind coercions instead of kind coercions, e.g. in the `Fo
 ### Using directed coercions in more places
 
 The current idea is to only use directed coercions in the rewriter/canonicaliser. It would also be possible to use them more broadly, for instance in the constraint solver. However, when we are handling Givens we often have to take apart evidence using `Nth`-co, so we would often need to go through `Coercion` (embedding both ways).
+
+## Possible other interactions
+
+`AxiomInstCo` takes a list of coercions as an argument, instead of what one might more naively expect, a list of types. It seems that this design was motivated by coercion optimisation concerns that may no longer be relevant with directed coercions. This might allow us to simplify the implementation in GHC, e.g. removing `GHC.Core.Unify.ty_co_match`.
