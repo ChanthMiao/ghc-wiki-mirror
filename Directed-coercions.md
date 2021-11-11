@@ -1,5 +1,4 @@
-
-## Motivation
+# Motivation
 
 `Coercion`s (as defined in GHC) always contain enough information for us to be able to retrieve the left and right hand sides that they relate. Examples:
 
@@ -34,10 +33,19 @@ So:
   - no `SymDCo`,
   - `ReflDCo` takes no arguments,
   - no `SubDCo` (as the role, as well as the LHS type, is given from context),
-  - no `NthDCo` or `LRDCo`: if we had `NthCo :: Int -> DCoercion -> DCoercion`, then we would have no way of computing the overall `TyConApp` which we are decomposing from the LHS type of the `NthCo`,
+  - no `NthDCo` or `LRDCo`: if we had `NthCo :: Int -> DCoercion -> DCoercion`, then we would have no way of computing the overall `TyConApp` which we are decomposing from the LHS type of the `NthCo`.
 
+## Relation to bidirectional type systems
 
-## Where to use directed coercions?
+[Bidirectional Typing](https://arxiv.org/abs/1908.05839) by Jana Dunfield and Neel Krishnaswami is a useful reference to the design of bidirectional systems.  The key idea is this: introduction forms (e.g. constructors) are *checked*; elimination forms (e.g. projections) are *synthesized*.
+
+Introduction forms: `ReflCo`, congruence rules such as `TyConAppCo`, `AppCo` ...
+
+Elimination forms: `SymCo`, `NthCo`, `LRCo`, `InstCo`, `KindCo` ...
+
+**AMG**: I need to write some more here.
+
+# Where to use directed coercions?
 
 We are chiefly interested in using directed coercions to speed up compile time of type family-heavy programs, so we want the rewriter and canonicaliser to use directed coercions as much as possible. This motivates changing the `Reduction` datatype to store a directed coercion.
 
@@ -45,13 +53,11 @@ Not every constructor of `Coercion` has a corresponding `DCoercion` constructor.
 
 (**AMG**: I'm not very familiar with `CoercionHole`, but I have been wondering if it should be included in `DCoercion`?)
 
-In the other direction, once the rewriter produces a directed coercion, we need to turn it into a `Coercion`, e.g. so that we can cast.
+In the other direction, once the rewriter produces a directed coercion, we need to turn it into a `Coercion`, e.g. so that we can cast (but see [below](#using-directed-coercions-in-more-places) for using directed coercions in casts).
 
-We could imagine changing `Cast` to use a directed coercion, because the type of the expression being cast is available (with a bit of work). But this would require nontrivial changes to later stages of the compilation pipeline. For now we prefer to modify the type-checker and leave the rest of the pipeline relatively unchanged, hence using `Coercion`.
+# Design choices
 
-## Design choices:
-
-### Embedding directed coercions in coercions
+## Embedding directed coercions in coercions
 
 We need a way to upgrade a directed coercion to a coercion, given an input type and role, filling in all the other information.
 
@@ -67,32 +73,30 @@ Ups & downs of this approach:
   - **Upside**: This gives us a stronger guarantee that we are not storing redundant information. In particular ```covar `TransCo` dco``` is more compact than either ```covar `TransCo` Inject r ty dco``` or ```Inject r ty' (covar `TransDCo` dco)```.
   - **Downside:** It's a bit of a roundabout way of doing the embedding: if we want to turn a lone `DCoercion` into a `Coercion`, we have to write ```Refl ty `TransCo` dco```, which seems a bit silly.
 
-### Embedding coercions in directed coercions
+## Embedding coercions in directed coercions
 
 **Constructor**: Use a forgetful constructor `CoDCo :: Coercion -> DCoercion` to embed coercions into directed coercions.
 
 We can include a smart constructor for cases where it is clearly profitable to represent the coercion as a `DCoercion`: `ReflCo ty |-> ReflDCo`, `CoVarCo cv |-> CoVarDCo cv`. In other cases, it falls back to using the constructor.
 
-### Kind coercions
+## Kind coercions
 
 Should we use directed kind coercions instead of kind coercions, e.g. in the `ForAllDCo` constructor of `DCoercion`?
 
 **AMG**: in my first attempts at the patch I tried this, and rapidly got lost trying to implement functions over `ForAllDCo`. But perhaps it is worth another shot.
 
-### Using directed coercions in more places
+## Using directed coercions in more places
 
-The current idea is to only use directed coercions in the rewriter/canonicaliser. It would also be possible to use them more broadly, for instance in the constraint solver. However, when we are handling Givens we often have to take apart evidence using `Nth`-co, so we would often need to go through `Coercion` (embedding both ways).
+The current idea is to only use directed coercions in the rewriter/canonicaliser. It would also be possible to use them more broadly:
 
-## Possible other interactions
+  - in casts,
+  - in the constraint solver.
+
+For casts, note that the type of the expression being cast is available (with a bit of work); however, this would require nontrivial changes to later stages of the compilation pipeline.  
+In the constraint solver, when we are handling Givens we often have to take apart evidence using `Nth`-co, so we would often need to go through `Coercion` (embedding both ways).
+
+For now we prefer to modify the type-checker and leave the rest of the pipeline relatively unchanged, hence using `Coercion`.
+
+# Possible other interactions
 
 `AxiomInstCo` takes a list of coercions as an argument, instead of what one might more naively expect, a list of types. It seems that this design was motivated by coercion optimisation concerns that may no longer be relevant with directed coercions. This might allow us to simplify the implementation in GHC, e.g. removing `GHC.Core.Unify.ty_co_match`.
-
-# Bidirectional type systems
-
-[Bidirectional Typing](https://arxiv.org/abs/1908.05839) by Jana Dunfield and Neel Krishnaswami is a useful reference to the design of bidirectional systems.  The key idea is this: introduction forms (e.g. constructors) are *checked*; elimination forms (e.g. projections) are *synthesized*.
-
-Introduction forms: `ReflCo`, congruence rules such as `TyConAppCo`, `AppCo` ...
-
-Elimination forms: `SymCo`, `NthCo`, `LRCo`, `InstCo`, `KindCo` ...
-
-**AMG**: I need to write some more here.
