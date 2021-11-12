@@ -14,7 +14,7 @@ Hadrian is much younger than GHC's Make-based build system. If you need a featur
 On Linux/OS X:
 
 ```
-$ ./boot && ./configure && ./hadrian/build.sh -j
+$ ./boot && ./configure && ./hadrian/build -j
 ```
 
 On Windows:
