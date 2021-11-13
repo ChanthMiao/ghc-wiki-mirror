@@ -307,7 +307,7 @@ default <tt>return</tt> and <tt>(>>)</tt> method implementations with non-lawful
 definitions (see compatible instance definition example in previous section).
 
 
-The warning was implemented in GHC 8.0 and is called <b><tt>-Wnoncanonical-monad-instances</tt></b> (there are variants of this warning flag for <tt>Monoid</tt> and <tt>Fail</tt>) but it is <i>not</i> included in either <tt>-Wall</tt> or <tt>-Wcompat</tt>.
+The warning was implemented in GHC 8.0 and is called <b><tt>-Wnoncanonical-monad-instances</tt></b> (there are variants of this warning flag for <tt>Monoid</tt> and <tt>Fail</tt>) is included in the default warning set since GHC 9.2.
 
 
 </td></tr></table>
