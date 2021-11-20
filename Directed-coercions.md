@@ -1,3 +1,5 @@
+[[_TOC_]]
+
 # Motivation
 
 `Coercion`s (as defined in GHC) always contain enough information for us to be able to retrieve the left and right hand sides that they relate. Examples:
@@ -35,15 +37,127 @@ So:
   - no `SubDCo` (as the role, as well as the LHS type, is given from context),
   - no `NthDCo` or `LRDCo`: if we had `NthCo :: Int -> DCoercion -> DCoercion`, then we would have no way of computing the overall `TyConApp` which we are decomposing from the LHS type of the `NthCo`.
 
+# Type system
+
 ## Relation to bidirectional type systems
 
-[Bidirectional Typing](https://arxiv.org/abs/1908.05839) by Jana Dunfield and Neel Krishnaswami is a useful reference to the design of bidirectional systems.  The key idea is this: introduction forms (e.g. constructors) are *checked*; elimination forms (e.g. projections) are *synthesized*.
+[Bidirectional Typing](https://arxiv.org/abs/1908.05839) by Jana Dunfield and Neel Krishnaswami is a useful reference to the design of bidirectional systems.  The key idea is this: introduction forms (e.g. constructors) are *checked*; elimination forms (e.g. projections) are *synthesized* (inferred).
 
-Introduction forms: `ReflCo`, congruence rules such as `TyConAppCo`, `AppCo` ...
+The existing judgement form for undirected coercions `Γ |- γ : τ ~ρ υ` has Γ and γ having input mode and τ, υ and ρ having output mode. That is, it does synthesis. From a bidirectional typing perspective, this is perfectly natural for coercion variables, `SymCo` and other elimination forms such as `NthCo`, `LRCo`, `InstCo`, `KindCo`.
 
-Elimination forms: `SymCo`, `NthCo`, `LRCo`, `InstCo`, `KindCo` ...
+The new judgement form for directed coercions is `Γ |- δ : τ ρ~> υ` where Γ, δ, τ and ρ have input mode and y has output mode. (We write `~>` to suggest direction and write ρ before the arrow because it is an input.)  This is the natural way to use for introduction forms such as reflexivity and congruence rules.
 
-**AMG**: I need to write some more here.
+As is normal in bidirectional systems, there are two rules for switching between checking and synthesis:
+ * An undirected coercion γ can always be used as a directed coercion `Co γ`, where the typing rules ensure that the kinds match up.
+ * Using a directed coercion δ as an undirected coercion requires a type (and role) annotation.
+
+## Typing rules
+
+This is a sketch of the typing rules for the judgement `Γ |- δ : τ ρ~> υ`. In the following rules we assume τ is well-kinded, and omit the context Γ if it is unchanged throughout.  Some details have been simplified (in particular around dependent telescopes).
+
+```
+---------------  DCo_Refl
+Refl : τ  ρ~> τ
+
+
+τ : κ      γ : κ ~ κ'
+-------------------------------  DCo_GReflRight
+GReflRight γ  :  τ  ρ~>  τ |> γ
+
+
+τ : κ      γ : κ ~ κ'
+------------------------------  DCo_GReflLeft
+GReflLeft γ  :  τ |> γ  ρ~>  τ
+
+
+for all i .
+δ_i  :  τ_i  ρ_i~>  υ_i
+ρ_i = tyConRolesX ρ T !! i
+------------------------------- DCo_TyConApp
+TyConApp δs  :  Τ τs  ρ~>  T υs
+
+
+δ_1 :  σ_1  ρ~>  σ_2
+δ_2 :  τ_1  Ν~>  τ_2
+------------------------------------- DCo_App
+App δ_1 δ_2  :  σ_1 τ_1  ρ~>  σ_2 τ_2
+
+
+δ_1 :  σ_1  P~>  σ_2
+δ_2 :  τ_1  P~>  τ_2
+------------------------------------- DCo_AppPhantom
+App δ_1 δ_2  :  σ_1 τ_1  P~>  σ_2 τ_2
+
+
+Γ |- η : κ_1 ~N κ_2
+Γ, α^κ_1 |- δ : τ_1  ρ~>  τ_2
+------------------------------------------------------------------------------ DCo_ForAll_Tv
+Γ |-  (∀α:η . δ)  :  (∀α^κ_1 . τ_1) ρ~> (∀α^κ_2 . τ_2 [α -> α^(κ_2 |> sym η)])
+
+
+τ_1 : κ_1
+δ : κ_1 Ν~> κ_2
+τ_2 : κ_2
+----------------------------------- DCo_UnivCoPhantom
+UnivCoPhantom δ τ_2 : τ_1  P~>  τ_2
+
+
+δ_1 : τ_1 ρ~> τ_2
+δ_2 : τ_2 ρ~> τ_3
+-------------------------  DCo_Trans
+δ_1 ; δ_2  :  τ_1 ρ~> τ_3
+
+
+τ takes n top-level reduction steps at role ρ to produce υ
+----------------------------------------------------------  DCo_Steps
+Steps n : τ ρ~> υ
+
+
+T is an open type family
+C is an axiom for it
+which matches Τ τs and reduces to υ
+------------------------------------ DCo_Axiom
+C : Τ τs ρ~> υ
+
+
+γ : τ ~ρ υ
+-------------- DCo_Co
+Co γ : τ ρ~> υ
+```
+
+We also need a single new rule in the existing coercion judgement `Γ |- γ : τ ~ρ υ`:
+```
+δ : τ ρ~> υ
+--------------------- Co_Inject
+Inject ρ τ δ : τ ~ρ υ
+```
+
+**Conjecture**:
+  If   `Γ  |-  τ : κ`
+  and  `Γ  |-  δ : τ ρ~> υ`
+  then there exists γ (not using `Inject`)
+  such that  `Γ  |-  γ : τ ~ρ υ`.
+
+**Conjecture**:
+  If    `Γ  |-  δ : τ ρ~> υ`
+  then  `Γ  |-  δ : τ P~> υ`.
+(If this does not hold then `DCo_App` vs `DCo_AppPhantom` may become awkward.)
+
+
+Note that:
+ * `DCo_Refl` covers both `Co_Refl` and `Co_GReflMRefl`
+ * `DCo_GReflRight` is essentially `Co_GReflMCo`.
+ * `GReflLeft γ` may not be needed as we could use `GReflRight (Sym γ)` and rely on the non-trivial definitional equality.
+ * Instead of `Co_FunCo` we use `DCo_TyConApp` (is this wise?)
+ * `DCo_TyConApp` and `DCo_App` probably need to be tweaked to deal with dependent telescopes
+ * `DCo_UnivCoPhantom` is not currently implemented, is it (or other UnivCo cases) useful? 
+ * Coercion variables (and coercion holes?) don't have a rule because they are morally synthesised, but we might want a constructor to save an indirection.
+ * `DCo_ForAll_Tv` uses an undirected coercion η between the kinds, because we need to use `sym η` in the result type.
+ * `DCo_ForAll_Cv` needs to be written down, parallel to `Co_ForAllCo_Cv`.
+ * In `DCo_Steps`, "top level reduction steps" includes closed/builtin type family reductions (at any role) and newtype axioms (at representational role only).  It does not cover open type/data families. The step count is an (optional) optimization, to represent transitive chains of steps more compactly.
+ * `DCo_Axiom` covers open type/data families; these store the axiom that applies, to avoid having the typing rules (and hence Core Lint) depend on the ambient FamInstEnv.  They do not need to store the types at which the axiom is instantiated.
+ * Morally symmetry belongs in the synthesized fragment, but adding `SymDCo` to directed coercions (storing a type) would allow `Co (SymCo (Inject ρ τ δ))` to be represented fractionally more compactly as `SymDCo τ δ`. We would want to end up with `SymDCo τ (Co γ)` though.
+
 
 # Where to use directed coercions?
 
@@ -83,7 +197,7 @@ We can include a smart constructor for cases where it is clearly profitable to r
 
 Should we use directed kind coercions instead of kind coercions, e.g. in the `ForAllDCo` constructor of `DCoercion`?
 
-**AMG**: in my first attempts at the patch I tried this, and rapidly got lost trying to implement functions over `ForAllDCo`. But perhaps it is worth another shot.
+**AMG**: in my first attempts at the patch I tried this, and rapidly got lost trying to implement functions over `ForAllDCo`. My attempts to write down typing rules (above) are leading me to suspect that we really need an undirected coercion here.
 
 ## Using directed coercions in more places
 
