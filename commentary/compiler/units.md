@@ -69,10 +69,6 @@ This is the terminology for the entities only used inside the compiler.
 
 1. [G0] UnitKey vs UnitId: UnitKeys are unit identifier in unit DBs and UnitIds are unit identifier everywhere else. Currently we convert from UnitKey to UnitId at an arbitrary point and the wiring-map is defined as `Map UnitId UnitId`. We should fix this and define it as `Map UnitId UnitKey`. It's not as trivial as it looks because we mix up UnitId/UnitKey quite freely. Fixing this would make the code safer.
 
-1. [G0,G1,G2] Split UnitState in two parts: ExternalUnitDB and ExternalUnitView:
-    - ExternalUnitDB is a cache of what is on disk: it can be shared for different use cases (e.g. by different HomeUnits)
-    - ExternalUnitView is a view of the ExternalUnitDB: it handles module visibility, unit thinning and module renaming, Safe Haskell overriding flags ("distrust all"), etc. 
-
 1. [G0,G1] Split plugin state from UnitState. Currently the UnitState contains two ModuleName provider maps: one for plugins and one for target code. We should have one ExternalUnitView for each instead. For now they could be based on the same ExternalUnitDB, but for our G1 goal we need to support using two different ExternalUnitDB.
 
 1. [G0,G2] Remove state from DynFlags: dynamicToo handling uses an IORef in DynFlags. But it's purely a driver thing and it doesn't belong there.
@@ -85,7 +81,9 @@ This is the terminology for the entities only used inside the compiler.
 
 1. [G1] Support plugins in home unit. GHC currently supports plugins in the home unit. It's quite wrong because these plugins are built against the target code environment, not the plugin one. So it should only be allowed in `--target=self` mode. In this case we would have a single ExternalUnitDB, two ExternalUnitView (to still support plugin package flags as currently) and allow fetching plugins from the home-unit. If we are not in `--target=self` mode, just disallow plugins in the home-unit for now. Perhaps in the future we could have two home-units: one for plugins and another for target code.
 
+1. [G0,G1] We need to figure out how to attach unit environments to targets. Perhaps add a TargetEnv which contains the path to the top_dir for the target, toolchain settings (how do we deal with those that are overridable via command-line flags?), unit dbs for boot packages.
+
 
 ### Future entities overview
 
-![units.svg](uploads/548be9e2eb9cd383f7de0a20a3deb7a5/units.svg)
+![units.svg](uploads/66040e9b7e60c36b85b13d794ab8f6be/units.svg)
