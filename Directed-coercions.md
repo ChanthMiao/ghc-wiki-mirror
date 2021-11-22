@@ -132,13 +132,13 @@ We also need a single new rule in the existing coercion judgement `Γ |- γ : τ
 Hydrate ρ τ δ : τ ~ρ υ
 ```
 
-**Conjecture**:
+**Conjecture**:  
   If   `Γ  |-  τ : κ`  
   and  `Γ  |-  δ : τ ρ~> υ`  
   then there exists γ (not using `Hydrate`)  
   such that  `Γ  |-  γ : τ ~ρ υ`.
 
-**Conjecture**:
+**Conjecture**:  
   If    `Γ  |-  δ : τ ρ~> υ`  
   then  `Γ  |-  δ : τ P~> υ`.   
 (If this does not hold then `DCo_App` vs `DCo_AppPhantom` may become awkward.)
