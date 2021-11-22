@@ -1,12 +1,22 @@
 # CPR analysis
 
-This is a status page for CPR analysis, especially Nested CPR
+This is a status page for CPR analysis, especially tracking the work on Nested CPR, which has finally been implemented in !5667.
 
+## History
 
-Akio has a patch in progress, currently stalled
+At the recollection of Sebastian Graf, this page was mostly used by Joachim Breitner (and others?) to track their implementation ideas. 
 
-- [https://phabricator.haskell.org/D4244](https://phabricator.haskell.org/D4244)
+Joachim ultimately abandoned his work to focus on other things after the perf results weren't encouraging. After that (in 2014?), different people tried to rebase his work and polish it (Akio, Takenobu, Matthew?), but ultimately they got stuck (again) on perf regressions here and there. Finally, SG took over in early 2018, did another rebase of https://phabricator.haskell.org/D4244 (Phab is down now, so we can't see the discussions there) and experienced much of the same.
 
+At the time, CPR analysis was still integrated into DmdAnal, as you can see in this commit and the incredibly complicated Case case (which had to accomodate both a backwards strictness analysis and the forward CPR analysis): https://github.com/sgraf812/ghc/blob/4f0fa8456590b6ace7c72ae032e96aa86262ef8d/compiler/stranal/DmdAnal.lhs#L249. That motivated [NestedCPR/SplitOffCPR](nested-cpr/split-off-cpr) and we finally split off CPR analysis in !1427 into a separate pass, which was generally beneficial.
+
+Still working on and off on Nested CPR, SG put up the new pass in !1866. But the results were similar to before: The improvements on NoFib (which has very few cases of nested records) were meager while compiler perf (even with -O0!) got slower, as can be seen from this attempt at compiling Cabal: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/1866#note_328432.
+
+After days wasted over ticky profiles, SG tried a more incremental approach and fixed real bugs in the existing CPR analysis by integrating part of Nested CPR into the compiler: !5054, !5338 and !5753, which were all individual improvements. Then, SG tackled nested unboxing again in !5667, but without all the termination analysis bits ("Converges" below) that were still part of !1866. After seeing regressions (again), SG realised that unboxing recursive types might be culprit and ultimately managed to score huge improvements on ghc/alloc perf and in NoFib, making !5667 a success and ultimately merged.
+
+The only bits from !1866 that haven't made it into the compiler so far is the rapid termination analysis ("Converges"). We might write a pass that does the analysis at some later point to be able to unbox deeper constructed results.
+
+## Joachim's Notes 
 
 See also sub-pages:
 
@@ -15,7 +25,7 @@ See also sub-pages:
 - [NestedCPR/better-ho-cardinality](nested-cpr/better-ho-cardinality)
 - [NestedCPR/wave4main](nested-cpr/wave4main)
 - [NestedCPR/Akio2017](nested-cpr/akio2017) tracks \@akio's attempt at rebasing and finishing this work after [SequentCore](sequent-core) is in HEAD.
-- [NestedCPR/SplitOffCPR](nested-cpr/split-off-cpr) collects arguments for why CPR should be split off from the demand analyser
+- [NestedCPR/SplitOffCPR](nested-cpr/split-off-cpr) collects SG's arguments for why CPR should be split off from the demand analyser
 
 ### Related tickets
 
