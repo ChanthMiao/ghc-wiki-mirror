@@ -1,7 +1,6 @@
 # Why we should split off CPR analysis from the demand analyser
 
-
-This page collects some illustrative arguments. Here's the summary:
+This page collects some illustrative arguments for !1427, which was ultimately merged. Here's the summary:
 
 
 ### Pro
