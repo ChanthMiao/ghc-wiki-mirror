@@ -91,8 +91,16 @@ AppDCo δ_1 δ_2  :  σ_1 τ_1  P~>  σ_2 τ_2
 
 Γ |- η : κ_1 N~> κ_2
 Γ, (α : κ_1) |- δ : τ_1  ρ~>  τ_2
------------------------------------------------------------------------------- DCo_ForAll_Tv
-Γ |- ForAllDCo η δ  :  (∀(α : κ_1) . τ_1) ρ~> (∀(α : κ_2) . τ_2 [α -> α |> sym (Hydrate N κ_1 η)])
+----------------------------------------------------------------------------------------------------------- DCo_ForAll_Tv
+Γ |- ForAllDCo (α : κ_1) η δ  :  (∀(α : κ_1) . τ_1) ρ~> (∀(α : κ_2) . τ_2 [α -> α |> sym (Hydrate N κ_1 η)])
+
+
+Γ |- η : κ_1 N~> κ_2
+Γ, (x : κ_1) |- δ : τ_1  ρ~>  τ_2
+(η_1, η_2 defined from Hydrate N κ_1 η)
+almostDevoid x γ
+------------------------------------------------------------------------------------------------------- DCo_ForAll_Cv
+Γ |- ForAllDCo (x : κ_1) η δ  :  (∀(x : κ_1) . τ_1) ρ~> (∀(x : κ_2) . τ_2 [x -> α |> η_1 ; x ; sym η_2])
 
 
 τ_1 : κ_1
@@ -153,7 +161,6 @@ Note that:
  * `DCo_UnivCoPhantom` is not currently implemented, is it (or other UnivCo cases) useful? 
  * Coercion variables (and coercion holes?) don't have a rule because they are morally synthesised, but we might want a constructor to save an indirection.
  * `DCo_ForAll_Tv` uses an directed coercion η between the kinds (as the more compact representation might be profitable), but we need to use `sym` in the result type and also perform a cast. As both `sym` and casts require undirected coercions, we use `Hydrate` to turn the directed coercion into an undirected one. Note that it would also be possible to instead directly store a directed coercion that goes in the opposite direction, but as the current implementation of `ForAllCo` uses a `sym` we are sticking to that design here too.
- * `DCo_ForAll_Cv` needs to be written down, parallel to `Co_ForAllCo_Cv`.
  * In `DCo_Steps`, "top level reduction steps" includes closed/builtin type family reductions (at any role) and newtype axioms (at representational role only).  It does not cover open type/data families. The step count is an (optional) optimization, to represent transitive chains of steps more compactly.
  * `DCo_Axiom` covers open type/data families; these store the axiom that applies, to avoid having the typing rules (and hence Core Lint) depend on the ambient FamInstEnv.  They do not need to store the types at which the axiom is instantiated.
  * Morally symmetry belongs in the synthesized fragment, but adding `SymDCo` to directed coercions (storing a type) would allow `Dehydate (SymCo (Hydrate ρ τ δ))` to be represented fractionally more compactly as `SymDCo τ δ`. We would not want to end up with `SymDCo τ (Dehydrate γ)`, but this could be ensured by the smart constructor for `mkSymDCo`.
