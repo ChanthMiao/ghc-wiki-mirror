@@ -43,17 +43,17 @@ So:
 
 [Bidirectional Typing](https://arxiv.org/abs/1908.05839) by Jana Dunfield and Neel Krishnaswami is a useful reference to the design of bidirectional systems.  The key idea is this: introduction forms (e.g. constructors) are *checked*; elimination forms (e.g. projections) are *synthesized* (inferred).
 
-The existing judgement form for undirected coercions `Γ |- γ : τ ~ρ υ` has Γ and γ having input mode and τ, υ and ρ having output mode. That is, it does synthesis. From a bidirectional typing perspective, this is perfectly natural for coercion variables, `SymCo` and other elimination forms such as `NthCo`, `LRCo`, `InstCo`, `KindCo`.
+The existing judgement form for undirected coercions `Γ |- γ : τ ~ρ υ` has `Γ` and `γ` having input mode and `τ`, `υ` and `ρ` having output mode. That is, it does synthesis. From a bidirectional typing perspective, this is perfectly natural for coercion variables, `SymCo` and other elimination forms such as `NthCo`, `LRCo`, `InstCo`, `KindCo`.
 
-The new judgement form for directed coercions is `Γ |- δ : τ ρ~> υ` where Γ, δ, τ and ρ have input mode and υ has output mode. (We write `~>` to suggest direction and write ρ before the arrow because it is an input.)  This is the natural way to use for introduction forms such as reflexivity and congruence rules.
+The new judgement form for directed coercions is `Γ |- δ : τ ρ~> υ` where `Γ`, `δ`, `τ` and `ρ` have input mode and `υ` has output mode. (We write `~>` to suggest direction and write `ρ` before the arrow because it is an input.)  This is the natural way to use for introduction forms such as reflexivity and congruence rules.
 
 As is normal in bidirectional systems, there are two rules for switching between checking and synthesis:
- * An undirected coercion γ can always be used as a directed coercion `Co γ`, where the typing rules ensure that the kinds match up.
- * Using a directed coercion δ as an undirected coercion requires a type (and role) annotation.
+ * An undirected coercion `γ` can always be used as a directed coercion `Dehydrate γ`, where the typing rules ensure that the kinds match up.
+ * Using a directed coercion `δ` as an undirected coercion requires a type (and role) annotation.
 
 ## Typing rules
 
-This is a sketch of the typing rules for the judgement `Γ |- δ : τ ρ~> υ`. In the following rules we assume τ is well-kinded, and omit the context Γ if it is unchanged throughout.  Some details have been simplified (in particular around dependent telescopes).
+This is a sketch of the typing rules for the judgement `Γ |- δ : τ ρ~> υ`. In the following rules we assume `τ` is well-kinded, and omit the context `Γ` if it is unchanged throughout.  Some details have been simplified (in particular around dependent telescopes).
 
 ```
 ---------------  DCo_Refl
@@ -156,7 +156,7 @@ Note that:
  * `DCo_ForAll_Cv` needs to be written down, parallel to `Co_ForAllCo_Cv`.
  * In `DCo_Steps`, "top level reduction steps" includes closed/builtin type family reductions (at any role) and newtype axioms (at representational role only).  It does not cover open type/data families. The step count is an (optional) optimization, to represent transitive chains of steps more compactly.
  * `DCo_Axiom` covers open type/data families; these store the axiom that applies, to avoid having the typing rules (and hence Core Lint) depend on the ambient FamInstEnv.  They do not need to store the types at which the axiom is instantiated.
- * Morally symmetry belongs in the synthesized fragment, but adding `SymDCo` to directed coercions (storing a type) would allow `Co (SymCo (Inject ρ τ δ))` to be represented fractionally more compactly as `SymDCo τ δ`. We would want to end up with `SymDCo τ (Co γ)` though.
+ * Morally symmetry belongs in the synthesized fragment, but adding `SymDCo` to directed coercions (storing a type) would allow `Dehydate (SymCo (Hydrate ρ τ δ))` to be represented fractionally more compactly as `SymDCo τ δ`. We would not want to end up with `SymDCo τ (Dehydrate γ)`, but this could be ensured by the smart constructor for `mkSymDCo`.
 
 
 # Where to use directed coercions?
@@ -208,4 +208,6 @@ For now we prefer to modify the type-checker and leave the rest of the pipeline 
 
 # Possible other interactions
 
-`AxiomInstCo`/`AxiomInstDCo` both take a list of coercions as their arguments, instead of what one might more naively expect, a list of types. It seems that this design was motivated by coercion optimisation concerns that may no longer be relevant with directed coercions. This might allow us to simplify the implementation in GHC, e.g. removing `GHC.Core.Unify.ty_co_match`.
+`AxiomInstCo` takes a list of coercions as its arguments, instead of what one might more naively expect, a list of types. It seems that this design was motivated by coercion optimisation concerns that may no longer be relevant with directed coercions. In particular, `AxiomInstDCo` stores only the axiom, not the list of arguments. This might allow us to simplify the implementation in GHC, e.g. removing `GHC.Core.Unify.ty_co_match`.
+
+**AMG**: I optimistically hope that much of the coercion optimizer can go away if we get the design for directed coercions right.
