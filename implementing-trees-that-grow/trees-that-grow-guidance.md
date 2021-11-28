@@ -86,14 +86,14 @@ data Exp x
   | ...
   | XExp !(XXExp x)   -- Note strict!
 
-data NoExtCon      -- no constructor extension
+data DataConCantHappen      -- no constructor extension (earlier called NoExtCon)
 ```
 
 Why make the extension constructor's field strict? Consider a function which consumes an `Exp`:
 
 ```hs
 
-type instance XExp (GhcPass Renamed) = NoExtCon  -- The Renamed pass has no extension constructor
+type instance XExp (GhcPass Renamed) = DataConCantHappen  -- The Renamed pass has no extension constructor
 
 expPass :: Exp (GhcPass Renamed) -> Exp (GhcPass Renamed)
 expPass (Var x v) = ...
@@ -101,9 +101,9 @@ expPass (Var x v) = ...
 expPass (XExp _) = error "Unexpected XExp"   -- This line is tiresome; and indeed we can omit it
 ```
 
-Having to write a case for `XExp` each time is tedious, morally we know this case is unreachable: you should not be able to construct a value of `NoExtCon`. You might object "but what about `⊥ :: NoExtCon`? This is where making the field strict comes into play. If the field is strict, then passing `XExp ⊥` to `expPass` will diverge before the right-hand side of the `error` rhs can be reached. In other words, making the field strict makes that case truly unreachable.
+Having to write a case for `XExp` each time is tedious, morally we know this case is unreachable: you should not be able to construct a value of `DataConCantHappen`. You might object "but what about `⊥ :: DataConCantHappen`? This is where making the field strict comes into play. If the field is strict, then passing `XExp ⊥` to `expPass` will diverge before the right-hand side of the `error` rhs can be reached. In other words, making the field strict makes that case truly unreachable.
 
-In GHC 8.8 and up, the pattern-match coverage checker is actually smart enough to perform this kind of reasoning about strict fields of uninhabited types (such as `NoExtCon`), so if you were to try and write the last case of `expPass`, it would emit a warning.  Instead, you can omit this case, and GHC won't complain about a missing case, because it knows it can't match.  See #17992.
+In GHC 8.8 and up, the pattern-match coverage checker is actually smart enough to perform this kind of reasoning about strict fields of uninhabited types (such as `DataConCantHappen`), so if you were to try and write the last case of `expPass`, it would emit a warning.  Instead, you can omit this case, and GHC won't complain about a missing case, because it knows it can't match.  See #17992.
 
 Bottom line: make extension constructors have a strict field!
 
@@ -175,10 +175,10 @@ type family XId  x
 
 data NoExtField = NoExtField -- no field extension
 
-data NoExtCon      -- no constructor extension
+data DataConCantHappen      -- no constructor extension
 
-noExtCon :: NoExtCon -> a
-noExtCon x = case x of {}
+dataConCantHappen :: DataConCantHappen -> a
+dataConCantHappen x = case x of {}
 ```
 
 
@@ -200,7 +200,7 @@ type ExpPs = Exp Ps
 type instance XVar  Ps = NoExtField
 type instance XAbs  Ps = NoExtField
 type instance XApp  Ps = NoExtField
-type instance XXExp Ps = NoExtCon
+type instance XXExp Ps = DataConCantHappen
 
 type instance XId  Ps = RdrName
 ```
