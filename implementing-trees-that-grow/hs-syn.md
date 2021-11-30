@@ -33,7 +33,7 @@ data HsExpr x
 type family XId x
 type family XVar x
 type family XApp x
-tyep family XNewExpr x
+type family XNewExpr x
 ```
 
 
