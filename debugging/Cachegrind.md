@@ -98,7 +98,7 @@ Ir                  I1mr             ILmr         Dr                 D1mr       
          .                .            .                  .               .              .                  .               .              .             where
 ```
 
-Notice that we can observe the change that was made: `foldr` in `occAnalRecBind` on `ghc-master` becomes `foldr'` in MR!7005, specifically in commit 17b49f49acf502d9f712d962ab95d4c5d239a590, and that this change induced over `200k` _more_ instructions (the `Ir` column on the left most side). Definitely a regression, indeed in commit 21318a24fe215facbbabfbbbb5503a071581c2b9 this was reverted and allocations returned to normal.
+Notice that we can observe the change that was made: `foldr` in `occAnalRecBind` on `ghc-master` becomes `foldr'` in MR!7005, specifically in commit 17b49f49acf502d9f712d962ab95d4c5d239a590, and that this change induced over `200k` _more_ instructions associated to `occAnalRecBind` (see the `Ir` column on the left most side). Definitely a regression, indeed in commit 21318a24fe215facbbabfbbbb5503a071581c2b9 this was reverted and allocations returned to normal.
 
 Differences of a `.` to a few hundred thousand or more are definitely worth investigating. A `.` means that the events `cachegrind` tracks were not applicable to the line in question. So a change from a `.` to a lot of instructions means a lot of new events began originating from code generated from that line.
 
