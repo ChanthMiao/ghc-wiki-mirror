@@ -95,7 +95,8 @@ There's a great tool called `rr` for reverse debugging. Try it out - if you're l
   Some good examples are `stg_upd_frame_info` (the standard
   update code), `stg_upd_frame_1_info` (the update code for a
   1-tagged object, eg. a cons cell), `stg_ap_p_info` (the apply
-  code for a single pointer argument).
+  code for a single pointer argument). If the crash is in GC, try
+  to break on the last `__stg_gc_fun` before it.
 
   - `break stg_upd_frame_info`
 
