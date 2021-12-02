@@ -32,37 +32,6 @@ This part of the wiki collects all the information related to debugging GHC. Tha
 
 ---
 
-## count_lines
-
-
-The `count_lines` script, which is put in `$(TOP)/inplace/bin`, counts source lines and comments. The command-line arguments are the Haskell source files to count.
-
-```wiki
-bash-3.2$ $head/count_lines compiler/*/*hs
-
-                      Code  Comments
-compiler/basicTypes    4565   5092
-compiler/cmm           9685   4703
-...
-compiler/utils         6316   4669
-compiler/vectorise     2608    669
-
-TOTAL:               105893  86247
-
-                      Code  Comments
-Annotations.lhs          57     44
-AsmCodeGen.lhs          591    333
-Bag.lhs                 140     51
-....
-ZipCfgExtras.hs          43     33
-ZipDataflow.hs          779    271
-
-TOTAL:               105893  86247
-```
-
-
-The source for `count_lines` is in `$(TOP)/utils/count_lines`.
-
 ## compareSizes
 
 
