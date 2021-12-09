@@ -106,5 +106,8 @@ If you want to get a taste for possible starting tasks, the ~newcomer label coll
    - Static Argument Transformation (See Section 7)
  - See also [this](https://www.microsoft.com/en-us/research/wp-content/uploads/1998/09/comp-by-trans-scp.pdf) overview paper by Santos and SPJ.
   - For more inlining see the paper [Secrets of the GHC inliner](https://www.microsoft.com/en-us/research/wp-content/uploads/2002/07/inline.pdf)
+  - All about strictness analysis and the demand analyzer: [Theory and Practice
+   of Demand Analysis in
+   Haskell](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/03/demand-jfp-draft.pdf)
 
 Happy hacking!
