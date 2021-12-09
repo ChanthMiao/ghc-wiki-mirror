@@ -2,8 +2,9 @@
 
 I move stuff here from the different sections that is on our radar at the moment.
 
+- #20767 top element of Demand lattic and lubBoxity
 - #20378, !6541: Estimating CaseAlt hottness
-- #19871, !5790 boxity analysis.  See also https://gitlab.haskell.org/ghc/ghc/-/issues/19824#note_353112
+- #19871, !5790 boxity analysis. See also https://gitlab.haskell.org/ghc/ghc/-/issues/19824#note_353112
   - Nice idea for a paper: DmdAnal, (then termination analysis,) then Boxity analysis, which infers boxity for parameters and results.
 - !5667: Nested CPR light, part 2
 - #20111, !6168: Bug in `exprMightThrowPreciseException`
@@ -52,27 +53,18 @@ I move stuff here from the different sections that is on our radar at the moment
 # Demand Analysis
 
 - #20325: cost model for w/w (not hard)
-
 - #19917: better w/w for bottoming functions
-
 - #18907 Product demands
-
 - #18349 Trimming of DmdAnal results.
   * !3466 (merged) fixes #18304, but Andreas pointed out a shortcoming; !3558 (merged) fixes that; but we need a regression test for the latter; then close #18304
   * !3516 is a failed attempt to break the loop.
   * Sebastian thinks he has a better way to detect potentially-recursive type constructors
-
-- #14620 join points [this comment](https://gitlab.haskell.org/ghc/ghc/-/issues/14620#note_315900)
-
-- #14816, [this comment](https://gitlab.haskell.org/ghc/ghc/-/issues/14816#note_315980)
+- #14620 join points [this comment](https://gitlab.haskell.org/ghc/ghc/-/issues/14620#note_315900 "Polymorphic functions not easily recognized as join points")
+- #14816, [this comment](https://gitlab.haskell.org/ghc/ghc/-/issues/14816#note_315980 "DmdAnal punishes free variables compared to static argument encoding")
   - Drop `reuseEnv` in DmdAnal, check `lazy_fvs` for equality.
-
 - #18885: Make product strictness demands relative
   - In adding hack after hack, I felt less and less confident that it works.
-  - I think we only want the product demand to apply relatively, when the outer
-    cardinality is lazy (e.g. 0). See
-    https://gitlab.haskell.org/ghc/ghc/-/issues/18885#note_315189
-    for a summary.
+  - I think we only want the product demand to apply relatively, when the outer cardinality is lazy (e.g. 0). See https://gitlab.haskell.org/ghc/ghc/-/issues/18885#note_315189 for a summary.
 
 # Return-pattern specialisation
 
@@ -91,14 +83,10 @@ I move stuff here from the different sections that is on our radar at the moment
   - We can try to "solve" stream fusion this way. See [the stream-fusion paper, section 7.2 "Static Argument Transformation"](http://fun.cs.tufts.edu/stream-fusion.pdf). The key missing features:
     - Managed to optimise that example, simply by SA analysing each binding of the mutually recursive group in isolation and then taking care not make specialisable functions loop-breakers
     - But running into tick-exhaustions on `>>=` on `CmdM`, so I opened some unwanted back door. How to debug?
-
 - Ultimately pick up the SAT work again #18962, but I feel like we need a better story for derived unfoldings here
-  - Maybe new unfolding source? Or attach unfolding deriving strategy to
-    InlineRHS. On the other hand, it would also be useful for stable unfoldings..
+  - Maybe new unfolding source? Or attach unfolding deriving strategy to InlineRHS. On the other hand, it would also be useful for stable unfoldings..
 
 # Join points
-
-
 
 # Eta expansion
 
@@ -107,13 +95,12 @@ I move stuff here from the different sections that is on our radar at the moment
 - #19302: eta-expand SimplM
 - #19251 INLINE makes things worse: again eta-expansion.
 - #18993: regression in 9.1 due to eta-expansion
-
 - #18231: eta expansion. Mysteries remain.
   - In particular, we wondered whether (or when, rather) `etaExpand` has to expose lambdas manifestly. Makes a difference for PAPs (special case: trivial exprs?)
   - We investigated call sites of `etaExpand` and concluded that the only call site that really needs lambdas manifestly is CoreToStg.Prep
   - On inlining PAPs: Makes sense operationally (so do it before STG), but keeping PAPs makes bindings much more likely to inline
   - (Apparently, CoreToStg.Prep has its own eta expander)
-  - SPJ: "in mkLam I think it'd be fine not to eta-expand a trivial exprssion" (despite Note [Eta expanding lambdas])
+  - SPJ: "in mkLam I think it'd be fine not to eta-expand a trivial exprssion" (despite Note \[Eta expanding lambdas\])
 - #18202, #18238: state hack
   - We don't care to preserve one-shot-ness in the compiler. But it's also only use site info, so that should be fine
   - e.g. `exprEtaExpandArity` only returns `Arity`, not `ArityType`, and so on
@@ -127,7 +114,6 @@ I move stuff here from the different sections that is on our radar at the moment
     - inline, then beta reduce ==> `\x{os}.e[x/y]`
     - In some situations, we want one, in some we want the other!
     - Idea: No eta reduction whenever there's os or ms, only if there is no annotation
-
 - #17881, #17896: eta reduction (based on usage Demand)
 
 # Pattern-match checking
@@ -145,7 +131,6 @@ I move stuff here from the different sections that is on our radar at the moment
 - #15532: Levity polymorphism and ANF
   - We talked about it with Richard and came to the understanding that it would probably work, but entail refactorings of Core to Core passes which assume they can just let-bind everything.
   - Also we shouldn't worry about it until we need it. But it's a logical next step after we have unlifted datatypes, otherwise there is no chance of code re-use.
-
 - #18927: Use `SmallArray#`
   - I have a handy small library now, just have to use it
   - But I got distracted by trying to solve list fusion, again...
@@ -154,22 +139,23 @@ I move stuff here from the different sections that is on our radar at the moment
 
 # On hold
 
-- https://gitlab.haskell.org/ghc/ghc/tree/wip/ext-arity: Rebased Zach's implementation of the extensionality paper
+- <https://gitlab.haskell.org/ghc/ghc/tree/wip/ext-arity>: Rebased Zach's implementation of the extensionality paper
   - Wait for levity polymorphism and matchability polymorphism to work out
-
 - #915: Specialisation through type classes/defunctionalisation
   - #17592: Specialisation for call patterns is quite unreliable:
-    ```hs
+
+    ```haskell
     f :: Maybe Bool -> Int -> Int
     f (Just True) 0 = 1
     f (Just True) n = f (Just True) (n-1)
     f _ 0 = 2
     f x n = f x (n-1)
-
+    
     g x n = f (Just x) n
     h n = g True n
     ```
-    There are situations in which `g` has not been inlined into `h` by the time SpecConstr runs. SpecConstr will then create two specialisations: One for `(Just True, _)` (`f1`) and one for `(Just _, _)` (`f2`), the former of which is a strict specialisation of the latter. The simplifier will then rewrite the call site in `g` to `f2`. Now, at some point `g` will be inlined and we see the call site `f2 True n`, which we *could* rewrite to `f1`. But all specialisation rules only apply to `f`, so we can't do the rewrite. The solution is simply to attach a derived specialisation rule to `f2`.
+
+     There are situations in which `g` has not been inlined into `h` by the time SpecConstr runs. SpecConstr will then create two specialisations: One for `(Just True, _)` (`f1`) and one for `(Just _, _)` (`f2`), the former of which is a strict specialisation of the latter. The simplifier will then rewrite the call site in `g` to `f2`. Now, at some point `g` will be inlined and we see the call site `f2 True n`, which we _could_ rewrite to `f1`. But all specialisation rules only apply to `f`, so we can't do the rewrite. The solution is simply to attach a derived specialisation rule to `f2`.
   - (Obsolete) Why not do specialisation of recursive functions instead of inlining them, as part of the simplifier? Consider separate pragma `{-# SPECIALISABLE #-}` or something
   - Pros:
     - No complicated and brittle reliance on rewrite rules
@@ -178,10 +164,9 @@ I move stuff here from the different sections that is on our radar at the moment
   - Cons:
     - Probably quirky for complicated recursion schemes
     - How does this work for rewriting recursive call sites? Seems impossible without RULEs and thus SpecConstr. OK, that won't work
-
-- https://github.com/ghc-proposals/ghc-proposals/pull/43 Or patterns: Potential bachelor's thesis?
+- <https://github.com/ghc-proposals/ghc-proposals/pull/43> Or patterns: Potential bachelor's thesis?
   - osa1 ultimately after a long and tedious discussion gave up.
   - Why? What's needed? A formal Specification? Which part? Static or dynamic semantics?
   - Also how much? Whole pattern language or just enough of a fragment to explain or patterns?
-  - I see there is https://gitlab.haskell.org/rae/haskell as a starting point, but it seems to focus entirely on static semantics. But probably the document to complete?
+  - I see there is <https://gitlab.haskell.org/rae/haskell> as a starting point, but it seems to focus entirely on static semantics. But probably the document to complete?
   - We talked about it; it's a matter of pushing the proposal forward rather than investing actual elbow grease into an impl.
