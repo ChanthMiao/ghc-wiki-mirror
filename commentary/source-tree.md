@@ -49,7 +49,7 @@ The `compiler/` directory contains the ghc package, which is linked
 into an executable in the `ghc/` directory.
 
 
-There is [documentation of the intended module dependency structure](module-structure) of the `compiler/` directory.
+There is [documentation of the intended module dependency structure](commentary/module-structure) of the `compiler/` directory.
 
 - **`compiler/ghc.cabal.in`**: the Cabal file for GHC is generated from this. If you add a module to GHC's source code, you must add it in the `ghc.cabal.in` file too, else you'll get link errors.
 
