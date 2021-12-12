@@ -99,7 +99,7 @@ This contains some tarball files (binary packages) that GHC relies upon. Used fo
 The `testsuite/` and `nofib/` directories contain apparatus for testing GHC.
 
 - [Building/RunningTests](building/running-tests)
-- [Building/RunningNoFib](building/running-no-fib)
+- [Building/RunningNoFib](building/running-nofib)
 
 ## `mk/`, `rules/`
 
