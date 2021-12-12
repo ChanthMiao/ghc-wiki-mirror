@@ -104,10 +104,10 @@ The `testsuite/` and `nofib/` directories contain apparatus for testing GHC.
 ## `mk/`, `rules/`
 
 
-The `mk/` and `rules.mk` directories contains all the build system Makefile boilerplate; see [GHC Build System Architecture](building/architecture).  Some particular files are interesting:
+The `mk/` and `rules/` directories contains all the build system Makefile boilerplate; see [GHC Build System Architecture](building/architecture).  Some particular files are interesting:
 
 - **`mk/build.mk`**: contains Makefile settings that control your build. Details [here](building/using).  The file `mk/build.mk.sample` contains a starting point that you can copy to `mk/build.mk` if you want.
-- **`mk/are-validating.mk`**: this file records the fact that you are doing [validation](testing-patches), by containing the single line `Validating=YES`.  That in turn means the the build system gets its settings from `mk/validate-settings.mk` instead of from `mk/build.mk`.  Remove the file to stop validating.
+- **`mk/are-validating.mk`**: this file records the fact that you are doing [validation](testing-patches), by containing the single line `Validating=YES`.  That in turn means the build system gets its settings from `mk/validate-settings.mk` instead of from `mk/build.mk`.  Remove the file to stop validating.
 - **`mk/validate.mk`**: just like `build.mk`, but applies when validating.  Use this file to override the default settings for validation, which are in `mk/validate-settings.mk`.
 
 ## `distrib/`
@@ -133,7 +133,7 @@ The `inplace/` directory is where we "install" stage1 and stage2 compilers, and 
   - `count_lines`
   - `compareSizes`
 
-- **`inplace/lib/`**: suppporting libraries for the executables.
+- **`inplace/lib/`**: supporting libraries for the executables.
 
 ### `.../dist*/`
 
