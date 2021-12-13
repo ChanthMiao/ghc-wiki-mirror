@@ -32,7 +32,7 @@ $ cd ghc-master
 $ valgrind --tool=cachegrind _build/stage1/bin/ghc -g -O2 -fforce-recomp -ddump-to-file -ddump-simpl -ddump-stg-final ./testsuite/tests/perf/compiler/T9961.hs
 ```
 Some extra words of caution:
-- **Ensure CPU frequency scaling is off, and your CPU is quiet, this can impact the measurement!**
+- **Ensure CPU frequency scaling is off, and your CPU is quiet, this can impact the measurement!** (I recommend [cpupower](https://wiki.archlinux.org/title/CPU_frequency_scaling#Disabling_Turbo_Boost) to check. See also [this](https://easyperf.net/blog/2019/08/02/Perf-measurement-environment-on-Linux#8-use-statistical-methods-to-process-measurements) article on getting consistent benchmarking results on Linux)
 - The flag **-g** is required to produce the DWARF symbols that `valgrind` will use. **If you forget -g, or you don't build with debug_info, you'll get a report of only the RTS and a lot of ??? symbols**
 
 5. Repeat (4) for `ghc` instead of `ghc-master`. 
