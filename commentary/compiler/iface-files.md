@@ -50,7 +50,7 @@ We also load interface files in some more obscure situations:
 - When it is used as the backing implementation of a signature (`loadSysInterface` in `tcRnSignature`)
 - When we look up its family instances (`loadSysInterface` in `getFamInsts`)
 - When its information or safety (`getModuleInterface` in `hscGetSafe`)
-- When we an identifier is explicitly used (including a use from Template Haskell), we load the interface to check if the identifier is deprecated (`loadInterfaceForName` in `warnIfDeprecated`/`loadInterfaceforName` in `rn_bracket`)
+- When an identifier is explicitly used (including a use from Template Haskell), we load the interface to check if the identifier is deprecated (`loadInterfaceForName` in `warnIfDeprecated`/`loadInterfaceforName` in `rn_bracket`)
 - Recompilation checking (`needInterface` in `checkModUsage`)
 - When we need the fixity for an identifier (`loadInterfaceForName` in `lookupFixityRn`)
 - When we reify a module for Template Haskell (`loadInterfaceForModule` in `reifyModule`)
