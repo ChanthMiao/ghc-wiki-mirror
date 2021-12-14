@@ -69,7 +69,7 @@ f x = let g = \y -> x + y + head squares
 
 
 The heap-allocated closure for `g` has a pointer to its free variable `x`.  But its info table also has an SRT,
-and that SRT points to `squares_closure`, becuase the latter is CAFFY.  So if the `g`-closure is alive,
+and that SRT points to `squares_closure`, because the latter is CAFFY.  So if the `g`-closure is alive,
 that keeps `squares_closure` alive, and hence keeps alive the list that `squares` has evaluated to.
 
 
