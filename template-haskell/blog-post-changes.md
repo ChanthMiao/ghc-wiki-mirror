@@ -102,7 +102,7 @@ qnot x = [| (not $x, length $x) |]
 ```
 
 
-This cannot possibly be right, becuase `$x` cannot be both a boolean and a list.
+This cannot possibly be right, because `$x` cannot be both a boolean and a list.
 Yet TH will accept it, because a splice has type `forall a.a`.  The error will
 only be reported to *callers* of `qnot`.
 
