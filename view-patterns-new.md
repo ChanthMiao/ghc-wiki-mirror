@@ -65,7 +65,7 @@
 
 View patterns are a convenient way of pattern-matching against values of abstract types.  For example, in a programming language implementation, we might represent the syntax of the types of the language as follows:
 
-```wiki
+```haskell
    type Typ
  
    data TypView = Unit
@@ -77,12 +77,12 @@ View patterns are a convenient way of pattern-matching against values of abstrac
 ```
 
 
-The representation of `Typ` is held abstract, permitting implementations to use a fancy representation (e.g., hash-consing to managage sharing).
+The representation of `Typ` is held abstract, permitting implementations to use a fancy representation (e.g., hash-consing to manage sharing).
 
 
 In current Haskell, using this signature a little inconvenient:
 
-```wiki
+```haskell
    size :: Typ -> Integer
    size t = case t of
      Unit -> 1
@@ -96,7 +96,7 @@ In response, programmers sometimes eschew type abstraction in favor of revealing
 
 View patterns permit calling the view function inside the pattern and matching against the result:
 
-```wiki
+```haskell
    size (view -> Unit) = 1
    size (view -> Arrow t1 t2) = size t1 + size t2
 ```
@@ -136,13 +136,13 @@ However, sometimes modest syntactic sugar can have profound consequences. In thi
 
   - In function definitions, variables bound by matching earlier curried arguments may be used in view pattern expressions in later arguments.
 
-    ```wiki
+    ```haskell
        example :: (String -> Integer) -> String -> Bool
        example f (f -> 4) = True
     ```
   - Variables can be bound to the left in tuples and data constructors:
 
-    ```wiki
+    ```haskell
        example :: ((String -> Integer,Integer), String) -> Bool
        example ((f,_), f -> 4) = True
     ```
@@ -167,7 +167,7 @@ We discuss some examples of pattern-matching abstract types and of other  uses o
 
 The requisite join-list example:
 
-```wiki
+```haskell
    data JList a = Empty 
                 | Single a
                 | Join (JList a) (JList a)
@@ -182,7 +182,7 @@ Here we've chosen that the view type only exposes the cons/nil structure one lev
 
 The implementation of the view:
 
-```wiki
+```haskell
   view :: JList a -> JListView a
   view Empty = Nil
   view (Single a) = Cons a Empty
@@ -196,7 +196,7 @@ Note the recursive uses of the view function in view patterns within its own def
 
 An example of using it:
 
-```wiki
+```haskell
   length :: JList a -> Integer
   length (view -> Nil) = 0
   length (view -> Cons x xs) = 1 + length xs
@@ -205,7 +205,7 @@ An example of using it:
 
 For more general sequences, `Data.Sequence` already defines the views from the left and from the right
 
-```wiki
+```haskell
    data ViewL a
    = EmptyL
    | (:<) a (Seq a)
@@ -227,7 +227,7 @@ that now may be used in view patterns.
 
 Here's an alternate style of view definition: rather than mapping the abstract type to a single sum type, you provide outjections optionally inverting each constructor:
 
-```wiki
+```haskell
    type Typ
 
    outUnit  : Typ -> Maybe ()
@@ -239,7 +239,7 @@ Here's an alternate style of view definition: rather than mapping the abstract t
 
 This view is used as follows:
 
-```wiki
+```haskell
    size (outUnit -> Just _) = 1
    size (outArrow -> Just (t1, t2)) = size t1 + size t2
 ```
@@ -250,9 +250,9 @@ This style should be discouraged when the view is in fact a total operation, as 
 #### Sets
 
 
-Here is a small module that allows to decompose sets with repsect to a given element, deleting it hereby.
+Here is a small module that allows to decompose sets with respect to a given element, deleting it hereby.
 
-```wiki
+```haskell
 module Set(Set, empty, insert, delete, has) where
 
   newtype Set a = S [a]
@@ -278,7 +278,7 @@ Note the use of the previous argument `x` in later view patterns.
 
 Sagonas et al describe an extension to Erlang that supports pattern-matching on bit-strings (["Application, implementation and performance evaluation of bit-stream programming in Erlang", PADL'07](http://user.it.uu.se/~kostis/Papers/index.html#Conference)).  Suppose we had a parsing function thus:
 
-```wiki
+```haskell
   bits :: Int -> ByteString -> Maybe (Word, ByteString)
   -- (bits n bs) parses n bits from the front of bs, returning
   -- the n-bit Word, and the remainder of bs
@@ -287,19 +287,19 @@ Sagonas et al describe an extension to Erlang that supports pattern-matching on 
 
 Then we could write patterns like this:
 
-```wiki
+```haskell
   parsePacket :: ByteString -> ...
   parsePacket (bits 3 -> Just (n, (bits n -> Just (val, bs)))) = ...
 ```
 
 
-This parses 3 bits to get the value of `n`, and then parses `n` bits to get the value of `val`.  Note that this example uses the left-to-right scoping in the inner tuple: the first component is jused in the view expression in the second.
+This parses 3 bits to get the value of `n`, and then parses `n` bits to get the value of `val`.  Note that this example uses the left-to-right scoping in the inner tuple: the first component is used in the view expression in the second.
 
 #### N+k patterns
 
 `(n+k)` patterns use the following view function:
 
-```wiki
+```haskell
    np :: Num a => a -> a -> Maybe a
    np k n | k <= n = Just (n-k)
  	   | otherwise = Nothing
@@ -308,7 +308,7 @@ This parses 3 bits to get the value of `n`, and then parses `n` bits to get the 
 
 They are used as follows:
 
-```wiki
+```haskell
    fib :: Num a -> a -> a
    fib 0 = 1
    fib 1 = 1
@@ -320,7 +320,7 @@ Note the integration with type classes: the view function can be overloaded, and
 
 `n+k` patterns are another a good opportunity for passing view data at run-time, as in:
 
-```wiki
+```haskell
    example k (np k -> Just n) = ...
 ```
 
@@ -329,7 +329,7 @@ Note the integration with type classes: the view function can be overloaded, and
 
 View patterns can be used to pattern match against named constants:
 
-```wiki
+```haskell
     errorVal :: Int -> Bool
     errorVal = (== 4)
     f (errorVal -> True) =  ...
@@ -340,7 +340,7 @@ View patterns can be used to pattern match against named constants:
 
 A "both pattern" `pat1 & pat2` matches a value against both `pat1` and `pat2` and succeeds only when they both succeed.  A special case is as-patterns, `x@p`, where the first pattern is a variable.  Both patterns can be programmed using view patterns:
 
-```wiki
+```haskell
    both : a -> (a,a)
    both x = (x,x)
 ```
@@ -348,7 +348,7 @@ A "both pattern" `pat1 & pat2` matches a value against both `pat1` and `pat2` an
 
 And used as follows:
 
-```wiki
+```haskell
    f (both -> (xs, h : t)) = h : (xs ++ t)
 ```
 
@@ -360,7 +360,7 @@ And used as follows:
 
 View patterns permit programming in an iterator style, where you name the result of a recursive call but not the term the call was made on.  E.g.:
 
-```wiki
+```haskell
    length [] = []
    length (x : length -> xs) = x + xs
    
@@ -385,16 +385,16 @@ Next, we describe two further syntactic extensions that we will implement.
 
 Above, we saw several examples of view functions that return a `Maybe`, including:
 
-```wiki
+```haskell
    np :: Num a => a -> a -> Maybe a
    np k n | k <= n = Just (n-k)
- 	   | otherwise = Nothing
+ 	  | otherwise = Nothing
 ```
 
 
 which were used as follows:
 
-```wiki
+```haskell
    fib (np 2 -> Just n) = fib (n + 1) + fib n
 ```
 
@@ -402,14 +402,14 @@ which were used as follows:
 We may implement a special syntax that makes the `Just` implicit, using *expr* `=>` *pat* for *expr* `-> Just` *pat*.  An example use: 
 
 
-```wiki
+```haskell
    fib (np 2 => n) = fib (n + 1) + fib n
 ```
 
 
 This syntax works very nicely with partial views:
 
-```wiki
+```haskell
    size (outUnit => _) = 1
    size (outArrow => (t1, t2)) = size t1 + size t2
 ```
@@ -417,9 +417,9 @@ This syntax works very nicely with partial views:
 #### Implicit Tupling
 
 
-A further syntactic extension would be to have implcit Maybes with implicit tupling: multiple patterns after the `=>` are implicitly tupled.  Then you could write:
+A further syntactic extension would be to have implicit Maybes with implicit tupling: multiple patterns after the `=>` are implicitly tupled.  Then you could write:
 
-```wiki
+```haskell
    size (outArrow => t1 t2) = size t1 + size t2
 ```
 
@@ -431,16 +431,16 @@ Total views have one syntactic disadvantage relative to the iterated-case style 
 
 The idea is that we distinguish a particular type class as a hook into the pattern compiler.  The class has the following interface:
 
-```wiki
+```haskell
    class View a b where
       view :: a -> b
 ```
 
 
-Then, you can leave off the expresion in a view pattern, writing (`->` *pat*), to mean `view -> ` *pat*.  For example:
+Then, you can leave off the expression in a view pattern, writing (`->` *pat*), to mean `view -> ` *pat*.  For example:
 
 
-```wiki
+```haskell
    size (-> Unit) = 1
    size (-> Arrow t1 t2) = size t1 + size t2
 ```
@@ -448,7 +448,7 @@ Then, you can leave off the expresion in a view pattern, writing (`->` *pat*), t
 
 means 
 
-```wiki
+```haskell
    size (view -> Unit) = 1
    size (view -> Arrow t1 t2) = size t1 + size t2
 ```
@@ -459,7 +459,7 @@ for the overloaded `view`.
 
 To use this mechanism, you add instances to `view`, as in:
 
-```wiki
+```haskell
    instance View Typ TypView where
      view = (the view function from above)
 ```
@@ -475,7 +475,7 @@ Of course, you can only use one view function for each hidden-type/view-type pai
 
 The above implementation of `size` is given the following type:
 
-```wiki
+```haskell
    size :: View a TypView -> a -> Int
 ```
 
@@ -485,7 +485,7 @@ which may or may not be what you want.  (For example, with nested view patterns,
 
 Thus, it may be better to make one parameter of the type class determine the other (using associated type synonyms):
 
-```wiki
+```haskell
    class View a where
       type View a 
       view :: a -> View a
@@ -494,7 +494,7 @@ Thus, it may be better to make one parameter of the type class determine the oth
 
 or 
 
-```wiki
+```haskell
    class View b where
       type Hidden b 
       view :: Hidden b -> a
@@ -508,7 +508,7 @@ The downside of these versions is that you can only have one view for a type (wh
 
 **Efficiency**  View patterns can do arbitrary computation, perhaps expensive. It's reasonable to expect the compiler to avoid repeated computation when pattern line up in a column, as in `size` at the top of the page.  In pattern-guard form, common sub-expression should achieve the same effect, but it's quite a bit less obvious.  We should be able to give clear rules for when the avoidance of repeat computation is guaranteed.
 
-**Exhaustiveness/Redundancy.**  It is hard to check for completeness of pattern matching; and likewise for overlap.  But guards already make both of these hard; and GADTs make completness tricky too. So matters are not much worse than before.
+**Exhaustiveness/Redundancy.**  It is hard to check for completeness of pattern matching; and likewise for overlap.  But guards already make both of these hard; and GADTs make completeness tricky too. So matters are not much worse than before.
 
 ## Features views can have
 
@@ -565,7 +565,7 @@ view constructors to appear in patterns only.
 This proposal is substantially more complicated than the one above; in particular it
 requires new form of top-level declaration for a view type. For example:
 
-```wiki
+```haskell
   view Backwards a of [a] = [a] `Snoc` a | Nil
      where
      backwards [] = Nil
@@ -593,7 +593,7 @@ to the different host language.  Again, the value input feature is not supported
 
 Erwig's proposal for active patterns renders the Set example like this:
 
-```wiki
+```haskell
 data Set a = Empty | Add a (Set a)
 
 pat Add' x _ =
@@ -622,7 +622,7 @@ Active Destructors (ADs) are defined by a new form of top-level declaration.
 
 Where we'd write
 
-```wiki
+```haskell
    sing :: [a] -> a option
    sing [x] = x 
 ```
@@ -647,7 +647,7 @@ The value-input feature is supported, but only via a sort of mode declaration (i
 They also introduce a combining form for ADs, to make a kind of and-pattern.  For
 example, suppose we had
 
-```wiki
+```haskell
   Head x match (x:_)
   Tail x match (_:xs)
 
@@ -659,7 +659,7 @@ example, suppose we had
 Here `(Head x)@(Tail ys)` is a pattern that matches *both* `(Head x)` and `(Tail ys)` against the argument, binding `x` and `ys` respectively.  We can model that with view patterns:
 
 
-```wiki
+```haskell
   headV (x:xs) = Just x
   headV []     = Nothing
 
@@ -672,7 +672,7 @@ Here `(Head x)@(Tail ys)` is a pattern that matches *both* `(Head x)` and `(Tail
 
 An alternative to duplicating the value is to compose the functions:
 
-```wiki
+```haskell
   (@) :: (a -> Maybe b) -> (a -> Maybe c) -> a -> Maybe (b,c)
   (f @ g) x = do { b <- f x; c <- g x; return (b,c) }
 
@@ -708,7 +708,7 @@ Here is [a full paper describing the design](http://blogs.msdn.com/dsyme/archive
 
 The feature is implemented in F\# 1.9. Some code snippets are below.
 
-```wiki
+```haskell
     let (|Rect|) (x:complex) = (x.RealPart, x.ImaginaryPart)
     let (|Polar|) (x:complex) = (x.Magnitude , x.Phase)
 
@@ -774,7 +774,7 @@ Reppy & Aiken, TR 92-1290, Cornell, June 1992.
 
 The one way in which pattern synonyms are better than view patterns is thatn they define by-construction bi-directional maps.  Example
 
-```wiki
+```haskell
   data Term = Var String | Term String [Term]
   
   -- 'const' introduces a pattern synonym
@@ -788,7 +788,7 @@ The one way in which pattern synonyms are better than view patterns is thatn the
 
 With pattern views, we'd have to write two functions for the "plus" view:
 
-```wiki
+```haskell
   plus :: Term -> Term -> Term
   plus a b = Term "+" [a,b]
 
@@ -813,7 +813,7 @@ and more that Haskell patterns can do.  They have the value-input feature.
 
 
 The advantages are  1) They are simpler than Haskell's patterns;  2) Patterns are first class.
-3) The binding mechanism (the pattern binder) is orthogonal to the the pattern combinators:
+3) The binding mechanism (the pattern binder) is orthogonal to the pattern combinators:
 the hope is that one can stop changing the syntax/semantics of patterns and concentrate on writing the
 combinators (as Haskell functions).
 
@@ -857,17 +857,17 @@ proposes a compositional syntax for lambda abstractions
 `(\p -> e)` where pattern matching failure on `p` can be caught and composed
 with a second abstraction. Thus
 
-```wiki
+```haskell
    (| Just x -> x+1 ) +++ (| Nothing -> 0 )
 ```
 
 
-combines two abstractions, with failure from the first falling through to the seoond.  
+combines two abstractions, with failure from the first falling through to the second.  
 
 
 None of these proposals say
 anything about the patterns themselves, which in turn is all this
-proposal deals with.  Hence orthgonal.
+proposal deals with.  Hence orthogonal.
 
 #### Barry Jay: First class patterns
 
@@ -884,4 +884,4 @@ The abstractional power views offer can also be put to good use when designing d
 
 - [R.Hinze: A fresh look on binary search trees](http://www.informatik.uni-bonn.de/~ralf/publications/SearchTree.ps.gz).
 - [R.Hinze:  A Simple Implementation Technique for Priority Search Queues](http://www.informatik.uni-bonn.de/~ralf/publications/ICFP01.pdf)
-- The the key idea of [M.Erwig: Inductive Graphs and Functional Graph Algorithms](http://web.engr.oregonstate.edu/~erwig/papers/InductiveGraphs_JFP01.ps.gz) is to introduce a suitable view of graphs. This way, graphs can be liberated from their notoriously imperative touch.
+- The key idea of [M.Erwig: Inductive Graphs and Functional Graph Algorithms](http://web.engr.oregonstate.edu/~erwig/papers/InductiveGraphs_JFP01.ps.gz) is to introduce a suitable view of graphs. This way, graphs can be liberated from their notoriously imperative touch.
