@@ -94,7 +94,7 @@ Our proposal:
 - `YYYY` is the combination of the *Cabal Hash* and `ZZZZ` (concatenated)
 - `ZZZZ` is recorded in the package database as a new field `abi-hash`.
 
-  - When two packages have identical `ZZZZ`s then they are interface-compatible, and the user might in the future want to change a particular dependency to use a different package but the the same `ZZZZ`.  We do not want to make this change automatically, because even when two packages have identical `ZZZZ`s, they may have different behaviour (e.g. bugfixes).
+  - When two packages have identical `ZZZZ`s then they are interface-compatible, and the user might in the future want to change a particular dependency to use a different package but the same `ZZZZ`.  We do not want to make this change automatically, because even when two packages have identical `ZZZZ`s, they may have different behaviour (e.g. bugfixes).
 
 ## Install location of installed Cabal packages
 
@@ -235,7 +235,7 @@ The agnostic way does not require `ghc-pkg` to be directly aware of all the buil
 The options are to support either both by putting all info into `InstalledPackageInfo` or to support only the second option by just putting a hash into `InstalledPackageInfo`. The disadvantage of supporting both is that `InstalledPackageInfo` would have to change more often. This could be fixed by explicitly making the `InstalledPackageInfo` format extensible in a backwards-compatible way.
 
 
-The advantages of having all info available, independently of the solver algorihm, are that the info might be useful for other tools and user feedback. 
+The advantages of having all info available, independently of the solver algorithm, are that the info might be useful for other tools and user feedback. 
 
 
 Possible disadvantages of the agnostic approach could be that is is a rather significant change and can probably not be supported in a similar way for other Haskell implementation. Also, in the direct approach, we could in principle allow more complex compatibility rules, such as allowing non-profiling libraries to depend on profiling libraries.
