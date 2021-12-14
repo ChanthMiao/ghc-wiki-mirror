@@ -41,7 +41,7 @@ in place of the quote.
 ### Type system
 
 
-Type families remain the the hottest bit of GHC's type system.  Simon
+Type families remain the hottest bit of GHC's type system.  Simon
 PJ has been advertising for some months that he intends to completely
 rewrite the constraint solver, which forms the heart of the type
 inference engine, and that remains the plan although he is being slow
@@ -103,7 +103,7 @@ GHC will not fire rule "foo" because it is scared about duplicating the redex
 
 This declares that an application of `flop` is cheap enough that even a shared 
 application can participate in a rule application.  The CONLIKE pragma is a modifier
-on a NOINLINE (or INLINE) pragma, becuase it really only makes sense to match 
+on a NOINLINE (or INLINE) pragma, because it really only makes sense to match 
 `flop` on the LHS of a rule if you know that `flop` is not going to be inlined
 before the rule has a chance to fire.
 
