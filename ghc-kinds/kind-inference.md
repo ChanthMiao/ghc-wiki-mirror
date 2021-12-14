@@ -531,7 +531,7 @@ This algorithm is not quite as expressive as it could be.  Consider
 ```
 
 
-Here `TT` has a CUSK, but `SS` does not.  Hence in step 1 we'd bind `SS :: kappa0`. But in the RHS of `TT` we use `SS` at two different kinds, so infernece will fail.  We could solve this by giving a CUSK to `SS` as well.
+Here `TT` has a CUSK, but `SS` does not.  Hence in step 1 we'd bind `SS :: kappa0`. But in the RHS of `TT` we use `SS` at two different kinds, so inference will fail.  We could solve this by giving a CUSK to `SS` as well.
 
 
 However, we can *also* solve it using a plan due to Mark Jones, and one that GHC 7.8 already follows for ordinary, recursive term-level functions.  As usual, divide the declarations into SCCs, and then for each SCC do the following:
@@ -646,7 +646,7 @@ This will fail despite the CUSK for `S` because `SSyn` lacks one.  (The variatio
 
 **Richard:** Good example. But, wouldn't this be fixed with the more-careful dependency checking described immediately below? Then, `S`, with its CUSK, would be added to the environment and generalized before looking at `SSyn`, and all is well. I don't like the idea of saying that a type synonym has a CUSK when its tyvars and its RHS are annotated, because the RHS is just a plain type -- there's not really a place in the syntax to put the RHS's kind annotation. Looking at the code, something approaching this is done already, where all non-synonyms are first added to the environment (with `getInitialKinds`) and then all the synonyms are fully kind-checked, and then all the other decls are kind-checked. The more-careful dependency checking below could be implemented simply by having `getInitialKinds` notice the CUSK and generalize, I think. Indeed, if I give `S` a CUSK using the current CUSK syntax, the example above compiles today.
 
-**Simon:** I agree that, since type syononyms can't be recursive except via a data type, if you use "A possible variation" below, then you can get away with saying that type synonyms cannot have CUSKs.  It seems a bit non-orthogonal; and could occasionally be tiresome.  Imagine
+**Simon:** I agree that, since type synonyms can't be recursive except via a data type, if you use "A possible variation" below, then you can get away with saying that type synonyms cannot have CUSKs.  It seems a bit non-orthogonal; and could occasionally be tiresome.  Imagine
 
 ```wiki
 data T1 a b c = ...S...
@@ -761,7 +761,7 @@ Here I'm expressing the user-specified knowledge as a signature `forall vs.sig`,
 ```
 
 
-Then the rule intantiates each '_' independently with 
+Then the rule instantiates each '_' independently with 
 a clairvoyantly guessed monotype (provided it does not mention
 the 'vs', or 'a' in this example), and off you go.
 
@@ -877,7 +877,7 @@ type family X (a :: k) where
 
 (PARGEN) and (BASELINE) are incomparable.
 
-- The `SS/TT` example under (BASELINE) will be rejected by (PARGEN) becuase `SS` will get kind `kappa1 -> kappa2 -> kappa3 -> *` when kind-checking the `SS/TT` strongly connected component.  But (BASELINE) accepts it by breaking the SCC into two.
+- The `SS/TT` example under (BASELINE) will be rejected by (PARGEN) because `SS` will get kind `kappa1 -> kappa2 -> kappa3 -> *` when kind-checking the `SS/TT` strongly connected component.  But (BASELINE) accepts it by breaking the SCC into two.
 - There are obviously examples that are accepted by (PARGEN) but not (BASELINE).
 
 
