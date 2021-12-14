@@ -1,8 +1,8 @@
 This is a proposal for some improvements to the way we compile case expressions in ghc.  I'll set up the problem, describe what ghc currently does, and propose some new ideas on compiling case expressions.
 
-By the time we get to the Cmm level, case expressions are desugared into the much simpler problem of dispatching to the right Label given the expression integer.  So the input to the code generator is a Map Integer Label, an optional default label, and a (lb, ub) representing the possible lower value and upper value an expression can have (we are also given signedness info on the case expression).  For example for this program:
+By the time we get to the Cmm level, case expressions are desugared into the much simpler problem of dispatching to the right Label given the expression integer.  So the input to the code generator is a `Map Integer Label`, an optional default label, and a (lb, ub) representing the possible lower value and upper value an expression can have (we are also given signedness info on the case expression).  For example for this program:
 
-```
+```haskell
 f :: Int -> Int
 f 0 = 100
 f 1 = 200
@@ -16,10 +16,10 @@ defOpt   = Just label_400
 (lb, ub) = (INT_MIN, INT_MAX)
 signed   = True
 ```
-Notice that the previous ghc stages have identified common subexpressions so the labels for 1 and 2 are identical since in both cases we return 200 -- this happens not only for simple expessions like integers but also for any complex expression -- we will make use of this property in the new code generator to great effect.
+Notice that the previous ghc stages have identified common subexpressions so the labels for 1 and 2 are identical since in both cases we return 200 -- this happens not only for simple expressions like integers but also for any complex expression -- we will make use of this property in the new code generator to great effect.
 
 As a second example consider a program doing case on an ADT:
-```
+```haskell
 data T = T1 | T2 | T3
 
 f :: T -> Int
@@ -28,7 +28,7 @@ f T2 = 200
 F T3 = 300
 ```
 we will be given:
-```
+```haskell
 m        = Map.fromList [(1, label_100), (2, label_200), (3, label_300)]
 defOpt   = Nothing
 (lb, ub) = (1, 3)
@@ -40,7 +40,7 @@ Existing algorithm
 ------------------
 The function of interest lives in compile/GHC/Cmm/Switch.hs and is called createSwitchPlan().  The goal is to create a `SwitchPlan` defined as follows:
 
-```
+```haskell
 data SwitchPlan
     = Unconditionally Label
     | IfEqual Integer Label SwitchPlan
@@ -79,7 +79,7 @@ The algorithm works quite well producing fairly good plans with either simple va
 
 Here are some examples where the existing algorithm doesn't do so well:
 1. Sometimes it generates superfluous comparisons as in the following example:
-```
+```haskell
 data DD = A1 | A2 | A3 | A4 | A5 
 
 f2 :: DD -> Bool
@@ -119,7 +119,7 @@ The 2nd and 3rd instructions are superfluous.  All we need here is the test agai
 See issue https://gitlab.haskell.org/ghc/ghc/-/issues/19290 with an analysis by Henry on what goes wrong.
 
 2. The only tool of the current algorithm for producing efficiently compiled leaves is the jump table.  For a function like the following:
-```
+```haskell
 data ZZ = A1 | A2 | A3 | A4 | A5 | A6
 
 f A1 = 1
@@ -206,7 +206,7 @@ Here is the assembly produced:
 ```
 
 This is ever more pronounced in the following predicate-like function:
-```
+```haskell
 data I = A1 | A2 | A3 | A4 | A5 | A6
 data R = R1 | R2
 
@@ -267,7 +267,7 @@ in assembly:
 ```
 
 3. Consider the following function:
-```
+```haskell
 f :: Int -> Int
 f 0  = 10
 f 1  = 10
@@ -365,7 +365,7 @@ Foo_zdwf_info:
 ```
 
 4.  Consider a function like the following:
-```
+```haskell
 f :: Int -> Int
 f 1  = 1
 f 2  = 2
@@ -402,7 +402,7 @@ We go through each of them in turn.
 Contiguous segments:
 --------------------
 This kind of segment is trying to capture the pattern when consecutive integers go to the same label.  Here is an example:
-```
+```haskell
 data KindOfHexDigit = IsUpper | IsLower | IsDigit | IsNone
 
 isHexDigit :: Char -> KindOfHexDigit
@@ -486,7 +486,7 @@ constrains imposed by input ADT (we will see examples below).
 Compilation of Contiguous Regions Segment:
 ------------------------------------------
 We now go through the details of how Contiguous Regions are compiled.
-We deal with the the presence and absence of default label separately.
+We deal with the presence and absence of default label separately.
 
 No-default case:
 ----------------
@@ -507,7 +507,7 @@ were only two).
 
 Here is an example where the dichotomy plan kicks in.
 
-```
+```haskell
 data Z = A1 | A2 | A3 | A4 | A5 | A6
 
 f :: Z -> Int
@@ -574,7 +574,7 @@ consequence of no-default), this allows up to dispatch of `r0`
 compare against the upper bound bound of r1 etc. For example for the
 following program:
 
-```
+```haskell
 f :: data Z = A1 | A2 | A3 | A4 | A5 | A6 | A7
 
 f A1 = 1
@@ -594,7 +594,7 @@ we generate the following left-leaning plan:
       (Unconditionally LabelFor3))
 ```
 while if the function was defined as follows:
-```
+```haskell
 f :: data Z = A1 | A2 | A3 | A4 | A5 | A6 | A7
 
 f A1 = 1
@@ -617,7 +617,7 @@ This way (under the assumption of uniformity) we minimize the number
 of comparisons until the label is found.
 
 Here is an example when we are dealing with 4 labels:
-```
+```haskell
 f :: data Z = A1 | A2 | A3 | A4 | A5 | A6 | A7
 
 f A1 = 1
@@ -671,7 +671,7 @@ in assembly:
 ```
 
 Instead if `f` was defined as follows:
-```
+```haskell
 data Z = A1 | A2 | A3 | A4 | A5 | A6 | A7
 
 f A1 = 1
