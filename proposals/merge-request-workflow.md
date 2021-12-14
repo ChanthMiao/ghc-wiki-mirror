@@ -83,7 +83,7 @@ should be marked with the `WIP:` prefix in the merge request title.
  - **Label:** ~"MR::1-under review"
  - **Owner**: Author  
 
-When the the author feels that the patch is ready it is their responsibility to
+When the author feels that the patch is ready it is their responsibility to
 identify an appropriate set of approvers; this is the group of
 people who will be notified of the new merge request with the intention that
 they will contribute to the code review performed in Step (2).
@@ -136,7 +136,7 @@ for details on what this review entails.
 
 The final review should not impose significant delay: within one
 working day a maintainer should either put it in the merge queue, or else push
-it back into the [Techincal Review](#2-technical-review) stage with a comment.
+it back into the [Technical Review](#2-technical-review) stage with a comment.
 Such a push-back does not imply that the MR is bad; only that for some reason
 it is not quite ready, and inviting the author to address the concern.
 
