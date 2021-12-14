@@ -32,7 +32,7 @@ After GHC has produced [Cmm](commentary/compiler/cmm-type) (use -ddump-cmm or -d
   contains data definitions and some functions (comparison, size, simple conversions) for machine instructions, mostly carried out through the `Instr` data type, defined here
 - [compiler/GHC/CmmToAsm/Monad.hs](https://gitlab.haskell.org/ghc/ghc/blob/master/compiler/GHC/CmmToAsm/Monad.hs)
 
-  defines the the main monad in the NCG: the Native code Machine instruction Monad, `NatM`, and related functions.  *Note: the NCG switches between two monads at times, especially in `AsmCodeGen`: `NatM` and the `UniqSM` Monad used throughout the compiler.*
+  defines the main monad in the NCG: the Native code Machine instruction Monad, `NatM`, and related functions.  *Note: the NCG switches between two monads at times, especially in `AsmCodeGen`: `NatM` and the `UniqSM` Monad used throughout the compiler.*
 - [compiler/GHC/CmmToAsm/PIC.hs](https://gitlab.haskell.org/ghc/ghc/blob/master/compiler/GHC/CmmToAsm/PIC.hs)
 
   handles generation of position independent code and issues related to dynamic linking in the NCG; related to many other modules outside the NCG that handle symbol import, export and references, including `CLabel`, `Cmm`, `codeGen` and the RTS, and the Mangler
@@ -180,7 +180,7 @@ takes a list of instructions and a list of real registers available for allocati
 - Implicitly number each instruction by its position in the input list.
 - Using `insnFuture`, create the set of all flow edges -- possible control transfers -- within this set of insns.
 - Using `regUsage` and iterating around the flow graph from the previous step, calculate, for each virtual register, the set of flow edges on which it is live.
-- Make a real-register committment map, which gives the set of edges for which each real register is committed (in use). These sets are initially empty. For each virtual register, attempt to find a real register whose current committment does not intersect that of the virtual register -- ie, is uncommitted on all edges that the virtual reg is live. If successful, this means the vreg can be assigned to the realreg, so add the vreg's set to the realreg's committment.
+- Make a real-register committment map, which gives the set of edges for which each real register is committed (in use). These sets are initially empty. For each virtual register, attempt to find a real register whose current commitment does not intersect that of the virtual register -- ie, is uncommitted on all edges that the virtual reg is live. If successful, this means the vreg can be assigned to the realreg, so add the vreg's set to the realreg's committment.
 - If all the vregs were assigned to a realreg, use `patchInstr` to apply the mapping to the insns themselves. 
 
 ### Spilling
