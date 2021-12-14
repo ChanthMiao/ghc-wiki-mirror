@@ -72,7 +72,7 @@ But we also need to generate evidence for each of these steps!
 
 Suppose we want to type check `runST ($) (e :: forall s. ST s Int)`. Let us denote `alpha` the type of `runST`, `beta` the type of `e` and `gamma` the type of the entire expression. The initial set of constraints which are generated (details on generation below) are:
 
-```wiki
+```haskell
 InstanceOf (forall a b. (a -> b) -> a -> b) (alpha -> beta -> gamma)  [from ($)]
 InstanceOf (forall a. (forall s. ST s a) -> a) alpha                  [from runST]
 InstanceOf (forall s. ST s Int)                beta                   [from e]
@@ -81,7 +81,7 @@ InstanceOf (forall s. ST s Int)                beta                   [from e]
 
 The series of solving steps are:
 
-```wiki
+```haskell
 InstanceOf (forall a b. (a -> b) -> a -> b) (alpha -> beta -> gamma)  [1]
 InstanceOf (forall a. (forall s. ST s a) -> a) alpha                  [2]
 InstanceOf (forall s. ST s Int)                beta                   [3]
@@ -146,7 +146,7 @@ We get that the type assigned to the whole expression is `gamma ~ epsilon ~ eta 
 
 For \[IOCan1\] we want to find evidence for `W1 :: InstanceOf (T sigma1 ... sigman) t1` from `W2 :: (T sigma1 ... sigman) ~ t1`. Such an evidence must be a function `W1 :: (T sigma1 ... sigman) -> t1`. We can get it by applying the coercion resulting from `W2`. More schematically:
 
-```wiki
+```haskell
 W1 :: InstanceOf (T sigma1 ... sigman) t1
 
 ---->
@@ -197,7 +197,7 @@ In the designed proposed above, `->` is treated as any other type constructor. T
 - Treat only the co-domain covariantly, leading to `sigma1 ~ sigma3 /\ InstanceOf sigma2 sigma4`.
 
 
-Which are the the benefits of each option?
+Which are the benefits of each option?
 
 ## Changes to approximation
 
@@ -310,7 +310,7 @@ None of them will work! The problem is that, in the first case, we do not use th
 In the second case the solver does not know that it should generalize at the point of the `\x -> x` expression. Thus, we will come to a point where we have `tau -> tau ~ forall a. a -> a`, which leads to an error, since quantified and not quantified types cannot be equated.
 
 
-However, we expect both cases to work. After all, the information is there, we only have to make it flow to the right place. This is exactly the goal of adding **propagation** to the constraint generation phase. Lucikly, GHC already does some propagation now, as reflected in the type of the function `tcExpr`. The main change is that, whereas the current implementation pushes down and infers shapes of functions, the new one is simpler, and only pushes information down. A **PDF with the rules** is available as an attachment. [only-prop.pdf](/trac/ghc/attachment/wiki/ImpredicativePolymorphism/Impredicative-2015/only-prop.pdf)
+However, we expect both cases to work. After all, the information is there, we only have to make it flow to the right place. This is exactly the goal of adding **propagation** to the constraint generation phase. Luckily, GHC already does some propagation now, as reflected in the type of the function `tcExpr`. The main change is that, whereas the current implementation pushes down and infers shapes of functions, the new one is simpler, and only pushes information down. A **PDF with the rules** is available as an attachment. [only-prop.pdf](/trac/ghc/attachment/wiki/ImpredicativePolymorphism/Impredicative-2015/only-prop.pdf)
 
 
 The most surprising rule is the one named \[AppFun\], which applies when we have a block of known expressions `f1 ... fm` whose type can be recovered from the environment followed by some other freely-shaped expressions. For example, the case of `f (\x -> x)` above, where `f` is in the environment of `g`. In that case, we compute the type that the first block ought to have, and propagate it to the rest of arguments.
@@ -323,7 +323,7 @@ The reason for including a block of `fi`s is to cover cases such as `runST $ do 
 
 There are some unwanted interactions between type classes and families and the `InstanceOf` constraint. For example, if we want to type `[] == []`, we obtain as canonical constraints:
 
-```wiki
+```haskell
 Eq a /\ InstanceOf (forall b. [b]) a
 ```
 
@@ -333,7 +333,7 @@ At this point we are stuck. We need to instantiate `b` before `Eq` can scrutiniz
 
 That solution poses its own problems. Consider the following type family:
 
-```wiki
+```haskell
 type family F a b
 type instance F [a] b = b -> b
 ```
