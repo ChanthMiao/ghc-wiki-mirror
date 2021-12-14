@@ -86,7 +86,7 @@ All these are pretty mechanical, and I use a set of primitive macros to do parts
 ### Step 2
 
 
-We reorganise the the way source locations are stored, by moving from the current alternating design to a direct style (as discussed in the Summer of Haskell project).
+We reorganise the way source locations are stored, by moving from the current alternating design to a direct style (as discussed in the Summer of Haskell project).
 
 
 It will give us a cleaner parser (design/code wise), and speed ups.
@@ -107,7 +107,7 @@ We work on refactoring, by then redundant, bits and pieces of TH by either just 
 This is a quick capture of a discussion on \#ghc, about the naming conventions for TTG extension constructors
 
 
-```
+```haskell
 data Foo p = F Int p
 
 -- becomes
@@ -127,7 +127,7 @@ The additional constructor is the data type name preceded by X (`XFoo`), and it'
 Where a constructor has the same name as the data type, e.g.
 
 
-```
+```haskell
 data Foo p = Foo Int p
 
 -- becomes
@@ -165,7 +165,7 @@ The intention is to
 It does this by adding a `HsExtension` module to `hsSyn`, defining as
 
 
-```
+```haskell
 data GhsPs -- Parser phase
 data GhcRn -- Renamer
 data GhcTc -- Typechecker
@@ -176,7 +176,7 @@ data GhcTh -- Template Haskell. Currently unused
 This is a deviation from the *Trees that Grow* paper ([http://www.jucs.org/jucs_23_1/trees_that_grow/jucs_23_01_0042_0062_najd.pdf](http://www.jucs.org/jucs_23_1/trees_that_grow/jucs_23_01_0042_0062_najd.pdf)) section 4.2 which suggests
 
 
-```
+```haskell
 data GHC (c :: Component)
 data Component = Compiler Pass | TemplateHaskell
 data Pass = Parsed | Renamed | Typechecked
@@ -190,7 +190,7 @@ The deviation is due to a current problem in the implementation which requires t
 This is not important for the experiment however, as in practice we would define type synonyms of the form
 
 
-```
+```haskell
 type GhcPs = GHC '(Compiler Parsed)
 type GhcRn = GHC '(Compiler Renamed)
 ...
@@ -200,7 +200,7 @@ type GhcRn = GHC '(Compiler Renamed)
 The `HsLit` module is amended as
 
 
-```
+```haskell
 data HsLit x
   = HsChar (XHsChar x) {- SourceText -} Char
       -- ^ Character
@@ -219,7 +219,7 @@ Each constructor gets its own tag type, derived mechanically from the constructo
 We then define the type families in `HsExtension.hs` for each extension point, as
 
 
-```
+```haskell
 type family XHsChar x
 type family XHsCharPrim x
 ...
@@ -230,7 +230,7 @@ type family XHsDoublePrim x
 For each compiler pass we define the specific mappings
 
 
-```
+```haskell
 -- GHCP
 type instance XHsChar       GhcPs = SourceText
 type instance XHsCharPrim   GhcPs = SourceText
@@ -257,7 +257,7 @@ One of the eventual goals (for \@alanz anyway) is to be able to pass an AST usin
 To facilitate this, some type classes are defined for the `SourceText` and providing initial/default values.
 
 
-```
+```haskell
 class HasSourceText a where
   -- Provide setters to mimic existing constructors
   noSourceText  :: a
@@ -275,7 +275,7 @@ type SourceTextX x =
 
 ```
 
-```
+```haskell
 class HasDefault a where
   def :: a
 
@@ -292,7 +292,7 @@ type HasDefaultX x =
 These have the expected instances for the two types used in GHC
 
 
-```
+```haskell
 instance HasSourceText SourceText where
   noSourceText    = NoSourceText
   sourceText s    = SourceText s
@@ -302,7 +302,7 @@ instance HasSourceText SourceText where
 
 ```
 
-```
+```haskell
 instance HasDefault () where
   def = ()
 
@@ -317,7 +317,7 @@ instance HasDefault SourceText where
 The paper also proposes explicitly using extension points for the `PostRn` and `PostTc` usages. This has not been done in the current experiment, which has the limited goals set out above. The types have been replaced with updated ones parameterised by the pass variable though
 
 
-```
+```haskell
 type family PostTC x ty -- Note [Pass sensitive types]
 type instance PostTc GhcPs ty = PlaceHolder
 type instance PostTc GhcRn ty = PlaceHolder
@@ -337,7 +337,7 @@ type instance PostRn GhcTc ty = ty
 Many functions and data types need to refer to variables that used to be simply the AST type parameter.  This ability is provided through the `IdP` type family
 
 
-```
+```haskell
 -- Maps the "normal" id type for a given pass
 type family IdP p
 type instance IdP GhcPs = RdrName
@@ -349,7 +349,7 @@ type instance IdP GhcTc = Id
 So we end up with
 
 
-```
+```haskell
 data Sig pass
     TypeSig
        [Located (IdP pass)]  -- LHS of the signature; e.g.  f,g,h :: blah
@@ -379,7 +379,7 @@ In some cases adding `SourceTextX` or `HasDefaultX` constraints is also required
 The `Data` instance for the index type is required due to the following kind of construct
 
 
-```
+```haskell
   | ValBindsOut
         [(RecFlag, LHsBinds idL)]
         [LSig GHCR] -- AZ: how to do this?
@@ -460,7 +460,7 @@ Pieces
 
 - The actual data structure containing the extension points
 
-```
+```haskell
         data Pat x
           = WildPat
               (XWildPat x)
@@ -469,26 +469,26 @@ Pieces
 
 - The type family definition per extension point
 
-```
+```haskell
         type family XWildPat   x
 ```
 
 - A convenience constraint naming all extension points for a given data type
 
-```
+```haskell
         type ForallXPat c x = ...
 ```
 
 - The type instance definition, giving a concrete type for a given type tag
 
-```
+```haskell
         type instance
          XWildPat   (GHC pass) = PostTc pass Type
 ```
 
 1. In current implementation
 
-```
+```haskell
     type
       Pat pass = AST.Pat (GHC pass)
 ```
@@ -498,7 +498,7 @@ effectively forces all extension points to be in the GHC "namespace"
 
 1. Argument for patterns
 
-```
+```haskell
     data HsValBindsLR idL idR
       = -- | Value Bindings In
         --
@@ -522,7 +522,7 @@ effectively forces all extension points to be in the GHC "namespace"
 
 1. We need to define a way of combining extensions
 
-```
+```haskell
     plusHsValBinds :: HsValBinds a -> HsValBinds a -> HsValBinds a
     plusHsValBinds (ValBindsIn x1 ds1 sigs1) (ValBindsIn x2 ds2 sigs2)
       = ValBindsIn (x1 `mappend` x2) (ds1 `unionBags` ds2) (sigs1 ++ sigs2)
@@ -536,7 +536,7 @@ effectively forces all extension points to be in the GHC "namespace"
 
 1. Current implementation defines
 
-```
+```haskell
     pattern
       ValBindsIn a b
         = AST.ValBinds   NoFieldExt a b
@@ -560,12 +560,12 @@ effectively forces all extension points to be in the GHC "namespace"
     - phase specific changes e.g. ValBindsOut
     - Other uses, non-GHC
 
-    Basic question is when should a GHC dev make a modifcation to
+    Basic question is when should a GHC dev make a modification to
     the core data type, and when use an extension point?
 
 1. A pattern locks in a particular use of an extension point.
 
-```
+```haskell
     pattern
       ValBindsOut a b
         = NewValBindsLR (NValBindsOut a b)
@@ -578,7 +578,7 @@ effectively forces all extension points to be in the GHC "namespace"
 >
 >
 
-```
+```haskell
     pattern
       ValBindsOut (GhcPass a) (GhcPass b)
         = NewValBindsLR (NValBindsOut (GhcPass a) (GhcPass b))
