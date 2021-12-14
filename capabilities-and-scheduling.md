@@ -4,7 +4,7 @@ Back to [GarbageCollectorNotes](garbage-collector-notes)
 ## The Scheduler
 
 
-Most of the interesting things related to scheduling and multithreading in Haskell center around the function schedule() that is define in Schedule.c. This is the part of schedule that take a thread from the run and decides what to do with it. 
+Most of the interesting things related to scheduling and multithreading in Haskell center around the function schedule() that is define in Schedule.c. This is the part of schedule that takes a thread from the run and decides what to do with it. 
 
 ```wiki
 static Capability * schedule (Capability *initialCapability, Task *task)
@@ -14,7 +14,7 @@ static Capability * schedule (Capability *initialCapability, Task *task)
 In schedule() is a pretty classical scheduler loop. I have stripped away several parts of the code here to get down to the essentials.
 
 
-```
+```c
     t = popRunQueue(cap);
     prev_what_next = t->what_next;
 
@@ -46,12 +46,11 @@ In schedule() is a pretty classical scheduler loop. I have stripped away several
 ```
 
 
-The scheduler picks up a thread off the run queue and decides what to do with it. If it is runnable, then it calles the function StgRun() to run it. At the end of the code block, the variable “ret” is set to indicate why the the thread stopped. 
+The scheduler picks up a thread off the run queue and decides what to do with it. If it is runnable, then it calls the function StgRun() to run it. At the end of the code block, the variable “ret” is set to indicate why the thread stopped. 
 
 
 
-Haskell threads are not time-sliced via a timer (potentially a timer interrupt) the way OS threads are \[cross check if there is some time sliced mechanism\]. Instead they are interrupted by certain commonly occuring events. Due to the lazy nature of Haskell, thunks need to be created and values need to be computed very often. Hence the execution of a thread entails lots of of memory allocation. One of the ways the execution of a thread is interrupted is when a thread has run out of space in its current block - it then returns control back to the scheduler. 
-
+Haskell threads are not time-sliced via a timer (potentially a timer interrupt) the way OS threads are \[cross check if there is some time sliced mechanism\]. Instead they are interrupted by certain commonly occurring events. Due to the lazy nature of Haskell, thunks need to be created and values need to be computed very often. Hence the execution of a thread entails lots of of memory allocation. One of the ways the execution of a thread is interrupted is when a thread has run out of space in its current block - it then returns control back to the scheduler. 
 
 >
 >
@@ -67,7 +66,7 @@ A GHC block is a 4k page that is page aligned for the OS VM system.
 Here is what the scheduler does with the "ret" - 
 
 
-```
+```c
     switch (ret) {
     case HeapOverflow:
         ready_to_gc = scheduleHandleHeapOverflow(cap,t);
@@ -107,9 +106,9 @@ The scheduleHandleHeapOverflow(cap,t) call decides to give the thread another bl
 It is useful to understand capabilities well because it is closely tied to the maintenance of the program roots and multithreading in Haskell - all of which the GC has to be aware of. If however you are reading this the first time, you may want to skip this section and come back to it later. 
 
 
-Capabilities are defined in capability.h. The file OSThreads.h provide an platform neutral absraction for OS level threads used by Haskell. 
+Capabilities are defined in capability.h. The file OSThreads.h provide an platform neutral abstraction for OS level threads used by Haskell. 
 
-```wiki
+```c
 struct Capability_ {
     // State required by the STG virtual machine when running Haskell
     // code.  During STG execution, the BaseReg register always points
@@ -194,7 +193,7 @@ Here are some important observations about a capability: it consists of essentia
 
 TSO stands for Thread State Object and is the abstract for a haskell thread from the perspective of the RTS. TSO's are defined in TSO.h. 
 
-```wiki
+```c
 typedef struct StgTSO_ {
     StgHeader               header;
 
@@ -250,6 +249,5 @@ A TSO is treated like any other object by the GC and it resides in the program h
 This is a good point to introduce some terminology related to the above - 
 
 
-- task - is essentially an OS thread executing a forgein function call. The haskell thread that needed to execute the FFI call is attached to this thread for the entire duration of the forgein call. \[is there something more that I can say here?\]
+- task - is essentially an OS thread executing a foreign function call. The haskell thread that needed to execute the FFI call is attached to this thread for the entire duration of the foreign call. \[is there something more that I can say here?\]
 
-- 
