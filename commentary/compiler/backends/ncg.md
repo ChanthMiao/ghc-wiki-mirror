@@ -180,7 +180,7 @@ takes a list of instructions and a list of real registers available for allocati
 - Implicitly number each instruction by its position in the input list.
 - Using `insnFuture`, create the set of all flow edges -- possible control transfers -- within this set of insns.
 - Using `regUsage` and iterating around the flow graph from the previous step, calculate, for each virtual register, the set of flow edges on which it is live.
-- Make a real-register committment map, which gives the set of edges for which each real register is committed (in use). These sets are initially empty. For each virtual register, attempt to find a real register whose current commitment does not intersect that of the virtual register -- ie, is uncommitted on all edges that the virtual reg is live. If successful, this means the vreg can be assigned to the realreg, so add the vreg's set to the realreg's committment.
+- Make a real-register commitment map, which gives the set of edges for which each real register is committed (in use). These sets are initially empty. For each virtual register, attempt to find a real register whose current commitment does not intersect that of the virtual register -- ie, is uncommitted on all edges that the virtual reg is live. If successful, this means the vreg can be assigned to the realreg, so add the vreg's set to the realreg's commitment.
 - If all the vregs were assigned to a realreg, use `patchInstr` to apply the mapping to the insns themselves. 
 
 ### Spilling
