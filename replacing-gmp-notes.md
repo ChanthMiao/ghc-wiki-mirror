@@ -177,7 +177,7 @@ Note: references are relative to the main directory of the source distribution; 
 
 (1) The "shockingly inefficient" operation of this code:
 
-```wiki
+```c
 /* ToDo: this is shockingly inefficient */
 
 #ifndef THREADED_RTS
@@ -262,7 +262,7 @@ results from initialising each struct (`mp_tmp2`, etc.) on each call, in order t
 
 >
 >
-> (b) use ForeignPtr (in Cmm, Weak Pointers--difficult to implement) to foreign threads holding the the struct/array
+> (b) use ForeignPtr (in Cmm, Weak Pointers--difficult to implement) to foreign threads holding the struct/array
 >
 >
 
@@ -315,10 +315,10 @@ If an integer add were to overflow here, the addition operation would be perform
 ### Binary Drop in Replacement for GMP
 
 
-One approach which would only address the license issue would be to develop doing your own linking, without gmp. Each time you come to a linker error having to do with a missing function, you can add the function to a gmp replacement which exports the same interface as gmp as you go... Over time, we'd re-implement as much of GMP as is required by any haskell program... Getting somethign working can take priority.  
+One approach which would only address the license issue would be to develop doing your own linking, without gmp. Each time you come to a linker error having to do with a missing function, you can add the function to a gmp replacement which exports the same interface as gmp as you go... Over time, we'd re-implement as much of GMP as is required by any haskell program... Getting something working can take priority.  
 
 
-Test suites can be developed and perhaps even borrowed from the gmp development team since we should be binary compatable...
+Test suites can be developed and perhaps even borrowed from the gmp development team since we should be binary compatible...
 
 
 
