@@ -76,7 +76,7 @@ data TypeRep (a :: k) where
 ## `*` is hard to parse, will become `Type`
 
 
-Say the phrase `Foo * Int` appears in a type. Is that the type operator `*` applied to `Foo` and `Int` or the the type `Foo` applied to the kind `*` and `Int`? It's impossible to know. So we have to do something strange here.
+Say the phrase `Foo * Int` appears in a type. Is that the type operator `*` applied to `Foo` and `Int` or the type `Foo` applied to the kind `*` and `Int`? It's impossible to know. So we have to do something strange here.
 
 
 Without `-XTypeInType`, GHC will continue to use its knowledge of whether you are in a type or a kind to distinguish between the type operator `*` and the kind `*`. So all existing code will continue to work, quite conveniently.
@@ -630,7 +630,7 @@ The zonking algorithm in TcHsSyn knot-ties `Id`s. Of course, coercion variables 
 
 I have not yet re-examined to see if there is a way to restore this behavior. There probably is, as coercion variables can't be recursive!
 
-### Overring visibility assumptions
+### Overriding visibility assumptions
 
 
 My limited experience in programming in the enhanced language tells me that we really
@@ -715,7 +715,7 @@ Once upon a time, I embarked on a mission to reduce imports of `TyCoRep`, instea
 
   - That is, not allow `forall (c::a~b). ...(ty |> c)....`.  Instead only allow anonymous quantification, thus `(a~b) => ....`.
   - Another way to say this: coercion variables are only bound by terms, not in types.
-  - We do not lose any kind-indexed GADTs, because we have hererogeneous equality.  The prototypical example is
+  - We do not lose any kind-indexed GADTs, because we have heterogeneous equality.  The prototypical example is
 
     ```haskell
     data Eq (a::k1) (b::k2) where
