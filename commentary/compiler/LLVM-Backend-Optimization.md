@@ -18,7 +18,7 @@ The proc-point splitting is also a rather ugly transformation we would like to r
 
 
 1. Must be able to allocate frames in a heap-allocated stack segment. These
-   frames are allocated in a stack that is seperate from the FFI stack.
+   frames are allocated in a stack that is separate from the FFI stack.
    This segment lives in the heap and stack overflow is checked-for using
    a limit test, unlike the guard-page limited C stack convention.
 
@@ -97,7 +97,7 @@ https://docs.google.com/document/d/1Pn2_TDBJwSBKkjFlT-blwygH10z37TPxIqcKTOOf2mg
    the decisions made for GHC going forward.
 
 3. Look into feasibility of not using TNTC for return points (i.e., basic
-  blocks within a function) because I believe the the only information we place
+  blocks within a function) because I believe the only information we place
   before basic block labels is frame layout information.
 
   Placing this information before block labels in LLVM is quite annoying, because
@@ -141,7 +141,7 @@ Issues with the existing cps-call implementation from 2017:
    of the problems: https://github.com/kavon/stack-rfc/blob/master/CURRENT.md
 
 
-Here is a validate run that should still be representitive of the existing
+Here is a validate run that should still be representative of the existing
 implementation. Note that some of the failures are pre-existing in the version
 of GHC (8.5) the code is based on.
 
