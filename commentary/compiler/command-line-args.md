@@ -6,7 +6,7 @@ GHC's many flavours of command line flags make the code interpreting them rather
 
 Command line flags are described by Flag data type defined in [compiler/GHC/Driver/CmdLine.hs](https://gitlab.haskell.org/ghc/ghc/blob/master/compiler/GHC/Driver/CmdLine.hs):
 
-```wiki
+```haskell
 data Flag m = Flag
     {   flagName    :: String,   -- Flag, without the leading "-"
         flagOptKind :: OptKind m -- What to do if we see it
@@ -33,7 +33,7 @@ In [compiler/main/StaticFlags.hs](https://gitlab.haskell.org/ghc/ghc/blob/master
 
 They are managed by functions in [compiler/GHC/Driver/Session.hs](https://gitlab.haskell.org/ghc/ghc/blob/master/compiler/GHC/Driver/Session.hs) file. Looking from the top you will find data types used to described enabled dynamic flags: `DumpFlag`, `GeneralFlag`, `WarningFlag`, `Language`, `SafeHaskellMode`, `ExtensionFlag` and finally `DynFlags`. Function `defaultDynFlags :: Settings -> DynFlags` initializes some of the flags to default values. Available dynamic flags and their respective actions are defined by `dynamic_flags :: [Flag (CmdLineP DynFlags)]`. Also, `fWarningFlags :: [FlagSpec WarningFlag]`, `fFlags :: [FlagSpec GeneralFlag]`, `xFlags :: [FlagSpec ExtensionFlag]` and a few more smaller functions define even more flags needed for example for language extensions, warnings and other things. These flags are descibred by the data type `FlagSpec f`:
 
-```wiki
+```haskell
 type FlagSpec flag
    = ( String   -- Flag in string form
      , flag     -- Flag in internal form
