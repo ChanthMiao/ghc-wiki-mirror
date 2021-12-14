@@ -120,10 +120,10 @@ A Mach-O executable can embed the full path name for each shared library (as wel
 When looking for shared libraries, the dynamic linker (dyld) first scans the directories in DYLD_LIBRARY_PATH, then checks the location in the install name (which is per library), and finally checks the standard locations.
 
 
-DYLD_LIBRARY_PATH successfully overrides the the path embedded in the executable.
+DYLD_LIBRARY_PATH successfully overrides the path embedded in the executable.
 
 
-Caveat 1: LD_LIBRARY_PATH has no runtime impact, but it does impact where the static linker looks for share libraries.  It looks first in the directories specified using -L, the the directories in LD_LIBRARY_PATH, and finally in /lib, /usr/lib, & /usr/local/lib.  This is particularly confusing  because many configure scripts seem to ignore LD_LIBRARY_PATH and you can get inconsistent results from configure and gcc/ld on whether a library is present.
+Caveat 1: LD_LIBRARY_PATH has no runtime impact, but it does impact where the static linker looks for share libraries.  It looks first in the directories specified using -L, the directories in LD_LIBRARY_PATH, and finally in /lib, /usr/lib, & /usr/local/lib.  This is particularly confusing  because many configure scripts seem to ignore LD_LIBRARY_PATH and you can get inconsistent results from configure and gcc/ld on whether a library is present.
 
 
 Caveat 2: Mac OS X has a set of compiler/linker switches for dealing with Frameworks (packages of shared libraries and include files).  These are installed outside the typical \*nix directory structure.  These switches act like -I (to gcc) and -L (to ld).  If you end up totally confused about where to find something, read up on this.  The OpenGL and OpenAL headers and libraries are in Frameworks, for example.
@@ -160,7 +160,7 @@ Windows has a few ways of locating DLLs. Unfortunately none are perfect.
 
 >
 >
-> This just about works but is very fragile. You could imagine that there was one central place where cabal installed all libs and that we tried to ensure that location is on the $PATH. This is exactly the approach that the Gtk2Hs installer on Windows takes. As that example demonsrates however this solution is very fragile: it's easy to end up with other libs getting in the way and misc other issues.
+> This just about works but is very fragile. You could imagine that there was one central place where cabal installed all libs and that we tried to ensure that location is on the $PATH. This is exactly the approach that the Gtk2Hs installer on Windows takes. As that example demonstrates however this solution is very fragile: it's easy to end up with other libs getting in the way and misc other issues.
 >
 >
 
@@ -176,7 +176,7 @@ Windows has a few ways of locating DLLs. Unfortunately none are perfect.
 
 >
 >
-> This is very nearly perfect except for one massive problem which makes it no good as a general solution. In addition to local assemblies, the dynamic linker looks for assemblies in a global location. Then the .exe xml manifest specifies the assembly GUID and it just gets looked up in the global "SxS" assembly area. This is great. The only problem is you have to be administrator to install assemblies in the global "SxS" location. There is no per-user or non-priviledged location. So while this would be ok for global ghc installs, we still have to support installing ghc and other Haskell packages for non-root users.
+> This is very nearly perfect except for one massive problem which makes it no good as a general solution. In addition to local assemblies, the dynamic linker looks for assemblies in a global location. Then the .exe xml manifest specifies the assembly GUID and it just gets looked up in the global "SxS" assembly area. This is great. The only problem is you have to be administrator to install assemblies in the global "SxS" location. There is no per-user or non-privileged location. So while this would be ok for global ghc installs, we still have to support installing ghc and other Haskell packages for non-root users.
 >
 >
 
