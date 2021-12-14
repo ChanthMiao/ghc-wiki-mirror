@@ -213,7 +213,7 @@ This is a list of tickets that might be suitable for a hacking sprint, but feel 
                     
                     </td>
 <th>
-                      <a href="https://gitlab.haskell.org/ghc/ghc/issues/95">GHCi :edit command should jump to the the last error</a>
+                      <a href="https://gitlab.haskell.org/ghc/ghc/issues/95">GHCi :edit command should jump to the last error</a>
                       
                       
                       
