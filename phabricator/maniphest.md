@@ -36,7 +36,7 @@ If you want to try it yourself then there is a prototype [http://104.130.13.28/]
 - Legibility: This is admittedly to some extent a matter of aesthetics
   but the search results list feels very busy and is quite difficult to
   quickly scan. This is made exacerbated by the fact that some aspects
-  of the the color scheme are quite low contrast (e.g. grey against
+  of the color scheme are quite low contrast (e.g. grey against
   white for closed tickets). This hurts quite a bit since a number of
   contributors spend a significant amount of time looking through lists
   of tickets. Perhaps we could convince the Phacility people to provide
