@@ -286,7 +286,7 @@ Where is the 'y' bound in the RHS of `f`?
 - Does it depend on whether `$(g n)` in fact binds 'y'?
 
 
-A major point about TH is that we get lexical scoping (also called "hygienic").  So, to me it seems the the first of these choices is the only reasonable one.  If you want the second you can instead use explicit dynamic binding by saying
+A major point about TH is that we get lexical scoping (also called "hygienic").  So, to me it seems the first of these choices is the only reasonable one.  If you want the second you can instead use explicit dynamic binding by saying
 
 ```wiki
 f n = [| \ $(g n) -> $(return (VarE (mkName "n"))) + 1 |]
