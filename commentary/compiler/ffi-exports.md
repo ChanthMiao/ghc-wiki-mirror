@@ -26,13 +26,13 @@ After running the pipeline we get:
   - It might also be jumped to eventually when calling the exported function from C name.
 - The stable name wrapper:
 
-  - In trivial cases it can end up as a duplication of the normale function.
+  - In trivial cases it can end up as a duplication of the normal function.
   - For anything doing actual work it seems to just be an indirection to the regular haskell function.
 - The exported function
 
   - It grabs a worker from the runtime.
   - It converts the arguments to the Haskell variants
-  - Applies the the arguments, returns the result, releases the worker.
+  - Applies the arguments, returns the result, releases the worker.
   - It does the above by calling into the RTS. Using functions like rts_apply, rts_mkInt, rts_getInt, rts_lock, ... rts_unlock.
   - Important to note that the exported function always calls the stable name function.
     The reason isn't entire clear to me at this point. The comments explain what they do well enough but not much
