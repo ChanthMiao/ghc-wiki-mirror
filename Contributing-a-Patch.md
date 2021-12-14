@@ -52,7 +52,7 @@ Your merge request shows you several panes information:
 
 Top-most is the request's title and description. These can be edited by pressing the yellow `Edit` button on the top-right corner of the page.
 
-The next pane summarises your merge request, showing the the source and target branches.
+The next pane summarises your merge request, showing the source and target branches.
 
 ![request-summary](uploads/a6b259498530ea48964a11c2539447d2/request-summary.png)
 
