@@ -16,7 +16,7 @@ Structural changes to the base package can be attempted towards the following go
 
 SPJ: But that goal needs a bit of unpacking. Suppose we divided base into six, base1, base2, base3, etc, but each was a vertical silo and every other package depended on all six.  Then nothing would be gained; bumping any of them would cause a ripple of bumps down the line.
 
-#### (G2) To allow packages to be explict about what they need
+#### (G2) To allow packages to be explicit about what they need
 
 
 A library that does not use the IO monad could communicate that just by not depending on some base-io package. Similar with the Foreign Function Interface or unsafe operations.
@@ -43,7 +43,7 @@ the `base` package.  (Why?  Because those libraries in turn depend on `base` and
 
   but since `System.IO` is defined in base it cannot depend on e.g. bytestring and thus we cannot write these functions. At the moment we have to use `String` for all I/O which is both slow, due to its cache-inefficient nature, and incorrect, as `String` is not a representation of a sequence of bytes (but rather a sequence of Unicode code points).
 
-- The I/O manager currently has a copy of IntMap inside its implementation because base cannot use containers. Why?  Becuase `containers` depends on `base`, so `base` can't depend on `containers`.  Splitting base would let us get rid of this code duplication. For example:
+- The I/O manager currently has a copy of IntMap inside its implementation because base cannot use containers. Why?  Because `containers` depends on `base`, so `base` can't depend on `containers`.  Splitting base would let us get rid of this code duplication. For example:
 
   - `base-pure` doesn't need `containers`
   - `containers` depends on `base-pure`
@@ -126,7 +126,7 @@ None of these look particularly appealing. Here some ideas to make it more conve
 - (I3) Ambiguous module imports do not cause an error if, among the modules, there is one that is a superset of all others, i.e. reexports all other modules.
 
 
-Joachim's preference: I find (P4)+(I1) quilte elegant and appealing.
+Joachim's preference: I find (P4)+(I1) quite elegant and appealing.
 
 
 SPJ’s gut feeling prefers (P2): The minority who do not want to depend on enough base-X packages to get the Haskell-98 Prelude should use NoImplicitPrelude (since indeed you don't depend on enough to get the H98 Prelude) and import what they want explicitly.
