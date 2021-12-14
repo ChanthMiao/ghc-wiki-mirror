@@ -4,14 +4,14 @@
 Haskell currently allows you to use the same name for
 a type and a data constructor, thus
 
-```wiki
+```haskell
   data Age = Age Int
 ```
 
 
 In any context, it is clear which is meant, thus
 
-```wiki
+```haskell
   foo :: Age -> Int     -- Type constructor Age
   foo (Age i) = i       -- Data constructor Age
 ```
@@ -37,14 +37,14 @@ distinction is becoming blurred.
 
 **Type operators**.  With `-XTypeOperators`, GHC already allows this
 
-```wiki
+```haskell
  data a :+: b = Left a | Right b
 ```
 
 
 However, I really want to allow this too:
 
-```wiki
+```haskell
  data a + b = Left a | Right b
 ```
 
@@ -54,7 +54,7 @@ You can find discussion of the merits of this proposal here.
 At first it seems fairly straightforward; for example, it is
 quite clear that in a type signature 
 
-```wiki
+```haskell
   f :: (a + b) -> a
 ```
 
@@ -62,7 +62,7 @@ quite clear that in a type signature
 the `(+)` must be the type constructor not the value-level
 multiplication.  But there's a problem with export lists:
 
-```wiki
+```haskell
  module Foo( foo, (+), bar ) where ..
 ```
 
@@ -72,7 +72,7 @@ Is this export list exporting the type `(+)` or the value `(+)`?
 
 There is a very similar issue with fixity declarations
 
-```wiki
+```haskell
   infix 5 +, :+:
 ```
 
@@ -85,7 +85,7 @@ the type-level or value-level identifier.
 **Proper kinding**.  At the moment you see a lot of this
 kind of nonsense:
 
-```wiki
+```haskell
   data Zero
   data Succ a
   data List :: * -> * -> * where
@@ -95,13 +95,13 @@ kind of nonsense:
 
 
 The indexed data type `List` is only supposed to get
-`Zero` or `Succ` as its first arugments, 
+`Zero` or `Succ` as its first arguments, 
 the stupid type `(List Int Int)` is, alas,
 well kinded.  Obviously what we want is to give a proper
 kind to `List`.  My current proposal is to allow value-level
 data constructors to be re-used at the type level, thus:
 
-```wiki
+```haskell
   data Nat = Zero | Succ Nat
   data List :: Nat -> * -> * where
     Cons :: a -> List n a -> List (Succ n) a
@@ -114,7 +114,7 @@ in a type.  If there also happened to be a type constructor
 `Succ`, it'd be unclear which you meant, and you really might
 want either.
 
-**Type-level lists and tuples**.  Folllowing on from the 
+**Type-level lists and tuples**.  Following on from the 
 preceding thought, we can presumably re-use tuples at the
 type level.  So if we write the type `(T (Int,Bool))` do 
 mean that
@@ -159,7 +159,7 @@ I make two proposals:
 
 Thus you can say
 
-```wiki
+```haskell
   module Foo( data T(T1,T2), S, class C ) where
     data T = T1 | T2
     data S = S1 | S2
@@ -170,7 +170,7 @@ Thus you can say
 In this case the `data` and `class` specifiers are both optional.
 But they are not always optional (that is the point):
 
-```wiki
+```haskell
   module Foo( data (%%%)(...) ) where
     infix 4 data (%%%)  -- The type constructor
     infix 6 (%%%)       -- The function
@@ -199,7 +199,7 @@ baby step towards the export list becoming a proper module signature.
 
 Suppose the following data types are available
 
-```wiki
+```haskell
   data Nat = Zero | Succ Nat
   data Succ = A | B
   data List :: Nat -> * where ...
@@ -209,7 +209,7 @@ Suppose the following data types are available
 
 Now here are the interpretation of various types
 
-```wiki
+```haskell
   List Zero :: *            -- Zero means the data constructor
                             --   (since there is no type constructor Zero)
   List (Succ Zero)          -- Succ means the type constructor
@@ -252,12 +252,12 @@ notation must be reasonably quiet.
 
 - One alternative would be simple but brutal: simply have 
   no "`%`" escape notation.  In the above examples, saying
-  `Succ` at the the type level would mean the data type `Succ`,
+  `Succ` at the type level would mean the data type `Succ`,
   and there would be no way to get to the data constructor.
   You lose.
 
 - Another alternative would be to allow the type name to
-  disambiguate.  Thus `Nat.Succ` would name the data construtor.
+  disambiguate.  Thus `Nat.Succ` would name the data constructor.
   (Obvious question: the overlap with the module qualifiers.)
 
 - Not every data type type can be lifted to the kind level; for
