@@ -44,7 +44,7 @@ For hadrian you should compile with the `ticky_ghc` flavour transformer:
 Suppose you are doing peformance debugging on a new GHC Core-to-Core optimisation
 pass.  You have a program `prog` that allocates a bit more with the
 optimisation on than when it is off.  But *why* is it allocating
-more?  Using full-bore profiling is too big a hammer, becuase it changes the way optimisation works.  Ticky-ticky is just the thing.
+more?  Using full-bore profiling is too big a hammer, because it changes the way optimisation works.  Ticky-ticky is just the thing.
 
 
 Here is what I do:
