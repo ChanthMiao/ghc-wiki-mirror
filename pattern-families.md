@@ -280,7 +280,7 @@ insert x set               = set
 ```
 
 
-Compare that to the the [ViewPatternsAlternative](view-patterns-alternative) proposal:
+Compare that to the [ViewPatternsAlternative](view-patterns-alternative) proposal:
 
 
 ```haskell
