@@ -397,7 +397,7 @@ instance r { firstName :: String, lastName :: String }
 ```
 
 
-We replace "`Has r f t`" by "`r { f :: t }`", and allow multiple such constaints
+We replace "`Has r f t`" by "`r { f :: t }`", and allow multiple such constraints
 with the same `r` to be combined.  Similarly, multiple constraints with the 
 same `r` and `t` could be combined further, just as they are in record declarations:
 
@@ -449,7 +449,7 @@ There are three problems:
   upd r = r { x = True }
   ```
 
-  But `set` cannot accomodate this change of type, at least not without much more complexity.  Moreover, **NO** field-at-a-time encoding can deal with the case when more than one field shares the changed type. For example, this is legal Haskell:
+  But `set` cannot accommodate this change of type, at least not without much more complexity.  Moreover, **NO** field-at-a-time encoding can deal with the case when more than one field shares the changed type. For example, this is legal Haskell:
 
   ```wiki
   data S a = S { x,y :: a }
@@ -559,7 +559,7 @@ let s = qfmap (undefined :: "x") (const "Hello, world!") r in ...
 # Relationship to Type Directed Name Resolution
 
 
-This proposal is quite closely related to the [Type Directed Name Resolution](http://hackage.haskell.org/trac/haskell-prime/wiki/TypeDirectedNameResolution) idea, becuase TDNR 
+This proposal is quite closely related to the [Type Directed Name Resolution](http://hackage.haskell.org/trac/haskell-prime/wiki/TypeDirectedNameResolution) idea, because TDNR 
 would internally generate `Has` constraints exactly as described above.  The difference is
 that TDNR wasn't intended to support *abstraction* over the constraint, and was explained
 rather differently.
