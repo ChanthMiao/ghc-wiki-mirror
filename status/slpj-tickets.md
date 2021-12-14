@@ -256,7 +256,7 @@ See also [TemplateHaskell](template-haskell)
 - #2823: another arity expansion bug (related to dictionaries)
 - #2440: bad code with type families; I believe this is also arity-related
 - #1547: profiling and arity
-- #5587, #7364: eta-expansion can imcrease termination.  These tickets are closed because we don't know how to fix them properly, not becuase they are really fixed.
+- #5587, #7364: eta-expansion can imcrease termination.  These tickets are closed because we don't know how to fix them properly, not because they are really fixed.
 
 ### Inlining
 
