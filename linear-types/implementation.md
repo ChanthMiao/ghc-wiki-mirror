@@ -403,7 +403,7 @@ When the call-site of a variable `x` is linted, if `x` has a multiplicity, then 
 `FunTy` is a special case of a `Type`. It is a fully applied function type constructor, so now a function type constructor with five arguments.
 This special case is constructed in `mkTyConApp`. The problems come when a `FunTy` is deconstructed, for example `repSplitTyConApp_maybe`, if this
 list is not the right length then you get some very confusing errors. The place which was hardest to track down was in `Coercion` where `decomposeFunCo`
-had some magic numbers corresponding to the the position of the types of the function arguments.
+had some magic numbers corresponding to the position of the types of the function arguments.
 
 
 Look for `Note [Function coercions]` and grep for lists of exactly length 5 if you modify this for whatever reason.
