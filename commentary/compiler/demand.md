@@ -100,4 +100,4 @@ For the [Journal version of the demand analysis paper](https://www.microsoft.com
 - to find out why a thunk is expected to be entered multiple times.
 
 
-The code adds significant complexity to the demand analyser and the code generator, so we decided not to merge it into master (not even hidden behind flags), but should it ever have to be resurrected, it can be found in the branch `wip/T10613`. View the [full diff](http://git.haskell.org/ghc.git/commitdiff/refs/heads/wip/T10613?hp=930a525a5906fdd65ab0c3e804085d5875517a20) (at least as long as the link is valid, as it hard-codes the base commit).
+The code adds significant complexity to the demand analyser and the code generator, so we decided not to merge it into master (not even hidden behind flags), but should it ever have to be resurrected, it can be found in the branch `wip/T10613`. Here's the parked [branch](https://gitlab.haskell.org/ghc/ghc/-/tree/wip/T10613).
