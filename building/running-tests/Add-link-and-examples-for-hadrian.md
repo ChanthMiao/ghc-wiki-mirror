@@ -10,8 +10,11 @@ $ make accept TEST=<test-name>
 ```
 
 
-where \<test-name\> is the name of the test. 
+where \<test-name\> is the name of the test. If you are using [hadrian](https://gitlab.haskell.org/ghc/ghc/-/wikis/building/hadrian) the invocation is similar:
 
+```wiki
+hadrian/build test --test-accept --only='<multiple-test-names>'
+```
 
 If you want to update a whole directory of tests to accept the
 new output, simply call `make accept` in that directory:
@@ -19,6 +22,14 @@ new output, simply call `make accept` in that directory:
 ```wiki
 $ cd array/should_run
 $ make accept
+```
+
+For hadrian, you can use the option `--test-root-dirs` to run all tests in a given directory, for example:
+
+```wiki
+# in ghc root directory
+# accept output of all tests in testsuite/tests/count-deps
+hadrian/build test --test-accept --test-root-dirs='testsuite/tests/count-deps'
 ```
 
 `make accept` does not change the expected output of tests that are
