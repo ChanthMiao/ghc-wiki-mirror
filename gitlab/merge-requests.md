@@ -33,7 +33,8 @@ When reviewing a merge request here are a few things to check for:
     * Changelog and release notes entries are mandatory
     * Have package versions been bumped as appropriate?
     * Has an entry been added to the next release's migration guide?
- 
+
+To ensure that all interested reviewers have an opportunity to comment, please leave at least 24 hours between the time an MR is opened and assigning to @marge-bot.
 
 ## Backports
 
