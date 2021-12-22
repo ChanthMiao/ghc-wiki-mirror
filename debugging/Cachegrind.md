@@ -34,6 +34,7 @@ $ valgrind --tool=cachegrind _build/stage1/bin/ghc -g -O2 -fforce-recomp -ddump-
 Some extra words of caution:
 - **Ensure CPU frequency scaling is off, and your CPU is quiet, this can impact the measurement!** (I recommend [cpupower](https://wiki.archlinux.org/title/CPU_frequency_scaling#Disabling_Turbo_Boost) to check. See also [this](https://easyperf.net/blog/2019/08/02/Perf-measurement-environment-on-Linux#8-use-statistical-methods-to-process-measurements) article on getting consistent benchmarking results on Linux)
 - The flag **-g** is required to produce the DWARF symbols that `valgrind` will use. **If you forget -g, or you don't build with debug_info, you'll get a report of only the RTS and a lot of ??? symbols**
+- If you're trying to use this for a library, you'll have to call from the binary and **not** through `cabal`. If you do `cabal run` or `cabal bench` you get a bunch of ???. Instead find the binary in `dist-newstyle/...` and run it cachegrind directly, for example with the `unordered-containers` benchmark suite: `valgrind --tool=cachegrind ./dist-newstyle/build/x86_64-linux/ghc-8.10.7/unordered-containers-0.2.16.0/b/benchmarks/build/benchmarks/benchmarks -m prefix "HashMap/lookup"`
 
 5. Repeat (4) for `ghc` instead of `ghc-master`. 
 
