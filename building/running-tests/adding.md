@@ -443,7 +443,7 @@ file. The possible test functions are:
  
   Compile a multi unit test case. 
 
-  *\<args...\> = \[[<unit>], \<extra_hc_opts\>\]*
+  *\<args...\> = \[[\<unit\>], \<extra_hc_opts\>\]*
 
   *\<unit\>*: Path to unit response file.
 
