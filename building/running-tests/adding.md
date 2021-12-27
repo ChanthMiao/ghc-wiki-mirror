@@ -226,8 +226,6 @@ There are many pre-defined functions which can be used in this field:
 test('prog013', extra_files(['Bad.hs','Good.hs']), ghci_script,['prog013.script'])`
 ```
 
-- **reqlib(P)**             requires package P
-
 - **req_profiling**         requires profiling
 
 - **req_interp**            require the interpreter (i.e. one of ghci, annotations, TH, etc)
