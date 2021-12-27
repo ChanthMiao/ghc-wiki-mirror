@@ -180,6 +180,8 @@ test('Check01', normal, multi_compile_fail, ['Check01', [
 
 This test case must use the `multi_compile_fail` method as it relies on being able to compile the file Check01_B.hs with the argument '-trust base' but not compile any of the other files with this flag. 
 
+##
+
 ## Format of the test entries in all.T
 
 
@@ -437,6 +439,19 @@ file. The possible test functions are:
 
   *\<extra_hc_opts\>*: arguments to pass to GHC when it compiles your test case (applied to all source files).
 
+- **multiunit_compile** and **multiunit_compile_fail**
+ 
+  Compile a multi unit test case. 
+
+  *\<args...\> = \[[<unit>], \<extra_hc_opts\>\]*
+
+  *\<unit\>*: Path to unit response file.
+
+  For examples see the `tests/driver/multipleHomeUnits` directory.
+
+
+
+
 - **run_command**
   Just run an arbitrary command.  The output is checked
   against `T.stdout` and `T.stderr` (unless `ignore_output`
@@ -453,6 +468,14 @@ file. The possible test functions are:
   Run `make` with the first argument as the target, or if
   no argument is given, use the name of the test as the target.
   Works like **run_command** otherwise.
+
+## Adding tests with external dependencies
+
+If you test has non-boot dependencies then it can't be added directly to the GHC tree. 
+The alternative is to add the test to [`head.hackage`](https://gitlab.haskell.org/ghc/head.hackage), there the test can depend on any libraries you want but failures won't stop merges, they will only be picked up later. 
+
+These tests are primarily suited for tests generated using quickcheck or other random testing
+libraries.
 
 
 ## Sample output files
