@@ -486,6 +486,7 @@
   * [dynamic-linking](./dynamic-linking)
   * [dynamic-linking-debate](./dynamic-linking-debate)
   * [emacs](./emacs)
+    * [markdown preview](./markdown-preview)
   * [erlang-in-haskell](./erlang-in-haskell)
   * [event-log](./event-log)
     * [live-monitoring](./event-log/live-monitoring)
