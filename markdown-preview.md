@@ -6,7 +6,7 @@ https://daringfireball.net/projects/markdown/
 
 Extract Markdown_1.0.1.zip and move `Markdown.pl` to a location on your `$PATH`.
 
-Add MELPA to your package-archives in your init file.
+Add MELPA Stable to your package-archives in your init file.
 
 ```elisp
 (require 'package)
