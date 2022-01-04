@@ -15,7 +15,7 @@ See also [Stephen Diehl's Haskell implementation reading list](http://www.stephe
 
 - [The Glasgow Haskell Compiler](http://www.aosabook.org/en/ghc.html), in [ The Architecture of Open Source Applications](http://www.aosabook.org/en/index.html), Volume II, ed Brown & Wilson. This paper gives an up to date (2012) technical overview of GHC.
 
-- Simon PJ's [home page](http://research.microsoft.com/~simonpj) and [ publications page](http://research.microsoft.com/en-us/um/people/simonpj/papers/papers.html) have lots of relevant papers.  Some key ones appear below but not all.
+- Simon PJ's [home page](http://research.microsoft.com/~simonpj) and [publications page](http://research.microsoft.com/en-us/um/people/simonpj/papers/papers.html) have lots of relevant papers.  Some key ones appear below but not all.
 
 - Simon PJ's books:
 
@@ -183,3 +183,5 @@ Please add: System FC, GADTs, kind polymorphism etc
 - [Template Meta-programming for Haskell](http://research.microsoft.com/en-us/um/people/simonpj/papers/meta-haskell/meta-haskell.pdf). Tim Sheard, Simon Peyton Jones. Haskell '02. [ doi](http://dx.doi.org/10.1145/636517.636528) Introduces Template Haskell.
 
 - [Scrap your Boilerplate: a Practical Design Pattern for Generic Programming](http://research.microsoft.com/en-us/um/people/simonpj/papers/hmap/index.htm). Ralf Lämmel, Simon Peyton Jones. TLDI '03. [ doi](http://dx.doi.org/10.1145/604174.604179) Introduces `Typeable` and `Data`.
+
+- [Peter Wortmann's thesis](https://etheses.whiterose.ac.uk/8321/), *Profiling optimised Haskell - causal analysis and implementation* describes the motivation and semantics of the source note ticks used in GHC, as well as provides some background on the production of DWARF debug information.
