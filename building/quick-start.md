@@ -1,12 +1,13 @@
 # Quick Start: building and installing GHC
 
+> GHC supports **two build systems**: Hadrian (recommended) and Make. To use Hadrian, see [`building/hadrian`](building/hadrian). This page describes how to use the Make-based system.
+ 
+> OS X users have reported issues with building HEAD using Make (see #20753). It is recommended to use Hadrian instead.
 
 If you are an aspiring GHC developer, you may want to read the [Contributing](contributing) page first.
 
 
-To build GHC, first make sure to:
-
-- [Prepare your machine](building/preparation)
+To build GHC, first make sure to [[prepare your machine](building/preparation)
 
 
 For Windows users, all the commands below must be executed in the MinGW shell, not Command Prompt nor PowerShell.
@@ -21,7 +22,6 @@ cd ghc/
 
 
 Unless you want to build the latest development version of GHC, [checkout a stable release](building/quick-start#check-out-a-stable-release).
-
 
 Optionally, you can customize your build by creating the file `mk/build.mk` using `mk/build.mk.sample` as a template and e.g. removing the comment marker \# on the line "BuildFlavour = devel2".
 
