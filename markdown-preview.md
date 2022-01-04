@@ -6,7 +6,7 @@ https://daringfireball.net/projects/markdown/
 
 Extract Markdown_1.0.1.zip and move `Markdown.pl` to a location on your `$PATH`.
 
-Add MELPA Stable to your package-archives in your init file.
+Add MELPA Stable to your `package-archives` in your init file.
 
 ```elisp
 (require 'package)
@@ -14,7 +14,7 @@ Add MELPA Stable to your package-archives in your init file.
              '("melpa-stable" . "https://stable.melpa.org/packages/"))
 ```
 
-In Emacs type the following:
+In emacs type the following:
 
 <kbd>M-x list-packages RET</kbd>  
 <kbd>M-x package-install RET markdown-preview-mode RET</kbd>  
