@@ -76,7 +76,7 @@ The design of TTG [HsSyn](implementing-trees-that-grow/hs-syn) follows these pri
 
 1. The non-payload (i.e. phase-specific) fields of a data constructor are grouped together and introduced via the extension field.  Similarly the phase-specific data constructors are introduced using the extension constructor.
 
-1. The `type instance` declarations should usually appear in a phase-specific module.  Thus:
+1. The `type instance` declarations should usually appear in a phase-specific module.  (See discussion in !7192.)  Thus:
    ```
    module GHC.Parser.Hs where               -- Parser-specific extensions
       import Language.Haskell.Syntax.Expr
