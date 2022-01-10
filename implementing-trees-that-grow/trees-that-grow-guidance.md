@@ -58,9 +58,48 @@ All fields of the data constructors except the first (extension) field are calle
 
 The design of TTG [HsSyn](implementing-trees-that-grow/hs-syn) follows these principles:
 
-1. The base TTG [HsSyn](implementing-trees-that-grow/hs-syn) should have all the constructors common across all five ASTs (the *common data constructors*). These constructors should have, as payload fields, all the fields common across all five ASTs.
+1. The **base TTG** [HsSyn](implementing-trees-that-grow/hs-syn) should have all the constructors common across all five ASTs (the *common data constructors*). These constructors should have, as *payload fields*, all the fields common across all five ASTs.  Thus, for example:
+   ```
+   module Language.Haskell.Syntax.Expr where
+     data Exp x
+       = Var (XVar x) (IdP x)
+       | Lam (XLam x) (IdP x) (Exp x)
+       | App (XApp x) (Exp x) (Exp x)
+       | XExp !(XXExp x)
 
-1. Note, however, that the type of a payload field of a constructor may vary with phase.  For example, in `Lam` above, the first payload field has type `Id x`, and that may vary with phase:
+     type family XVar  x
+     type family XLam  x
+     type family XApp  x
+     type family XXExp x
+   ```
+   The common data constructors are `Var`, `Lam`, and `App`.  The payload fiels of `Lam` are the second and third, with type `(IdP x)` and `(Exp x)` resp.
+
+1. The non-payload (i.e. phase-specific) fields of a data constructor are grouped together and introduced via the extension field.  Similarly the phase-specific data constructors are introduced using the extension constructor.
+
+1. The `type instance` declarations should usually appear in a phase-specific module.  Thus:
+   ```
+   module GHC.Parser.Hs where               -- Parser-specific extensions
+      import Language.Haskell.Syntax.Expr
+
+      type instance XVar   GhcPs = NoExtField
+      type instance XLam   GhcPs = NoExtField
+      type instance XApp   GhcPs = NoExtField
+      type instance XXExpr GhcPs = DataConCantHappen
+
+   module GHC.Renamer.Hs where              -- Renamer-specific extensions
+      import Language.Haskell.Syntax.Expr
+
+      type instance XVar   GhcRn = XVarRn
+      type instance XLam   GhcRn = NoExtField
+      type instance XApp   GhcRn = NoExtField
+
+      data XVarRn = XVarRn Int Bool   -- These types may be renamer-specific
+   ```
+   The extension field and extension contructors are likely to be phase-specific, so by putting them in a phase-specific module, you avoid creating a dependency from the base module `Language.Haskell.Syntax.Expr` on all of the phases, thereby making the parser depend on the type checker, say.
+
+   The downside is that the type instances for `XVar`, say, do not appear together.
+
+1. Even though a payload field is present in every phase, its type may vary depending on phase. For example, in `Lam` above, the first payload field has type `Id x`, and that may vary with phase:
    ```
    type family IdP x
    type instance IdP GhcPs = RdrName
@@ -68,8 +107,6 @@ The design of TTG [HsSyn](implementing-trees-that-grow/hs-syn) follows these pri
    type instance IdP GhcTc = Id
    ```
    But it is still a payload field, because every instantiation of `Exp` has a lambda with a binder; albeit the type of that binder field varies.  This happens in [HsSyn](implementing-trees-that-grow/hs-syn): for example, the type of the common (payload) field of the common constructor `HsVar`of `HsExpr x` is `IdP x` where `IdP` is a type family and `x` the phase descriptor.
-
-1. The non-payload (i.e. phase-specific) fields of a data constructor are grouped together and introduced via the extension field.  Similarly the phase-specific data constructors are introduced using the extension constructor.
 
 1. The instantiation of TTG [HsSyn](implementing-trees-that-grow/hs-syn), for a particular phase, should result in a tree that has no redundant fields and constructors.  For example, the `HsExpr GhsPs` expressions of AST GhcPs should not have the constructor `HsUnboundVar` of the post-renaming phases, or its `HsMultiIf` constructor should also not have an unused field (of the type `Type`) to store the related type produced in the typechecking phase.
 
@@ -107,11 +144,14 @@ In GHC 8.8 and up, the pattern-match coverage checker is actually smart enough t
 
 Bottom line: make extension constructors have a strict field!
 
-## Example
+--------------------------------------
+# Example
 
+Suppose we have a simple expression data type, with different decorations after parsing, renaming, and type checking
 
+## Without TTG
 
-Consider the following three simple datatypes `ExpPs`, `ExpRn`, and `ExpTc` representing correspondingly expressions in a parsing, renaming and typechecking phase:
+Without TTG we would either be forced to use one datatype with redundant fields, or define three different datatypes `ExpPs`, `ExpRn`, and `ExpTc` representing correspondingly expressions in a parsing, renaming and typechecking phase, like this:
 
 
 ```
@@ -152,6 +192,7 @@ data ExpTc
   | UVar UnboundVar
 ```
 
+## With TTG
 
 Based on the TTG idiom, we will have a base declaration such as the following.
 
@@ -264,3 +305,4 @@ process (App _ f a) = ...
 ```
 
 Note how we didn't need to write a case for `XNew`. See section "The extension constructor".
+
