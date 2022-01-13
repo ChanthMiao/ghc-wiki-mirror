@@ -4,7 +4,7 @@ Issue [#14976](https://gitlab.haskell.org/ghc/ghc/-/issues/14976)
 suggests adding a WebAssembly (Wasm) back end to GHC. This page
 elaborates what WebAssembly support might look like.  (Actually
 getting there is a goal of the [Asterius
-project](https://asterius.netlify.app/).
+project](https://asterius.netlify.app/).)
 
 ## What Wasm support looks like
 

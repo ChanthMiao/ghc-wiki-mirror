@@ -40,6 +40,7 @@
   * [Unboxed-Numerics](./Unboxed-Numerics)
   * [Unboxed-Tuples-and-Sums-in-GHCi-bytecode](./Unboxed-Tuples-and-Sums-in-GHCi-bytecode)
   * [Visual-Studio-Code](./Visual-Studio-Code)
+  * [WebAssembly-goals](./WebAssembly-goals)
   * [Wredundant-bang-patterns-Warning-Semantics](./Wredundant-bang-patterns-Warning-Semantics)
   * [Zurihac-2019-Profiler-Ideas](./Zurihac-2019-Profiler-Ideas)
   * [_sidebar](./_sidebar)
