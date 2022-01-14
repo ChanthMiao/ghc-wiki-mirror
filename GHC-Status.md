@@ -2,11 +2,12 @@ This page summarises the state of play of GHC's release engineering efforts.
 
 ## Recommended releases
 
-We advise users to use the following recent [release](working-conventions/releases):
+We advise users to use the following recent releases:
 
 - [GHC 9.2.1](https://gitlab.haskell.org/ghc/ghc/-/milestones/365) (current major release)
 - [GHC 9.0.2](https://gitlab.haskell.org/ghc/ghc/-/milestones/367) (stable major release)
 
+Further details on our release policies can be found in on the [Wiki](working-conventions/releases).
 We release GHC on multiple platforms; the [platforms page](platforms) gives details.
 
 ## Future releases
