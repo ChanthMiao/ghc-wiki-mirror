@@ -9,7 +9,7 @@ We advise users to use the following recent [release](working-conventions/releas
 
 We release GHC on multiple platforms; the [platforms page](platforms) gives details.
 
-## Coming release
+## Future releases
 
 - [GHC 9.2.2](https://gitlab.haskell.org/ghc/ghc/-/milestones/373) is currently being prepared and should be available by late January
 - [GHC 9.4.1](https://gitlab.haskell.org/ghc/ghc/-/milestones/370) is currently in the planning stage
@@ -77,8 +77,8 @@ We have several automated ways of monitoring GHC.  Each has its own detailed des
 - [Our performance dashboard](http://perf.haskell.org/ghc) monitors changes in the performance of GHC itself, and of programs compiled by GHC, with a per-commit granularity.
 - [Haskell.org server status page](http://status.haskell.org/)
 
-## Components
 
+## Components
 
 Template Haskell has its own status page at [TemplateHaskell/Status](template-haskell/status).
 
