@@ -33,6 +33,8 @@ The structure of the Core-to-Core pipeline is determined in the `getCoreToDo` fu
 
 - **Demand analysis, 1st pass** (a.k.a. strictness analysis): runs the [demand analyser](commentary/compiler/demand) followed by worker-wrapper transformation ([JFP paper](http://ittc.ku.edu/~andygill/papers/wrapper.pdf)) and 0 phase of the simplifier. This pass tries to determine if some expressions are certain to be used and whether they will be used once or many times (cardinality analysis). We currently don't have means of saying that a binding is certain to be used many times. We can only determine that it is certain to be one-shot (ie. used only once) or probable to be one shot. Demand analysis pass only annotates Core with strictness information. This information is later used by worker/wrapper pass to perform transformations. CPR analysis is also done during demand analysis.
 
+- **Exitification**: The goal is to pull as much code out of recursive functions as possible, as the simplifier is better at inlining into call-sites that are not in recursive functions.
+
 - **Full laziness, 2nd pass**: another full-laziness pass. This time partial applications and functions with free variables are floated out.
 
 - **Common Sub-expression-elimination**: eliminates expressions that are identical.
