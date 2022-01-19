@@ -2,6 +2,12 @@
 
 I move stuff here from the different sections that is on our radar at the moment.
 
+- TrieMaps
+- #14816, !5349: Drop `reuseEnv` in DmdAnal
+- #19584: Demand Analysis scales quadratically
+  - Many ideas there, but it is much more complicated than it seems. Monotonicity issues etc.
+  - !5583 might be a faintly related first step at improvement here
+  - I'm thinking that we need to properly track data dependencies, e.g., the unstable set idea
 - #20767 top element of Demand lattic and lubBoxity
 - #20378, !6541: Estimating CaseAlt hottness
 - #19871, !5790 boxity analysis. See also https://gitlab.haskell.org/ghc/ghc/-/issues/19824#note_353112
@@ -15,12 +21,6 @@ I move stuff here from the different sections that is on our radar at the moment
   - In general it seems like non-cheap case scrutinees get in the way of eta-expanding PAPs
 - #5075, !4229: CPR for sum types
   - Nearly no regressions after !5667 and simpler analysis code
-- #14816, !5349: Drop `reuseEnv` in DmdAnal
-  - I got hung up on improving efficiency of fixed-point iteration which got more costly as a result. Should we worry? Maybe add GHC.Ix as a regression test and be done with it
-- #19584: Demand Analysis scales quadratically
-  - Many ideas there, but it is much more complicated than it seems. Monotonicity issues etc.
-  - !5583 might be a faintly related first step at improvement here
-  - I'm thinking that we need to properly track data dependencies, e.g., the unstable set idea
 - Arity analysis vs. Termination analysis: What are the differences between `exprOkForSpec` and `exprIsCheap`?
   - Divergence is cheap, but not speculatable
   - Cheap means "Are we OK with evaluating it multiple times or not at all when normally we'd evaluate it exactly once?", e.g., may we defer and unshare the work?
