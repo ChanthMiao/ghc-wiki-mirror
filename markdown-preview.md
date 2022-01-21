@@ -34,4 +34,17 @@ Your `custom-set-variables` in your init file should now contain these entries.
  '(markdown-command "Markdown.pl")
  '(package-selected-packages '(markdown-preview-mode)))
 ```
+Debian users would likely install the _markdown_ package.
+
+list of files
+
+```
+/usr/bin/markdown
+/usr/share/doc/markdown/changelog.Debian.gz
+/usr/share/doc/markdown/copyright
+/usr/share/man/man1/markdown.1.gz
+/usr/share/man/man3/Markdown.3.gz
+/usr/share/perl5/Text/Markdown.pm
+```
+
 <a href="https://stable.melpa.org/#/markdown-preview-mode"><img alt="MELPA Stable" src="https://stable.melpa.org/packages/markdown-preview-mode-badge.svg"/></a>
