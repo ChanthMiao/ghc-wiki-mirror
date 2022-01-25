@@ -93,6 +93,6 @@ If you want to get a taste for possible starting tasks, the ~newcomer label coll
 - There is a blog post series by Stephen Diehl that provides an overview of many important data structures and contains links to other sources of information: [Dive into GHC](http://www.stephendiehl.com/posts/ghc_01.html)
 
 ### Further reading
- There are many places in GHC where acronyms and terms are used to refer to specific optimizations. If you are new to working on the compiler these can be a barrier. See the [Reading list](https://gitlab.haskell.org/ghc/ghc/-/wikis/reading-list?version_id=44d5608fae15669fc71838f790b812be8fbef273) wiki page for answers.
+ There are many places in GHC where acronyms and terms are used to refer to specific optimizations. If you are new to working on the compiler these can be a barrier. See the [Reading list](https://gitlab.haskell.org/ghc/ghc/-/wikis/reading-list) wiki page for answers.
 
 Happy hacking!
