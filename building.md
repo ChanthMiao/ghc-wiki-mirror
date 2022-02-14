@@ -75,3 +75,4 @@ Please feel free to add pages here.  In due course, information can be incorpora
 - [Arm64](arm64) : An attempt to cross-compile GHC for Android on ARM64.
 - [Quick Start: just build GHC](building/quick-start)
 - [Building GHC with SSP support on Windows](https://gitlab.haskell.org/ghc/ghc/-/wikis/Building-GHC-on-Windows-with-Stack-protector-support-(SSP)-(using-Make))
+- [Brief Guide for Compiling GHC to iOS](Brief-Guide-for-Compiling-GHC-to-iOS)
