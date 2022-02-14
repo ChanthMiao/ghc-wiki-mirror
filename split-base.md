@@ -143,6 +143,8 @@ This is a list of interdependencies between seemingly unrelated parts that need 
 - GHC.Fingerprint pulls in `Foreign` and `IO` (but could be replaced by a pure implementation)
 - The Monad instance of `IO` calls `failIO`, which creates an `IOException`, which has fields for handles and devices, and hence pulls in some `Foreign` stuff and some file-related `IO`, preventing the creation of a clean base-io package. There exists a [somewhat backwards compatible work-around](http://www.haskell.org/pipermail/glasgow-haskell-users/2013-February/023796.html).
 
+Note that since the `MonadFail` class was created, this is no longer a problem. Horray!
+
 ### Other issues
 
 - Some names of base are hardcoded in GHC and hence cannot be moved to a different package name without changes in GHC. This includes:
