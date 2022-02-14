@@ -12,7 +12,7 @@ See
 
 ## Introduction
 
-Consider (a play on #13380)
+This was written after the considerations below, which have not been updated accordingly. But it should be a much better introduction to the topic. Consider (a play on #13380)
 
 ```hs
 {-# NOINLINE f #-}
@@ -24,11 +24,11 @@ f x y | x>0       = error "foo" -- this is just like `throw (userError "foo")`
 main = print $ f 12 (error "bar")
 ```
 
-What should happen if you run this program? If you just take the code at face value, you'd say "it surely should error out with foo, because y isn't touched". But at the same time, people expect GHC to optimise functions like f in a way that it will unbox the integer parameters x and y, turning f(Integer x, Integer y) -> Integer into f(int x, int y) -> int in rough Java terms. The trouble is: If GHC does that (and it does), then it has to evaluate y prior to calling f! Result: If you compile the program above with optimisations, you still get an error, but the message is different: bar.
+What should happen if you run this program? If you just take the code at face value, you'd say "it surely should error out with `foo`, because `y` isn't touched". But at the same time, people expect GHC to optimise functions like `f` in a way that it will unbox the integer parameters `x` and `y`, turning `f(Integer x, Integer y) -> Integer` into `f(int x, int y) -> int` in rough Java terms. The trouble is: If GHC does that (and it does), then it has to *evaluate* `y` prior to calling `f`! Result: If you compile the program above with optimisations, you still get an error, but the message is different: `bar`.
 
-This is in accordance with the semantics of "imprecise exceptions". "Imprecise" in the sense that "one cause for divergence/error is as good as any other". If the user calls error "foo", then the user is guaranteed to have a program that crashes or diverges, but they are not guaranteed to get the particular kind of error they intended to throw.
+This is in accordance with the semantics of "imprecise exceptions". "Imprecise" in the sense that "one cause for divergence/error is as good as any other". If the user calls `error "foo"`, then the user is guaranteed to have a program that crashes or diverges, but they are not guaranteed to get the particular *kind of error* they intended to throw.
 
-By contrast, exceptions thrown by throwIO are considered to be "precise exceptions". GHC will try hard* not to optimise your program in a way that turns throwIO (userError "foo") into throw (userError "bar") or even just an infinite loop. So the program (#13380 proper)
+By contrast, exceptions thrown by `throwIO` are considered to be "precise exceptions". GHC will try hard\* not to optimise your program in a way that turns `throwIO (userError "foo")` into `throw (userError "bar")` or even just an infinite loop. So the program (#13380 proper)
 
 ```hs
 import Control.Exception
@@ -42,7 +42,12 @@ f x y | x>0       = throwIO (userError "foo")
 main = f 2 (error "bar") >>= print
 ```
 
-will always throw foo and GHC will not unbox y.
+will always throw `foo` and GHC will not unbox `y`.
+
+\* "Try hard" is guided by two assumptions:
+
+1. Whether an expression makes use of `throwIO` is apparent in the type, e.g., a non-`IO` expression can't call `throwIO`, thus piggy-backing on the type system for a kind of taint analysis. `unsafePerformIO`/`unsafeInterleavIO` circumvent this assumption.
+2. `raiseIO#` is the only primop which can throw a precise exception. Thus if we know that a function doesn't call `raiseIO#`. That works quite well but is in fact too optimistic because of higher-order primops like `mask#`, which throw a precise exception only if their arguments throw a precise exception. As [#20111](https://gitlab.haskell.org/ghc/ghc/-/issues/20111) shows, this is an annoying swamp.
 
 ## Definition of precise and imprecise exceptions
 
