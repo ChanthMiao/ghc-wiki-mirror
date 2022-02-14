@@ -10,32 +10,53 @@ See
 - The [FixingPreciseExceptions](fixing-precise-exceptions) discussion.
 - The [`catchRaiseIO#`](catchRaiseIO%23) discussion.
 
-## Precise and imprecise exceptions
+## Introduction
+
+Consider (a play on #13380)
+
+```hs
+{-# NOINLINE f #-}
+f :: Int -> Int -> Int
+f x y | x>0       = error "foo" -- this is just like `throw (userError "foo")`
+      | y>0       = 1
+      | otherwise = 2
+
+main = print $ f 12 (error "bar")
+```
+
+What should happen if you run this program? If you just take the code at face value, you'd say "it surely should error out with foo, because y isn't touched". But at the same time, people expect GHC to optimise functions like f in a way that it will unbox the integer parameters x and y, turning f(Integer x, Integer y) -> Integer into f(int x, int y) -> int in rough Java terms. The trouble is: If GHC does that (and it does), then it has to evaluate y prior to calling f! Result: If you compile the program above with optimisations, you still get an error, but the message is different: bar.
+
+This is in accordance with the semantics of "imprecise exceptions". "Imprecise" in the sense that "one cause for divergence/error is as good as any other". If the user calls error "foo", then the user is guaranteed to have a program that crashes or diverges, but they are not guaranteed to get the particular kind of error they intended to throw.
+
+By contrast, exceptions thrown by throwIO are considered to be "precise exceptions". GHC will try hard* not to optimise your program in a way that turns throwIO (userError "foo") into throw (userError "bar") or even just an infinite loop. So the program (#13380 proper)
+
+```hs
+import Control.Exception
+
+{-# NOINLINE f #-}
+f :: Int -> Int -> IO Int
+f x y | x>0       = throwIO (userError "foo")
+      | y>0       = return 1
+      | otherwise = return 2
+
+main = f 2 (error "bar") >>= print
+```
+
+will always throw foo and GHC will not unbox y.
+
+## Definition of precise and imprecise exceptions
 
 [Section 5 of Tackling the awkward squad](https://www.microsoft.com/en-us/research/publication/tackling-awkward-squad-monadic-inputoutput-concurrency-exceptions-foreign-language-calls-haskell/) gives a good introduction to precise and imprecise exception. Similarly, David helpfully divides exceptions into
 
 - **Imprecise**: just as described by [A Semantics for Imprecise Exceptions](https://www.microsoft.com/en-us/research/publication/a-semantics-for-imprecise-exceptions/) or [section 5.2 of Tackling the awkward squad](https://www.microsoft.com/en-us/research/publication/tackling-awkward-squad-monadic-inputoutput-concurrency-exceptions-foreign-language-calls-haskell/).  An imprecise exception can be raised anywhere, by `raise# :: Exception -> a`, or by failures like divide-by-zero.  (I'm going to ignore the structure of exception values, call them all `Exception`.)
 
->
->
 > As discussed in the paper, an imprecise exception is a disaster scenario, not an alternative return.  We can catch them (in the IO monad) and try some alternative action.
->
->
 
->
->
 > Imprecise exceptions should be considered to be a bug in the program.  They should not be used for control flow or for conditions that happen when things are working correctly.  Still, we might want to recover from an imprecise exception.
->
->
 
 - **Precise**:  raised in the IO monad, by `throwIO :: Exception -> IO a`, semantics as per [Tackling the awkward squad](https://www.microsoft.com/en-us/research/publication/tackling-awkward-squad-monadic-inputoutput-concurrency-exceptions-foreign-language-calls-haskell/).
 
->
->
 > Precise exceptions are a bit less of a disaster; e.g. they are used to report "file does not exist" on file-open.  (Is this a good thing? SimonM: one can debate whether I/O errors should be represented as explicit values, e.g. `Either DoesNotExist FileContents`, but in practice there are many different error conditions that can occur when doing I/O, many of which are rare, so it's convenient to not have to deal with them explicitly.)
->
->
-
 
 Asynchronous exceptions are an orthogonal concept: the notion of precision doesn't apply to asynchronous exceptions which may occur at any time regardless of the expression being evaluated.
 
