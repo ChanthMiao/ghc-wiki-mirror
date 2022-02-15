@@ -282,7 +282,7 @@ and if you don't want haddock documentations, turn `HADDOCK_DOCS` off.
 # Enable pretty hyperlinked sources
 HADDOCK_DOCS = NO
 ```
-Remember to edit llvm-targets, GHC 9.2.1's iOS configuration was too old.
+Remember to edit `./llvm-targets`, GHC 9.2.1's iOS configuration was too old.
 
 Replace
 ```
@@ -322,8 +322,9 @@ $ export PATH=/usr/bin:/usr/local/bin:/usr/sbin:/bin:/sbin:/opt/homebrew/Cellar/
 #   --with-ffi-includes : Specify libffi header search path
 #   --with-ffi-libraries : Specify libffi library search path
 #   --disable-dtrace : Disabling DTrace since we don't have DTrace support on iOS yet
+#   --disable-large-address-space: Disable this on devices less than 8GB available RAM
 #
-$ ./configure --prefix=/usr --target=aarch64-apple-darwin20.1.0 --enable-numa=no --with-gmp-includes=$HOME/ios-sysroot/usr/include --with-gmp-libraries=$HOME/ios-sysroot/usr/lib --with-system-libffi --with-ffi-includes=$HOME/ios-sysroot/usr/include --with-ffi-libraries=$HOME/ios-sysroot/usr/lib
+$ ./configure --prefix=/usr --target=aarch64-apple-darwin20.1.0 --enable-numa=no --with-gmp-includes=$HOME/ios-sysroot/usr/include --with-gmp-libraries=$HOME/ios-sysroot/usr/lib --with-system-libffi --with-ffi-includes=$HOME/ios-sysroot/usr/include --with-ffi-libraries=$HOME/ios-sysroot/usr/lib --disable-dtrace --disable-large-address-space
 # Make sure llc and opt were configured with our aarch64-apple-darwin20.1.0 prefix, then we can run make, this takes a long process, go grab a cup of coffee and your iPad
 # Don't open too many threads, your tiny computer can't afford this
 $ make -j2
@@ -512,7 +513,7 @@ bash-5.1# exit
 During the process of attempting to port GHC to iOS, I have met lots lots of problems:
 
 1. #21049 memory allocation failed (requested 274878955520 bytes)
-    - When I started to write this article, Developers suggests me try to reconfigure with `—-disable-large-address-space`, I believe this is a proper solution but not yet tested by me.
+    - When I started to write this article, Developers suggests me try to reconfigure with `—-disable-large-address-space`, I believe this is a proper solution but not yet tested by me. (EDIT: yes, you should use this argument, it works)
     - I modified `rts/posix/OSMem.c`, changed how `my_mmap()` allocates memory on iOS, it also worked but considered unstable.
 2. runghc: /usr/bin/ghc-9.2.1: executeFile: permission denied (Operation not permitted)
     - iOS handles `argv` quite differ than how they do it on macOS, causing args with unexpected format being passed to common *nix softwares. (See https://github.com/ProcursusTeam/Procursus/issues/229)
