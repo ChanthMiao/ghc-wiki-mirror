@@ -38,7 +38,7 @@ If `next_frame` is a bytecode frame (`RET_BCO`) the interpreter executes it imme
 
 `stg_ret_d` pops the topmost frame and returns `double_value` to `next_frame` according to GHCs native calling convention (in the `D1` register).
 
-### Receiving a value
+### Receiving Unboxed Value
 
 To receive a `Double#` value, bytecode would push a continuation using `PUSH_ALTS_D`, followed by jumping to the code that produces the `Double#`. The `PUSH_ALTS_D` instruction causes the interpreter to push the continuation and an `stg_ctoi_D1_info` header on the stack:
 
