@@ -18,7 +18,9 @@ Otherwise maintain a separate branch (`wip/javascript`) into which MRs can be me
 
 ### How does the JS backend interact with the on-going plans to make GHC runtime retargetable? Is the current plan for JS to merge before runtime retargetability, therefore requiring the user to build a new compiler to use the backend?
 
-TODO
+There is no interaction. Currently even with GHCJS we need two compilers (one for the JS target and one for the host) so having a single multi-target compiler isn't mandatory.
+
+In the long term, having the ability to select the backend without rebuilding the compiler would probably improve the user experience though.
 
 ### Is the expectation that the JS backend passes the entirety of the testsuite; if not, will it be a separate testsuite way?
 
