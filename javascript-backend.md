@@ -14,7 +14,7 @@ Initially we were targeting 9.4 but it may be more realistic to target 9.6.
 
 Merging upstream whatever can be useful/tested independently of the rest.
 
-Otherwise maintain a separate branch (`wip/javascript`) into which MRs can be merged until we feel that the entire story is well-enough developed to be confidently merged upstream.
+Otherwise maintain a separate branch (`wip/javascript-backend`) into which MRs can be merged until we feel that the entire story is well-enough developed to be confidently merged upstream.
 
 ### How does the JS backend interact with the on-going plans to make GHC runtime retargetable? Is the current plan for JS to merge before runtime retargetability, therefore requiring the user to build a new compiler to use the backend?
 
