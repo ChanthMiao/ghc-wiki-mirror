@@ -10,10 +10,6 @@ The advantages of doing this are:
 - (users) no need to wait for GHCJS to be updated to benefit from the features of the latest GHC release
 - (users) installation and use of GHCJS become easier
 - (users) expect more stability, new features, performance improvement, etc.
-- (devs) don't waste developers' time maintaining a fork of GHC for GHCJS and avoids the risk of bitrot
-- (devs) benefits from GHC's CI to ensure that the JS backend doesn't break during GHC's development
-- (devs) hopefully attracts new contributors thanks to the lower barrier to entry
-- (devs) adapts GHC to pave the way for new backends targeting managed runtime systems (JVM, CLR, etc.)
 
 ## Documentation
 
