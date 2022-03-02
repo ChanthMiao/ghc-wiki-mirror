@@ -5,7 +5,7 @@
 
 When GHC is compiling a module, it tries to determine early on whether
 
-- The results of compilations exist from a previous compilation. This includes [interface files](commentary/compiler/iface-files), hie files, object files and dynamic object files. T
+- The results of compilations exist from a previous compilation. This includes [interface files](commentary/compiler/iface-files), hie files, object files and dynamic object files. 
 - Recompilation is sure to produce exactly the same results, so it
   is not necessary.
 
