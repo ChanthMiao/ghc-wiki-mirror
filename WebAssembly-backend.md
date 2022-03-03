@@ -11,9 +11,7 @@ This page is a working document about adding a WebAssembly backend to GHC.
 
 ### Which timeframe?
 
-For the first major milestone, “JavaScript-free functionality”, we aim for 9.4.
-
-For the second major milestone, “Full JavaScript interoperability”, we aim for 9.6.
+We aim for 9.6.
 
 ### Which process?
 
