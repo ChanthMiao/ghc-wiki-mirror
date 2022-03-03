@@ -72,6 +72,12 @@ This is the duty of the `iserv` implementation for wasm. It may pick up the runt
 
 We expect most existing logic in `Distribution.Simple.GHC` work out of the box, as long as the `wasm32-wasi-ghc` and `wasm32-wasi-ghc-pkg` executables are properly configured.
 
+## Questions from IRC, ghc-devs, etc
+
 ### Does it make sense to have both a JS and wasm backend? AFAIK JS can interoperate with wasm.
 
 GHCJS is much more tested in real commercial projects, so we (wasm people) believe it makes sense.
+
+### So is this new repo totally replacing the Asterius repo on GitHub?
+
+Yes. But it'll take more work to implement JS interoperability that's supported in Asterius right now.
