@@ -71,3 +71,7 @@ This is the duty of the `iserv` implementation for wasm. It may pick up the runt
 ### What needs to happen to put proper wasm backend support in Cabal? Is upstream aware of this plan? Presumably c-sources support will require wasi-sdk support in both Cabal and GHC?
 
 We expect most existing logic in `Distribution.Simple.GHC` work out of the box, as long as the `wasm32-wasi-ghc` and `wasm32-wasi-ghc-pkg` executables are properly configured.
+
+### Does it make sense to have both a JS and wasm backend? AFAIK JS can interoperate with wasm.
+
+GHCJS is much more tested in real commercial projects, so we (wasm people) believe it makes sense.
