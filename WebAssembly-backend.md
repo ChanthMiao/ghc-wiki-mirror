@@ -6,6 +6,7 @@ This page is a working document about adding a WebAssembly backend to GHC.
 
 - [WebAssembly goals](https://gitlab.haskell.org/ghc/ghc/-/wikis/WebAssembly-goals): bullet-pointed list of what WebAssembly support means, and how the goals may be accomplished.
 - [Project milestones](https://terrorjack.notion.site/Project-Milestones-02-22-2022-edition-9b751df9025a46d1b68b077083c83683): a living notion document that has finer grained milestones. The linked kanban board is also available publicly.
+- [Draft MR](https://gitlab.haskell.org/ghc/ghc/-/merge_requests/7632): the central working branch. This is for unreg codegen for now, our wasm32 NCG will be delivered in a separate MR.
 
 ## FAQ
 
