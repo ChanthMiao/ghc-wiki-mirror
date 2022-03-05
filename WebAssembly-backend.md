@@ -81,3 +81,29 @@ GHCJS is much more tested in real commercial projects, so we (wasm people) belie
 ### So is this new repo totally replacing the Asterius repo on GitHub?
 
 Yes. But it'll take more work to implement JS interoperability that's supported in Asterius right now.
+
+### Have you considered using LLVM's wasm32 target, instead of implementing wasm32 NCG? Given LLVM's support for wasm looks promising?
+
+Yes. We even considered modifying the existing LLVM pipeline, so that we only emit LLVM bitcode as object files, to take advantage of LLVM LTO.
+
+We did a simple experiment: enforce the no-lto/thin-lto/full-lto flag globally (in wasi-sdk's sysroot build, and in ghc's unreg codegen, given that's what we have for now). Conclusions are somewhat counter-intuitive: LTO brings no visible benefit to run-time performance, even slightly increases wasm code size, and has very significant link-time performance penalty. So it seems emitting plain wasm object files instead of LLVM bitcode is a saner choice.
+
+Even without considering LTO, one may still prefer LLVM codegen to avoid needing to write NCG, or to bet LLVM's quality of compile-time optimization. But note that there're also downsides:
+
+- Compile-time is slow. This is a known problem for other targets as well.
+- It's complex. There are parts (e.g. mangler) that doesn't make sense for wasm, wired-in assumptions (e.g. global regs on the stack) that may emit slower code, etc.
+
+The "complex" part is really what made us decide to go for an NCG in the beginning: we can tune a lot of runtime conventions (cmm tail calls, register passing, etc) by ourselves, compile-time will be much faster, and most importantly, we have much more knowledge about how wasm works, compared to how LLVM works (let alone how GHC's LLVM codegen works!!). So we believe trading the extra workload to get predictability of our work process is totally worth it.
+
+Also, having an NCG for wasm32 doesn't salt the earth and prevent LLVM codegen from being improved to work better for wasm32! It's still possible that LLVM codegen will emit faster code. Just keep in mind it's not a silver bullet everywhere :)
+
+### What about WebGHC?
+
+We are aware of previous efforts in WebGHC and appreciate the exploratory work a lot! Still, we decide to do things differently in a lot of places, including but not limited to:
+
+- The syscall layer. WebGHC relies on webabi to emulate various linux syscalls in JavaScript, but we choose WASI standard. You shouldn't pay for JavaScript when you don't use it. We also believe modifying the RTS to fit in WASI is more reliable than emulating syscalls and make unmodified RTS work on that layer.
+- How to do blocking syscalls, or more broadly speaking, how the Haskell thread model fits in JavaScript concurrency model when targetting the web. WebGHC uses either Web Workers or binaryen asyncify to emulate blocking behavior, both of which come with extra overhead. We'd like to avoid those overhead, and most importantly, waiting for async JS imports to return shouldn't block other threads, the two different concurrency models should work seamlessly. Same with the previous point, this involves quite some modifications to GHC RTS.
+- Choice of underlying C/C++ toolchain. WebGHC uses emscripten, while we go for wasi-sdk.
+- WebGHC disables the libffi dependency, at the cost of not supporting dynamic foreign exports. We preserve that ability using our libffi wasm32-wasi port.
+- WebGHC Template Haskell only work via compiling twice and running native code. We'll have our iserv that runs wasm code to do Template Haskell, which is a more principled approach.
+- NCG!
