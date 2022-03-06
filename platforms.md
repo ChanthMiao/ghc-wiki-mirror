@@ -256,14 +256,6 @@ Tier 2 platforms as possible to Tier 1, as soon as they meet the Tier 1 criteria
 <th> ?              </th>
 <th> <a href="building/arm-linux-gnu-eabi">Building/ARMLinuxGnuEABI</a> 
 </th></tr>
-<tr><th> ARM                </th>
-<th> iOS             </th>
-<th> arm-apple-darwin10       </th>
-<th> No         </th>
-<th> Yes       </th>
-<th> No             </th>
-<th> <a href="building/cross-compiling/i-os">Building/CrossCompiling/iOS</a> 
-</th></tr>
 <tr><th> PowerPC            </th>
 <th> AIX             </th>
 <th> powerpc-ibm-aix          </th>
@@ -358,6 +350,15 @@ Tier 3 platforms worked in the past, but probably do not work now.
 <th> Yes       </th>
 <th> No             </th>
 <th> <a href="building/solaris">Building/Solaris</a> 
+</tr>
+<tr><th> ARM                </th>
+<th> iOS             </th>
+<th> arm-apple-darwin10       </th>
+<th> No         </th>
+<th> Yes       </th>
+<th> No             </th>
+<th> <a href="building/cross-compiling/i-os">Building/CrossCompiling/iOS</a> 
+</th>
 </th></tr></table>
 
 
