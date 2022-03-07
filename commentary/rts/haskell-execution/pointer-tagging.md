@@ -22,7 +22,7 @@ The way the tag bits are used depends on the type of object pointed to:
   See the table below under `Tagging of large and small  families` for an example.
 
 - If the object is a **function**, the tag bits contain the *arity* of the function, if the arity fits
-  in the tag bits.
+  in the tag bits. Evaluating a function won't always result in a tagged pointer: #21193
 
 - For a pointer to any other object (including a PAP), the tag bits are always zero.
 
