@@ -107,3 +107,7 @@ We are aware of previous efforts in WebGHC and appreciate the exploratory work a
 - WebGHC disables the libffi dependency, at the cost of not supporting dynamic foreign exports. We preserve that ability using our libffi wasm32-wasi port.
 - WebGHC Template Haskell only work via compiling twice and running native code. We'll have our iserv that runs wasm code to do Template Haskell, which is a more principled approach.
 - NCG!
+
+### Will there also be wasm64 support at some point?
+
+Yes. Although when that happens mainly depends on upstream: we need memory64 support in WASI, wasi-sdk/wasm-libc and also the runtimes.
