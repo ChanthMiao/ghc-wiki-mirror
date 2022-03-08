@@ -17,22 +17,23 @@ A JavaScript backend for GHC was pioneered in the GHCJS project. It provided its
 - Native JS backend effort: https://gitlab.haskell.org/ghc/ghc/-/wikis/JavaScript-backend
 - GHCJS project: https://github.com/ghcjs/ghcjs
 
-## wasm32-wasi-ghc (Via C approach)
+## wasm32-wasi-ghc
 
-Use C to JavaScript/WebAssembly toolchain to compile native RTS into JS/Wasm. Add support for a new `wasi` platform to the RTS in addition to `posix` and `win32`.
+Use C to WebAssembly toolchain to compile native RTS into wasm. Add support for a new `wasi` platform to the RTS in addition to `posix` and `win32`.
 
 - RTS: reuse native RTS
-- C to JavaScript toolchain: emscripten
-- C to WebAssembly toolchain: WASI
+- C to WebAssembly toolchain: wasi-sdk
 - https://gitlab.haskell.org/ghc/ghc/-/wikis/WebAssembly-backend 
 
 ## Asterius
 
-A WebAssembly backend for GHC was pioneered in the Asterius project. Due to the limitations of WebAssembly, the RTS was implemented in JavaScript.
+A WebAssembly backend for GHC was pioneered in the Asterius project.
+The RTS was implemented in JavaScript, conforming certain run-time
+conventions (e.g. nursery allocation)
 
 - https://github.com/tweag/asterius 
 - RTS: custom JS implementation
-- Toolchain: use https://github.com/WebAssembly/binaryen to generate WebAssembly
+- Toolchain: use https://github.com/WebAssembly/binaryen to generate WebAssembly from Cmm
 
 
 ## WebGHC (Via LLVM approach)
