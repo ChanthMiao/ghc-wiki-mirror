@@ -14,7 +14,6 @@ A Javascript backend for GHC was pioneered in the GHCJS project. It provided its
 
 - RTS: provides its own JS implementation of a RTS
 - Maximal portability: full control of the generated Javascript code, hence may avoid more recent JS features
-
 - Native JS backend effort: https://gitlab.haskell.org/ghc/ghc/-/wikis/javascript-backend
 - GHCJS project: https://github.com/ghcjs/ghcjs
 
