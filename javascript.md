@@ -35,6 +35,7 @@ conventions (e.g. nursery allocation)
 - RTS: custom JS implementation
 - Toolchain: use https://github.com/WebAssembly/binaryen to generate WebAssembly from Cmm
 
+Now abandoned in faviour of wasm32-wasi-ghc
 
 ## WebGHC (Via LLVM approach)
 Similar to Via C approach but replace C with LLVM IR (GHC has an LLVM backend).
@@ -43,6 +44,8 @@ Was worked on in 2017 SoC (WebGHC): https://webghc.github.io/2017/08/10/hsocwrap
 Blocked on missing syscall implementation.
 
 - RTS: reuse native RTS. Blocked on syscall implementation.
+
+Now apparently abandoned.
 
 # Compiling Haskell code (lazy graph reduction)
 
