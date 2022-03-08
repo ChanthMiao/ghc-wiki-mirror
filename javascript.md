@@ -21,7 +21,7 @@ Using JavaScript extensions may offer different trade-offs (e.g. performance vs 
 
 **Target: Web Assembly**. Use C to WebAssembly toolchain to compile native RTS into wasm. Add support for a new `wasi` platform to the RTS in addition to `posix` and `win32`.
 
-- RTS: reuse native RTS
+- RTS: compile GHC's existing C RTS including the garbage collector, written in C, to WebAssembly.  Wasm doesn't yet provide a GC, so we pretty much have to follow this approach.
 - C to WebAssembly toolchain: wasi-sdk
 - https://gitlab.haskell.org/ghc/ghc/-/wikis/WebAssembly-backend 
 
