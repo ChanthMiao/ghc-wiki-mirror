@@ -115,6 +115,7 @@ Many Haskell packages come with C source files. Via C and Via LLVM approaches sh
 - Asynchronous RTS API: cf https://mail.haskell.org/pipermail/ghc-devs/2021-December/020459.html 
 
 # Alternative approaches to “The Javascript problem”
-Make JS tend towards better languages: TypeScript
-Specific languages: PureScript, Elm, CoffeeScript
-DSLs: JMacro
+
+- Make JS tend towards better languages: TypeScript
+- Specific languages: PureScript, Elm, CoffeeScript
+- DSLs: JMacro
