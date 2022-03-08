@@ -1,34 +1,34 @@
 # Compiling Haskell to JavaScript
 
-Javascript platforms have become the de facto way to distribute portable programs: almost every system has an up-to-date Javascript VM installed: a Web browser. The “Javascript problem” is that we don’t want to use Javascript – a programming language with many deficiencies – but we have to in order to use Javascript platforms. This document is about one solution to this problem, namely compiling a better language (Haskell) to target Javascript platforms.
+JavaScript platforms have become the de facto way to distribute portable programs: almost every system has an up-to-date JavaScript VM installed: a Web browser. The “JavaScript problem” is that we don’t want to use JavaScript – a programming language with many deficiencies – but we have to in order to use JavaScript platforms. This document is about one solution to this problem, namely compiling a better language (Haskell) to target JavaScript platforms.
 
-Some deficiencies of Javascript platforms have been recognized and addressed by adding Javascript features (e.g. support for tail recursion optimisation), by recognizing specific patterns in JS codes (cf asm.js), or by extending Javascript platforms with a different language (WebAssembly). In addition, some javascript platforms (e.g. NodeJS) supports native extensions, hence we could imagine extensions dedicated to supporting some aspects of Javascript codes generated from Haskell.
+Some deficiencies of JavaScript platforms have been recognized and addressed by adding JavaScript features (e.g. support for tail recursion optimisation), by recognizing specific patterns in JS codes (cf asm.js), or by extending JavaScript platforms with a different language (WebAssembly). In addition, some JavaScript platforms (e.g. NodeJS) supports native extensions, hence we could imagine extensions dedicated to supporting some aspects of JavaScript codes generated from Haskell.
 
-Using Javascript extensions may offer different trade-offs (e.g. performance vs portability). As we don’t believe there will be a definite answer for every use-case, we will try to keep this document up to date with developments of Javascript platforms and with their induced trade offs for a Haskell compiler targeting them.
+Using JavaScript extensions may offer different trade-offs (e.g. performance vs portability). As we don’t believe there will be a definite answer for every use-case, we will try to keep this document up to date with developments of JavaScript platforms and with their induced trade offs for a Haskell compiler targeting them.
 
 # Approaches
 
 ## GHCJS / JS backend
 
-A Javascript backend for GHC was pioneered in the GHCJS project. It provided its own RTS implemented in Javascript.
+A JavaScript backend for GHC was pioneered in the GHCJS project. It provided its own RTS implemented in JavaScript.
 
 - RTS: provides its own JS implementation of a RTS
-- Maximal portability: full control of the generated Javascript code, hence may avoid more recent JS features
-- Native JS backend effort: https://gitlab.haskell.org/ghc/ghc/-/wikis/javascript-backend
+- Maximal portability: full control of the generated JavaScript code, hence may avoid more recent JS features
+- Native JS backend effort: https://gitlab.haskell.org/ghc/ghc/-/wikis/JavaScript-backend
 - GHCJS project: https://github.com/ghcjs/ghcjs
 
 ## wasm32-wasi-ghc (Via C approach)
 
-Use C to Javascript/WebAssembly toolchain to compile native RTS into JS/Wasm. Add support for a new `wasi` platform to the RTS in addition to `posix` and `win32`.
+Use C to JavaScript/WebAssembly toolchain to compile native RTS into JS/Wasm. Add support for a new `wasi` platform to the RTS in addition to `posix` and `win32`.
 
 - RTS: reuse native RTS
-- C to Javascript toolchain: emscripten
+- C to JavaScript toolchain: emscripten
 - C to WebAssembly toolchain: WASI
 - https://gitlab.haskell.org/ghc/ghc/-/wikis/WebAssembly-backend 
 
 ## Asterius
 
-A WebAssembly backend for GHC was pioneered in the Asterius project. Due to the limitations of WebAssembly, the RTS was implemented in Javascript.
+A WebAssembly backend for GHC was pioneered in the Asterius project. Due to the limitations of WebAssembly, the RTS was implemented in JavaScript.
 
 - https://github.com/tweag/asterius 
 - RTS: custom JS implementation
@@ -47,12 +47,12 @@ Blocked on missing syscall implementation.
 
 GHC’s main task is to generate code that implements lazy graph reduction for Haskell programs. GHC has been designed to produce efficient code on native platforms. The challenge here is to determine what needs to change to target:
 
-- Javascript: a managed platform which has its own garbage collector
+- JavaScript: a managed platform which has its own garbage collector
 - WebAssembly: stack based very constrained abstract machine
 
-Sadly there is no comprehensive documentation of GHC’s design to refer to. Hence we can’t just mention what a Javascript backend has to do differently, but also what the other backends  (native code generator, interpreter, etc.) do.
+Sadly there is no comprehensive documentation of GHC’s design to refer to. Hence we can’t just mention what a JavaScript backend has to do differently, but also what the other backends  (native code generator, interpreter, etc.) do.
 
-Efficient lazy graph reduction is only one aspect of compiling Haskell codes. Most of the challenges come from the “Awkward squad” support (IO, concurrency, exceptions, FFI imports and exports), support for GHC’s features violating abstraction layers (weak references, stable pointers, explicit call to the GC, etc.), compile time code execution (Template Haskell, annotations, compiler plugins), support for interacting with C codes compiled into Javascript too!
+Efficient lazy graph reduction is only one aspect of compiling Haskell codes. Most of the challenges come from the “Awkward squad” support (IO, concurrency, exceptions, FFI imports and exports), support for GHC’s features violating abstraction layers (weak references, stable pointers, explicit call to the GC, etc.), compile time code execution (Template Haskell, annotations, compiler plugins), support for interacting with C codes compiled into JavaScript too!
 
 ## Eval/apply for JS
 https://www.cs.tufts.edu/comp/150FP/archive/simon-peyton-jones/eval-apply-jfp.pdf 
@@ -62,7 +62,7 @@ Do we need to generate “stg_app_*” for JS targets? We could probably use `ty
 
 Tail calls are commonly used in GHC’s generated code for native platforms. Evaluating a thunk is efficiently done by jumping to its entry code. That is one of the reasons it is fast.
 
-Initially Javascript didn’t support tail calls. Since ES6 it should support it in theory. However some JS platforms disabled it because it makes debugging more difficult (see https://github.com/nodejs/CTC/issues/3, https://github.com/tc39/proposal-ptc-syntax/issues/23).
+Initially JavaScript didn’t support tail calls. Since ES6 it should support it in theory. However some JS platforms disabled it because it makes debugging more difficult (see https://github.com/nodejs/CTC/issues/3, https://github.com/tc39/proposal-ptc-syntax/issues/23).
 
 Similarly for WebAssembly, there is a proposal to add support for tail calls (https://github.com/webassembly/tail-call) which isn’t well supported. See https://leaningtech.com/extreme-webassembly-2-the-sad-state-of-webassembly-tail-calls/ for the status in 2020 as well as links to issues that are often still open in 2022.
 
@@ -90,7 +90,7 @@ Two approaches:
 
 ## Garbage collection
 
-Reusing Javascript’s garbage collector (e.g. ghcjs) or not (e.g. Asterius)?
+Reusing JavaScript’s garbage collector (e.g. ghcjs) or not (e.g. Asterius)?
 
 Approaches that reuse the native RTS benefit from the native GC implementations (non-moving, staged, etc.).
 - Do they make sense for a JS/WebAssembly target?
@@ -110,13 +110,13 @@ Many Haskell packages come with C source files. Via C and Via LLVM approaches sh
 -  Compiling C sources into JS (reusing Via C or Via LLVM approach)
   - Approach impedance mismatch: different toolchains, not necessarily the same heap representation
 
-## Interaction with Javascript/WebAssembly
+## Interaction with JavaScript/WebAssembly
 
 - FFI imports / exports
-- FFI exports as Javascript “promises” (cf Asterius)
+- FFI exports as JavaScript “promises” (cf Asterius)
 - Asynchronous RTS API: cf https://mail.haskell.org/pipermail/ghc-devs/2021-December/020459.html 
 
-# Alternative approaches to “The Javascript problem”
+# Alternative approaches to “The JavaScript problem”
 
 - Make JS tend towards better languages: TypeScript
 - Specific languages: PureScript, Elm, CoffeeScript
