@@ -1,4 +1,4 @@
-# Compiling Haskell to JavaScript
+# Compiling Haskell to JavaScript and WebAssembly
 
 JavaScript platforms have become the de facto way to distribute portable programs: almost every system has an up-to-date JavaScript VM installed: a Web browser. The “JavaScript problem” is that we don’t want to use JavaScript – a programming language with many deficiencies – but we have to in order to use JavaScript platforms. This document is about one solution to this problem, namely compiling a better language (Haskell) to target JavaScript platforms.
 
