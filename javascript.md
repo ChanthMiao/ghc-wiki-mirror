@@ -10,7 +10,7 @@ Using JavaScript extensions may offer different trade-offs (e.g. performance vs 
 
 ## GHCJS / JS backend
 
-A JavaScript backend for GHC was pioneered in the GHCJS project. It provided its own RTS implemented in JavaScript.
+**Target: JavaScript**.  A JavaScript backend for GHC was pioneered in the GHCJS project. It provided its own RTS implemented in JavaScript.
 
 - RTS: provides its own JS implementation of a RTS
 - Maximal portability: full control of the generated JavaScript code, hence may avoid more recent JS features
@@ -19,7 +19,7 @@ A JavaScript backend for GHC was pioneered in the GHCJS project. It provided its
 
 ## wasm32-wasi-ghc
 
-Use C to WebAssembly toolchain to compile native RTS into wasm. Add support for a new `wasi` platform to the RTS in addition to `posix` and `win32`.
+**Target: Web Assembly**. Use C to WebAssembly toolchain to compile native RTS into wasm. Add support for a new `wasi` platform to the RTS in addition to `posix` and `win32`.
 
 - RTS: reuse native RTS
 - C to WebAssembly toolchain: wasi-sdk
