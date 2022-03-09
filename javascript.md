@@ -23,7 +23,7 @@ GHC's RTS is written in C/Cmm. Hence there are two solutions:
 | ------- | -------------------------- | ---------------------------------- |
 | Cost    | Adapt existing code (avoid signals, avoid some syscalls, etc.) | Has to be implemented from scratch |
 | ABI     | Forced on us by external tools (emscripten, wasi-sdk...) | Full control by GHC devs |
-| Used by | WebGHC, wasm32-wasi-ghc    | GHCJS, JS backend, Asterius |
+| Used by | wasm32-wasi-ghc, WebGHC    | JS backend, GHCJS, Asterius |
 
 # Approaches
 
