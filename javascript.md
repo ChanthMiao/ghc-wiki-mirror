@@ -6,46 +6,62 @@ Some deficiencies of JavaScript platforms have been recognized and addressed by 
 
 Using JavaScript extensions may offer different trade-offs (e.g. performance vs portability). As we don’t believe there will be a definite answer for every use-case, we will try to keep this document up to date with developments of JavaScript platforms and with their induced trade offs for a Haskell compiler targeting them.
 
+# Overview
+
+Here is an overview of the compilation pipeline, showing the different intermediate representations:
+
+![ghc-js-pipeline](uploads/f97fa926d0e316d2640e16f2ab5eb821/ghc-js-pipeline.png)
+
+- StgToJS was implemented in GHCJS project but isn't upstreamed yet
+- CmmToWasm was implemented in Asterius project but isn't upstreamed yet
+
+# RTS
+
+GHC's RTS is written in C/Cmm. Hence there are two solutions:
+
+|         | Compile C RTS into JS/wasm with external toolchain | Implement custom JS/wasm RTS       |
+| ------- | -------------------------- | ---------------------------------- |
+| Cost    | Adapt existing code (avoid signals, avoid some syscalls, etc.) | Has to be implemented from scratch |
+| ABI     | Forced on us by external tools (emscripten, wasi-sdk...) | Full control by GHC devs |
+| Used by | WebGHC, wasm32-wasi-ghc    | GHCJS, JS backend, Asterius |
+
 # Approaches
 
-## GHCJS / JS backend
+There are currently (2022) two active lines of work:
 
-**Target: JavaScript**.  A JavaScript backend for GHC was pioneered in the GHCJS project. It provided its own RTS implemented in JavaScript.
+- JS backend:
+  - Details: https://gitlab.haskell.org/ghc/ghc/-/wikis/JavaScript-backend
+  - Target : JavaScript
+  - Haskell codes: implementing StgToJS backend, reusing code from GHCJS project
+  - RTS: custom JS RTS, reusing code from GHCJS project
 
-- RTS: provides its own JS implementation of a RTS
-- Maximal portability: full control of the generated JavaScript code, hence may avoid more recent JS features
-- Native JS backend effort: https://gitlab.haskell.org/ghc/ghc/-/wikis/JavaScript-backend
-- GHCJS project: https://github.com/ghcjs/ghcjs
+- wasm32-wasi-ghc:
+    - Details: https://gitlab.haskell.org/ghc/ghc/-/wikis/WebAssembly-backend 
+    - Target : WebAssembly + optional JS for foreign exports
+    - Haskell codes: implementing CmmToWasm backend
+    - RTS: use C to WebAssembly toolchain (wasi-sdk) to compile C RTS into wasm.
 
-## wasm32-wasi-ghc
+Inactive approaches:
 
-**Target: Web Assembly**. Use C to WebAssembly toolchain to compile native RTS into wasm. Add support for a new `wasi` platform to the RTS in addition to `posix` and `win32`.
+- GHCJS:
+    - https://github.com/ghcjs/ghcjs
+    - Target : JavaScript
+    - Haskell codes: implementing StgToJS backend, reusing code from GHCJS project
+    - RTS: custom JS RTS, reusing code from GHCJS project
+    - Status: stuck at GHC 8.10; replaced by JS backend
 
-- RTS: compile GHC's existing C RTS including the garbage collector, written in C, to WebAssembly.  Wasm doesn't yet provide a GC, so we pretty much have to follow this approach.
-- C to WebAssembly toolchain: wasi-sdk
-- https://gitlab.haskell.org/ghc/ghc/-/wikis/WebAssembly-backend 
+- Asterius
+    - https://github.com/tweag/asterius 
+    - Target: WebAssembly + JS for foreign exports
+    - Haskell codes: converted from Cmm to wasm
+    - RTS: custom JS RTS
+    - Status: now abandoned in favour of wasm32-wasi-ghc
 
-## Asterius
-
-A WebAssembly backend for GHC was pioneered in the Asterius project.
-The RTS was implemented in JavaScript, conforming certain run-time
-conventions (e.g. nursery allocation)
-
-- https://github.com/tweag/asterius 
-- RTS: custom JS implementation
-- Toolchain: use https://github.com/WebAssembly/binaryen to generate WebAssembly from Cmm
-
-Now abandoned in faviour of wasm32-wasi-ghc
-
-## WebGHC (Via LLVM approach)
-Similar to Via C approach but replace C with LLVM IR (GHC has an LLVM backend).
-
-Was worked on in 2017 SoC (WebGHC): https://webghc.github.io/2017/08/10/hsocwrapup.html
-Blocked on missing syscall implementation.
-
-- RTS: reuse native RTS. Blocked on syscall implementation.
-
-Now apparently abandoned.
+- WebGHC
+    - Target: WebAssembly
+    - Haskell codes: relies on LLVM backend, then LLVM to wasm external toolchain
+    - RTS: use C to WebAssembly toolchain (emscripten) to compile C RTS into wasm.
+    - Status: abandoned since 2017 SoC: https://webghc.github.io/2017/08/10/hsocwrapup.html
 
 # Compiling Haskell code (lazy graph reduction)
 
@@ -107,12 +123,15 @@ Approaches that reuse the native RTS benefit from the native GC implementations 
 
 ## C/Cmm sources
 
-Many Haskell packages come with C source files. Via C and Via LLVM approaches should support these (compiling them into JS/Wasm). Other approaches need something else:
-- Replacing C sources with JS sources
-  - GHCJS’ “shims” library of JS codes
-  - Make Cabal embed js-sources instead of c-source depending on the target
--  Compiling C sources into JS (reusing Via C or Via LLVM approach)
-  - Approach impedance mismatch: different toolchains, not necessarily the same heap representation
+Many Haskell packages come with C source files.
+
+- Use external toolchains (empscripten, wasi-sdk...) to compile them into wasm/JS
+  - easy when for approaches that already use these toolchains
+  - ABI impedance mismatch for other approaches (e.g. not necessarily the same heap representation)
+
+- Replace C sources with JS sources
+  - E.g. GHCJS’ “shims” library of JS codes
+  - Make Cabal embed js-sources instead of c-sources depending on the target
 
 ## Interaction with JavaScript/WebAssembly
 
