@@ -85,7 +85,9 @@ Pointer tagging is *not* optional, contrary to what the paper says.  We original
 - On entry to a non-top-level function, R1 is assumed tagged
 
 
-If we don't assume the value of the tag bits in these places, then extra code is needed to untag the pointer.  If we can assume the value of the tag bits, then we just take this into account when indexing off R1.
+
+If we don't assume the value of the tag bits in these places, then extra code is needed to untag the pointer or ensure a tag is present.
+If we can assume the value of the tag bits, then we just take this into account when indexing off R1.
 
 
 This means that everywhere that enters either a case continuation or a non-top-level function must ensure that R1 is correctly tagged.  For a case continuation, the possibilities are:
@@ -95,6 +97,25 @@ This means that everywhere that enters either a case continuation or a non-top-l
 - if the case alternative fails a heap or stack check, then the RTS will re-enter the alternative after
   GC.  In this case, our re-entry arranges to enter the constructor, so we get the correct tag by
   virtue of going through the constructor entry code.
+
+### Strict fields and strict workers
+
+GHC now implemented #16970. Which adds additional invariants in pointer tags:
+
+- For strict constructor fields, the values in them are assumed tagged.
+- For strict worker ids, the arguments marked as cbv(call by value) are assumed tagged.
+
+See the Note [Strict Field Invariant] and Note [Strict Worker Ids] for in depth details.
+
+The gist of it is that we put the responsibility to tag these pointers on the construction/call site. Why?
+A constructor might be constructed once, but used many times. 
+
+So instead of doing a tag check every time we use a value from such
+a field we do this work *once* at construction time and can omit it at *all* use sites.
+
+If we then unbox such a constructor to pass it to a worker we still want to be able to avoid redoing this work.
+For this reason strict worker ids can have arguments marked as cbv, which will mean the have to be passed tagged
+at the call site.
 
 ## Functions (FUN closures)
 
@@ -179,59 +200,26 @@ Compacting GC also uses tag bits, because it needs to distinguish between a heap
 
 ## Gotchas where we surprisingly don't have tagged pointers.
 
-Since pointer tagging is an important optimization GHC makes sure to apply it often. However there are a few cases where this surprisingly doesn't hold. This surfaced among other things in the issues #15155 and #14677
+Since pointer tagging is an important optimization GHC makes sure to apply it often. However there are a few cases where this surprisingly doesn't hold.
 
-There are two different issues here:
+### Evaluating functions
 
-1. Suppose a pointer P points to a constructor object. Then I would like the invariant that P is properly tagged -- eg it never has tag 0 meaning "thunk". I believe this is very nearly the case today, (see [this commeent](https://gitlab.haskell.org/ghc/ghc/merge_requests/1692#note_245358) in !1692, and may be the case *always* once we have nailed #17004.
+Evaluating a function can result in a untagged pointer to the function closure. This is #21193.
+The consequence is that wherever we might expect a pointer to be tagged we have to make sure nothing goes wrong if the pointer is a untagged pointer to a FUN closure.
 
-1. Suppose a data constructor has a pointer Q in a strict field of type T, where T is a data type. Then Q is a properly-tagged pointer to a data constructor (of type T). This is what #15155 is about.
-
-These are not the same! We could have (1) without (2) or (2) without (1).
+However this bug has been present for a long time and nothing goes wrong. So fixing this isn't a high priority currently.
 
 ### Failure to tag imported bindings
 
-When a module refers to a top level binding from a different module this *won't* be tagged except for trivial cases where we reference nullary constructors with an available unfolding.
+When a module refers to a top level binding from a different module this won't always be tagged.
 
-This was documented in #14677. !1530 is a WIP but is currently stalled on not directly related work.
+This was first documented in #14677 but we have since improved the situation significantly.
 
-Fixing this via export of LFInfo would have the following benefits:
+What we do know is that for optimized builds we are exporting the LFInfo of bindings. Giving us the following benefits:
 
 * We can omit code to enter closures if we know statically they are evaluated constructors.
 * We avoid entering closures dynamically since more closures will be appropriately tagged.
 * We can omit entry code for all constructors. If we can ensure all references to constructors are tagged there is never a reason to enter them.
 * We can use a more efficient calling convention in some places, as LFInfo allows us to replace slow calls with more efficient variants.
 
-### Strict fields containing untagged pointers
-
-A hot topic (2021)! See
-* #15155
-* #16949
-* #9133
-* !1472, !4742, !5333
-* #15696, esp [this note](https://gitlab.haskell.org/ghc/ghc/-/issues/15696#note_160950) which explains how an untagged pointer can sneak into a strict field.
-
-One might assume that strict fields by their nature can only contain tagged pointers. This is however not true as they only require to uphold their semantics which allows indirections (or even thunks in theory).
-
-In particular we can (and do) end up with indirections in strict fields. This is discussed in #15155. But imported top level bindings could also end up (untagged) inside strict fields.
-
-So the (known) sources of untagged pointers in strict fields are:
-* Untagged static constructor pointers (see `Failure to tag imported bindings` on this page).
-* Static indirections which are the result of things like coercions. See #16831 for an example.
-* Indirections resulting from float out.
-
-The last one comes from code code like this:
-
-```
-bar = <thunk>
-foo = SJust bar
-
-baz = case bar of
-   _ -> ... foo ...
-```
-
-Clearly bar *is* evaluated before `foo` is demanded. But `foo` will still only contain an indirection to `bar`, and we never tag indirections.
-
-Changing this would be beneficial for performance as it allows avoidance of the "check tag and enter" code when accessing strict fields.
-
-!1472 is a WIP patch for one approach to changing this working at the STG level. In extreme cases like set lookups for Data.Set this improved performance by >10%. However the implementations is also far from trivial so it's not yet clear if this is the best approach. See also the related [ticket](https://gitlab.haskell.org/ghc/ghc/issues/16970#strict-fields)
+However we don't have this information for unoptimized modules and {-# SOURCE #-} imports. So we still won't properly tag these bindings in these cases.
