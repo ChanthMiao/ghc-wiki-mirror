@@ -4,6 +4,8 @@ This feature has been implemented in [GHCJS](https://github.com/ghcjs/ghcjs) and
 
 The tracking ticket is: <https://gitlab.haskell.org/ghc/ghc/-/issues/21078>
 
+Old doc: https://www.haskell.org/haskell-symposium/2013/ghcjs.pdf
+
 ## FAQ
 
 ### Which timeframe?
