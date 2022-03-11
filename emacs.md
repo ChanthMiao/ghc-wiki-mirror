@@ -15,7 +15,7 @@ For Spacemacs specific content, please see: [Spacemacs](spacemacs)
 # General
 
 
-## IDO mode
+## IDO Mode
 
 
 
@@ -235,11 +235,23 @@ When Emacs is already running you can modify this setting with `C-x f` or `M-x s
 
 # Haskell-specific
 
-## Haskell mode
+## Haskell Mode
 
 **Description**: Haskell mode is a major mode for Emacs. Features include: syntax highlighting, GHCi integration and automatic indentation. See [online manual](http://haskell.github.io/haskell-mode/manual/latest/) for details.
 
 **How to enable**: See installation instructions on [github](https://github.com/haskell/haskell-mode).
+
+## Haskell Mode: The Next Generation
+
+**Description**: An experimental rewrite of haskell-mode.
+
+**How to enable**: See installation instructions on [gitlab](https://gitlab.com/tseenshe/haskell-tng.el).
+
+The full install depends on the following elisp packages:
+
+company, markdown-mode, popup, projectile, smartparens, use-package, yasnippet
+
+haskell-tng-extra-lsp-hsinspect.el additionally depends on lsp-mode
 
 ## ghc-mod
 
