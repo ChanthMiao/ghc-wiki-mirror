@@ -87,3 +87,15 @@ This needs to be given some thoughts.
 Currently Cabal doesn't support cross-compilation. We need it to support two toolchains: one for the host (plugins, Setup.hs), one for the target. It also needs to use the correct platform to resolve conditionals in `.cabal` files.
 
 Need input from Luite about c-sources support with emscripten. We should also ensure that whatever solution we implement can also handle WebAssembly C compiler.
+
+### Template Haskell support
+
+The current Template Haskell support in the standalone GHCJS has two issues
+
+    * It uses a non-standard Template Haskell runnner, GHC gained its own `iserv` external interpreter in the meantime
+    * The GHCJS TH runner links JavaScript in the compiler, then sends it to the Template Haskell runner (`thrunner.js`) as a message. This occasionally runs into size limitations in node.js
+
+A good solution fixes both problems. It has to integrate with iserv, but we still have some room for decisions:
+
+    * We could have a full bytecode interpreter running in JavaScript, running most of the code in bytecode.
+    * We could reuse most of the `iserv` infrastructure, but run compiled JS code (like `-fobject-code`). We'd have to fix the linker to get around the size issue.
