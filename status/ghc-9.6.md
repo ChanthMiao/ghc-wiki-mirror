@@ -1,6 +1,8 @@
 # Ambitions and major features for the 9.6 compiler series
 
-This article is a high-level exposé of the major highlights of the GHC 9.6 series.
+This article is a high-level exposé of our ambitions of the GHC 9.6 series.
+
+_(It's not a fixed list of feature, rather a wish list to ourselves that would inspire our mid-term ambitions and hopefully inspire the readers that are outside of our development community.)_
 
 ## JavaScript backend
 
