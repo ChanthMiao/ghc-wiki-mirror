@@ -12,3 +12,7 @@ The advantages of doing this are:
 - (users) no need to wait for GHCJS to be updated to benefit from the features of the latest GHC release
 - (users) installation and use of GHCJS become easier
 - (users) expect more stability, new features, performance improvement, etc.
+
+## WebAssembly backend
+
+See [WebAssembly backend](https://gitlab.haskell.org/ghc/ghc/-/wikis/WebAssembly-backend) for details.
