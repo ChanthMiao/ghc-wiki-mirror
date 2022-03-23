@@ -197,7 +197,8 @@ your configuration file does not tell me, either. Please
 Somehow you in a state where `experiment` isn't tracking `origin/experiment`.  To make it tracking, use `--set-upstream`:
 
 ```wiki
-git branch --set-upstream experiment origin/experiment
+-- We are on local branch 'experiment'
+git branch --set-upstream-to origin/experiment
 ```
 
 ### Undoing a commit you wish you hadn't made
