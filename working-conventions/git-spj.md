@@ -25,6 +25,14 @@ Suppose you have a submodule `utils/haddock` in the main GHC repo.
 
 ## Configuration
 
+### Three way merge
+
+```
+git config --global merge.conflictstyle diff3
+```
+See https://www.programming-books.io/essential/git/view-a-three-way-merge-including-the-common-ancestor-0087a008d96b42beb2de8c2be403e067
+
+
 ### Authentication
 
 
