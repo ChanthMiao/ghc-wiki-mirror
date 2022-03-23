@@ -10,9 +10,15 @@ GHCJS is Haskell-to-JavaScript compiler started 12 years ago that relies on a GH
 
 The advantages of doing this are:
 - (users) no need to wait for GHCJS to be updated to benefit from the features of the latest GHC release
-- (users) installation and use of GHCJS become easier
-- (users) expect more stability, new features, performance improvement, etc.
+- Installation and use of GHCJS become easier
+- Expect more stability, new features, performance improvement, etc.
 
 ## WebAssembly backend
+
+The WebAssembly backend is the heir to the Asterius project, and is targeting the `wasm32-wasi` platform. 
+
+- Haskell code compiled with GHC will interoperate with JavaScript, but JavaScript will be needed only when Haskell code contains `foreign import/export javascript`. If a Haskell program does not use foreign JavaScript functions, it can run on a WebAssembly engine that does not support JavaScript.
+- It will be possible to build an application using a mix of Haskell and JavaScript, with JavaScript in charge.
+- Haskell code will be able to call an asynchronous JavaScript function.
 
 See [WebAssembly backend](https://gitlab.haskell.org/ghc/ghc/-/wikis/WebAssembly-backend) for details.
