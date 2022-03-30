@@ -1,19 +1,30 @@
 This wiki page summarises the difficulties encountered during the implementation of directed coercions, which are a compact form of coercions used when rewriting type families to speed up compilation of type-family heavy programs. The main wiki page explaining directed coercions can be found [here](https://gitlab.haskell.org/ghc/ghc/-/wikis/Directed-coercions).
 
+## Summary
+
+Adam and Sam implemented directed coercions in [MR !6476](https://gitlab.haskell.org/ghc/ghc/-/merge_requests/6476). 
+Some subtle aspects of the implementation are outlined in [§ The Hydration invariant](#the-hydration-invariant).
+
+The performance results of this MR in type-family heavy programs are very good, but there are rare but extreme regressions in programs which rely on coercion optimisation (such as test cases `T15703`, `CoOpt_Singletons`, or the `singletons` library more generally).
+
+Lacking a robust strategy for coercion optimisation, we also investigated zapping coercions in the coercion optimiser in [MR !7787](https://gitlab.haskell.org/ghc/ghc/-/merge_requests/7787). We survey some of the difficulties in [§ Zapping](#zapping).
+
+For the moment, we are putting these patches aside, hoping to revisit them once we can find a better strategy to handle coercion optimisation. Several avenues are explored in [§ Strategies for coercion optimisation](#strategies).
+
 ---
 
 [toc]
 
 ---
 
-## MRs
+### MRs
 
 **Directed coercions**
   - [!6476](https://gitlab.haskell.org/ghc/ghc/-/merge_requests/6476).
     This implements directed coercions and uses them in the rewriter. Runs into trouble with coercion optimisation (tests `T15703` and `CoOpt_Singletons`).
 
 **Directed coercions + zapping in coercion optimisation**
-  - [!7787](https://gitlab.haskell.org/ghc/ghc/-/merge_requests/7787). This approach has the most promising performance results so far.
+  - [!7787](https://gitlab.haskell.org/ghc/ghc/-/merge_requests/7787). This approach has the most promising performance results so far, but has the highest implementation complexity.
 
 **Coercion zapping**
   - [!611](https://gitlab.haskell.org/ghc/ghc/-/merge_requests/611). Zaps coercions in the middle of the rewriter.
@@ -184,7 +195,7 @@ These optimisations can be absolutely crucial in practice; without these optimis
 
 A few test cases in the test-suite are particularly sensitive to changes in coercion optimisation, such as `T15703` and `CoOpt_Singletons`. More generally, compiling the `singletons` library is a good benchmark. See also [this code from the `eliminators` package](https://github.com/RyanGlScott/eliminators/blob/2e374acc4f451d3efcea240c37e7b165e413639b/tests/EqualitySpec.hs#L194-L262) which had to be commented because of large coercion sizes bringing compilation to a halt.
 
-### Strategies with directed coercions
+### Strategies for coercion optimisation
 
 The optimisations involving elimination terms are no longer directly available when handling directed coercions. For example, if we have `TyConAppDCo dcos `TransDCo` dco'`, we don't have a mechanism for pushing the transitivities inwards like we did above with coercions.
 
