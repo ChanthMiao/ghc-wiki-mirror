@@ -197,7 +197,7 @@ A few test cases in the test-suite are particularly sensitive to changes in coer
 
 ### Strategies for coercion optimisation
 
-The optimisations involving elimination terms are no longer directly available when handling directed coercions. For example, if we have `TyConAppDCo dcos `TransDCo` dco'`, we don't have a mechanism for pushing the transitivities inwards like we did above with coercions.
+The optimisations involving elimination terms are no longer directly available when handling directed coercions. For example, if we have ``TyConAppDCo dcos `TransDCo` dco'``, we don't have a mechanism for pushing the transitivities inwards like we did above with coercions.
 
 #### Approach 1: consider directed coercions to be atomic
 
@@ -286,3 +286,40 @@ data ZappedNulliCoercion
 ```
 
 If zapping occurs after typechecking, then we get more lee-way: we can simply inspect the proof term and decide whether to zap it or keep it as is (e.g. keep `Refl` as `Refl` and recurse into `TyConAppCo`s). This was the approach tried in [MR !7787](https://gitlab.haskell.org/ghc/ghc/-/merge_requests/7787), where we use directed coercions in the rewriter and then zap in coercion optimisation.
+
+# Next steps
+
+The most promising approach seems to be to generate directed coercions in the rewriter, then make sure that when the simplifier pushes coercions around (e.g. in `pushCoValArg`) they are sufficiently optimised to avoid exponential growth in coercion size.
+
+Adam has a half-baked idea for how we might be able to make this easier: instead of the current
+```hs
+HydrateDCo :: Role -> Type -> DCoercion -> Type -> Coercion
+```
+we would instead have something like this:
+```hs
+PeakCo :: Role -> DCoercion -> Coercion -> DCoercion -> Coercion
+```
+with the typing rule:
+```
+γ : σ_1 ~r σ_2
+δ_1 : σ_1 ->r τ_1
+δ_2 : σ_2 ->r τ_2
+------------------------------
+PeakCo r δ_1 γ δ_2 : τ_1 ~ τ_2
+```
+
+Now:
+ * `PeakCo r δ_1 γ δ_2` is rather like a transitive composition `sym δ_1 ; γ ; δ_2`.
+ * By taking γ to be `ReflCo τ` and δ_1 to be `ReflDCo` we get back the old `HydrateDCo` embedding of `DCoercion`s in `Coercion`s.
+ * This rule is symmetric; we have `mkSymCo (PeakCo r δ_1 γ δ_2) = PeakCo r δ_2 (mkSymCo γ) δ_1`. We could also have rules like `mkTransCo (PeakCo r δ_1 γ δ_2) (PeakCo r ReflDCo γ' δ_3) = PeakCo r δ_1 γ (δ_2 ; mkDehydrateCo γ' ; δ_3)`.
+ * The idea is that `γ` will typically be `Refl` or `TyConAppCo`. We may want invariants that restrict the forms of the coercions/dcoercions, but they are not yet precisely specified.
+ * This representation should make it easier to spot patterns like `PeakCo r (AxiomInstDCo ax ; ...) (F γs) (AxiomInstDCo ax ; ...)` which are crucial to optimise.
+ * The hope is that more optimisation can happen on-the-fly in smart constructors, if we get the representation right. In particular, eliminators such as `mkNThCo` should try harder to expose a canonical form such as `TyConAppCo`, normalising away symmetry/transitivity and cancelling out axioms. Better still, `decomposeFunCo` etc. should do this on-the-fly optimisation once, then share it between all the calls to `mkNThCo` they make.
+ * We may also want to factor out associativity of `TransCo`, either by always storing `TransCo` nested one way, or changing the data structure for `TransCo` to use some sort of sequence instead of unbalanced binary trees.
+ * We probably want the `PeakCo` constructor to cache the ultimate LHS and RHS types. Adam conjectures that these caches should never be stored in interface files or traversed (e.g. substitution should insert thunked calls to `followDCo`/`coercionKind`). This will maximise sharing, though it could cost runtime if we have to repeatedly follow `DCoercion`s.
+
+## Other future work
+
+We have not yet implemented substitution lifting for directed coercions. This seems like it should be unproblematic in principle, and might allow the hydration invariant to be removed (along with the need for the rewriter to keep track of the LHS type). However it would lead to yet more code duplication.
+
+It is an open question whether this code duplication could be reduced, perhaps by making more things polymorphic in the choice of coercion representation, or perhaps by removing constructors of `Coercion` that we always want to represent as `DCoercion`s instead.
