@@ -262,13 +262,13 @@ If we elide proofs, we obviously can no longer check their validity, and must si
 Zapped coercions are not always more compact. For example, `ReflCo ty` is more compact than `UnivCo (ZappedProv []) Nominal ty ty`, especially if `ty` is large. Similarly, we might prefer
 
 ```haskell
-TyConAppCo tc r [ReflCo ty1, ReflCo ty2, UnivCo (ZappedProv []) l_ty3 r_ty3]
+TyConAppCo tc r [ReflCo ty1, ReflCo ty2, UnivCo (ZappedProv []) r l_ty3 r_ty3]
 ```
 
 to
 
 ```haskell
-UnivCo (ZappedProv []) (TyConApp tc r [ty1, ty2, l_ty3]) (TyConApp tc r [ty1, ty2, r_ty3])
+UnivCo (ZappedProv []) r (TyConApp tc r [ty1, ty2, l_ty3]) (TyConApp tc r [ty1, ty2, r_ty3])
 ```
 
 Depending on where zapping occurs in the compiler, it is more or less straightforward to accomodate these situations. In the approach of [§ Zapped nullicoercions](#zapped-nullicoercions), we would have a special representation for zapped nullicoercions in the rewriter. This might be
