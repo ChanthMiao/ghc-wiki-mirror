@@ -218,3 +218,7 @@ For now we prefer to modify the type-checker and leave the rest of the pipeline 
 `AxiomInstCo` takes a list of coercions as its arguments, instead of what one might more naively expect, a list of types. It seems that this design was motivated by coercion optimisation concerns that may no longer be relevant with directed coercions. In particular, `AxiomInstDCo` stores only the axiom, not the list of arguments. This might allow us to simplify the implementation in GHC, e.g. removing `GHC.Core.Unify.ty_co_match`.
 
 **AMG**: I optimistically hope that much of the coercion optimizer can go away if we get the design for directed coercions right.
+
+# Implementation
+
+The state of the implementation of directed coercions is outlined on the [implementation page](Implementation-of-directed-coercions).
