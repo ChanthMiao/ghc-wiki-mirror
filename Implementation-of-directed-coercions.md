@@ -250,11 +250,11 @@ Zapped coercions present two main disadvantages.
 
 ### Core Lint
 
-If we elide proofs, we obviously can no longer check their validity, and must simply trust them. This means that we still need to retain an alternative code path (e.g. an alternative implementation of the rewriter) when we want to run Core Lint.
+If we elide proofs, we obviously can no longer check their validity, and must simply trust them. This means that:
 
-This means that:
-  1. the code path used when zapping coercions will not be checked by Core Lint,
-  2. Core Lint will potentially be very slow to check programs in which the rewriter handles large coercions.
+  1. We still need to retain an alternative code path (e.g. an alternative implementation of the rewriter) when we want to run Core Lint,
+  2. the code path used when zapping coercions will not be checked by Core Lint,
+  3. Core Lint will potentially be very slow to check programs in which the rewriter handles large coercions.
 
 ### Zapping is not always advantageous
 
