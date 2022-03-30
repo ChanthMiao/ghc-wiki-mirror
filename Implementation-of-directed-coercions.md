@@ -30,6 +30,7 @@ For the moment, we are putting these patches aside, hoping to revisit them once 
   - [!611](https://gitlab.haskell.org/ghc/ghc/-/merge_requests/611). Zaps coercions in the middle of the rewriter.
   - [!3792](https://gitlab.haskell.org/ghc/ghc/-/merge_requests/3792). Zaps coercions when zonking (still handling large coercions in the rewriter).
   - [!7844](https://gitlab.haskell.org/ghc/ghc/-/merge_requests/7844). The rewriter starts with a zapped coercion and `Reduction` combinators propagate the zappedness. (Significantly improves over !611 in tests such as `T12227`, `T5030`.)
+  - [!7909](https://gitlab.haskell.org/ghc/ghc/-/merge_requests/7909/). Re-implements the rewriter to only track used coercion variables, and produces a zapped coercion at the end.
 
 # Rewriting
 
@@ -242,7 +243,7 @@ ZappedNulliCo covars
 
 It would thus make sense to have a rewriter that does not produce any proofs, but only keeps track of coercion variables, producing a "zapped nullicoercion", which we then wrap at the end into a zapped coercion as above.
 
-No implementation of this approach has been attempted.
+An implementation is available at [!7909](https://gitlab.haskell.org/ghc/ghc/-/merge_requests/7909/), which re-implements the rewriter to only keep track of coercion variables used in rewriting.
 
 ## Disadvantages of zapping
 
