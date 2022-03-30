@@ -262,7 +262,7 @@ If we elide proofs, we obviously can no longer check their validity, and must si
 Zapped coercions are not always more compact. For example, `ReflCo ty` is more compact than `UnivCo (ZappedProv []) Nominal ty ty`, especially if `ty` is large. Similarly, we might prefer
 
 ```haskell
-TyConAppCo tc r [ReflCo ty1, ReflCo ty2, UnivCo (ZappedProv []) l_ty3 r_ty2]
+TyConAppCo tc r [ReflCo ty1, ReflCo ty2, UnivCo (ZappedProv []) l_ty3 r_ty3]
 ```
 
 to
