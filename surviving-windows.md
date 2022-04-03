@@ -98,6 +98,13 @@ Version 2 of WSL abandons the user-space emulation approach in favor of full hyp
 * [this gdb fork](https://github.com/ssbssa/gdb/releases) can open minidump files, as produced by GHC's `--generate-crash-dumps` flag.
 * [API Monitor](http://www.rohitab.com/apimonitor) is a much more featureful alternative to sysinternals' `procmon` API monitoring tooling
 
+## Diabling ASLR
+
+One can disable address-space layout randomization for a process with the following PowerShell incantation:
+```
+Set-ProcessMitigation -Name name.exe -Disable ForceRelocateImages
+```
+
 ## Collecting a crash dump
 
 If you have a program that is crashing, one helpful way to attack the problem is to generate a crash dump (similar to a core dump on Unix-like operating systems) for inspection in a debugger (e.g. WinDbg). 
