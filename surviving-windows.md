@@ -98,7 +98,16 @@ Version 2 of WSL abandons the user-space emulation approach in favor of full hyp
 * [this gdb fork](https://github.com/ssbssa/gdb/releases) can open minidump files, as produced by GHC's `--generate-crash-dumps` flag.
 * [API Monitor](http://www.rohitab.com/apimonitor) is a much more featureful alternative to sysinternals' `procmon` API monitoring tooling
 
-## Diabling ASLR
+## Hints
+
+## Catching invalid `msvcrt` calls
+
+It can be useful to set a breakpoint on `_invalid_parameter` to catch invalid C calls.
+
+https://stackoverflow.com/questions/36968475/how-to-debug-invalid-parameter-passed-to-c-runtime-function
+
+
+### Diabling ASLR
 
 One can disable address-space layout randomization for a process with the following PowerShell incantation:
 ```
