@@ -96,6 +96,7 @@ Version 2 of WSL abandons the user-space emulation approach in favor of full hyp
 * [ConEmu](https://conemu.github.io/) is a decent terminal emulator for Windows
 * [Tabby](https://tabby.sh/) is a better terminal emulator
 * [this gdb fork](https://github.com/ssbssa/gdb/releases) can open minidump files, as produced by GHC's `--generate-crash-dumps` flag.
+* [API Monitor](http://www.rohitab.com/apimonitor) is a much more featureful alternative to sysinternals' `procmon` API monitoring tooling
 
 ## Collecting a crash dump
 
