@@ -9,11 +9,14 @@ This allows for continued useful messaging to consumers where an author of some 
 
 The syntax should largely be the same as the `DEPRECATED` pragma. That is `{-# REMOVED foo ".." #-}`. Where the given annotation is presented when attempting to use the now removed declaration.
 
-There is some complication with resolving a removed type constructor versus a removed data constructor. Using existing extensions this can ambiguiity can be resolved:
-	- In the presence of the `ExplicitNamespaces` language extension:
-      The pragma would be extended to allow inclusion of the " type " prefix in the same manner as import or export lists.
-	  Becoming `{-# REMOVED type Foo ".." #-}`.
-      Thus allowing to disambiguate type constructor removals as those with the " type " prefix versus data constructor removals as those without.
+There is some complication with resolving a removed type constructor versus a removed data constructor. Using existing extensions this can ambiguity can be resolved:
+
+- In the presence of the `ExplicitNamespaces` language extension:
+  The pragma would be extended to allow inclusion of the " type " prefix in the same manner as import or export lists.
+
+  Becoming `{-# REMOVED type Foo ".." #-}`.
+
+  Thus allowing to disambiguate type constructor removals as those with the " type " prefix versus data constructor removals as those without.
 
 ## Specification of deprecated class methods
 
@@ -22,7 +25,7 @@ Under this removed-pragma proposal when `{-# REMOVED foo ".." #}` is present the
 
 ## Examples
 
-Suppose we have a module as follows
+Suppose we have a module as follows:
 
 ```
 module M1 where
@@ -30,11 +33,22 @@ module M1 where
 bar :: a -> a
 bar x = x
 
-{#- REMOVED foo "'foo' has been removed, please use 'bar' instead #-}
+{#- REMOVED foo "'foo' has been removed, please use 'bar' instead" #-}
 ```
+
+Then in a second module that previously used 'foo' from the above:
+```
+module M2 where
+
+import M1
+
+fizz = foo
+```
+This would now have the error `"'foo' has been removed, please use 'bar' instead"`
 
 
 ## Practical Use Case
 
 This could have been an aid in the [MonadFail](https://gitlab.haskell.org/ghc/ghc/-/wikis/proposal/monad-fail) transition.
-Also though it could be used with the proposal for changing [Eq](https://github.com/haskell/core-libraries-committee/issues/3).
+
+Also it could be used with the proposal for changing [Eq](https://github.com/haskell/core-libraries-committee/issues/3).
