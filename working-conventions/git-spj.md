@@ -95,7 +95,7 @@ Here's how to set up a global (across all your projets) `.gitignore` file.
 
 ---
 
-## Clean everything
+## Cleaning up
 
 Sometimes your tree has leftover gubbins that confuses the build system.  To get back to a "just checked out" state use
 ```
@@ -103,6 +103,16 @@ git clean -dfxq && git submodule foreach git clean -dfxq
 ```
 NB: this deletes all untracked files, so use `git status` first to list the untracked files.
 
+Sometimes a submodule seems to be out of sync
+```
+Changes not staged for commit:
+	modified:   libraries/Cabal (modified content)
+	modified:   libraries/unix (modified content)
+```
+To fix this
+```
+  cd libraries/Cabal; git clean -xdf .; git checkout .
+```
 ------------
 
 ## Looking at the current state of affairs
