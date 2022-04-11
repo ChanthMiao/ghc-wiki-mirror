@@ -25,6 +25,13 @@ Suppose you have a submodule `utils/haddock` in the main GHC repo.
 
 ## Configuration
 
+### Pager
+
+Git's default pager is `less`, which doesn't work well in an emacs window.  So configure it to be `cat` instead:
+```
+git config --global core.pager cat
+```
+
 ### Three way merge
 
 ```
