@@ -48,3 +48,37 @@ While the release manager can perform the backport on your behalf, it is appreci
 After the merge request is created ensure it has the ~backport label applied and that its milestone is set appropriately.
 
 Once the backport MR lands the ~"backport needed" label can be removed from the source MR.
+
+## Draft Status
+
+This is a binary status for MR's (either marked `Draft` or not).
+
+### What does it mean for an MR to be marked as Draft
+
+* It generally means the MR in it's current form is not fit to be merged into master.
+* The automated merge system (marge-bot) won't merge patches marked as draft into master.
+* Maintainers are less likely to fix CI issues,review or rebase such patches.
+* There is no guarantee a maintainer will look at an MR marked as Draft at all.
+
+###  Why was my MR marked as Draft
+
+There are a number of reasons why an MR might be marked as draft:
+
+* The patch has been reviewed and some aspect of it needs to be addressed by the author.
+* The patch is causing tests to fail on CI which need to be addressed. Either by fixing the patch or accepting new test output.
+* The patch needs outside input to proceed (ghc-proposal approval, clc-proposal approval, upstream changes, community feedback)
+* The patch is still being worked on.
+
+###  When should I mark my MR as Ready
+
+* If you want review or help on design and implementation aspects of your MR.
+* If you think there are no remaining issues with your MR and it's ready to be merged into master.
+* If CI fails but you suspect the failures are unrelated to the MR.
+
+If you are in doubt it's **always ok to mark your MR as ready**. A MR not marked ready might never be seen by a maintainer. So it's better to mark your MR as ready than not.  
+
+Worst case a maintainer will mark it as Draft again if they think it's up to you to make changes to the MR before moving forward.
+
+###  Why do we use a draft status
+
+GHC sees a good number patches many of which change between needing maintainer attention and waiting on actions from the author frequently. In order to keep better track of in flight MRs which need the attention of maintainers we started used the Draft status as an indication of MRs which require maintainer attention verses MRs which do not.
