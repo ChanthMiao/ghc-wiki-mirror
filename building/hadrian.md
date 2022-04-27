@@ -78,7 +78,9 @@ To speed up testing of your modified GHC, you may want to add these options to `
 
 As described in [`hadrian/doc/user-settings.md`](https://gitlab.haskell.org/ghc/ghc/blob/master/hadrian/doc/user-settings.md) the configuration of the build can be modified via `_build/hadrian.settings`. Here are a few useful snippets to accomplish common tasks:
 
-### Enabling DWARF debug symbols
+Most of these are now available as **flavour transformers** but still listed here as examples.
+
+### Enabling DWARF debug symbols (`+debug_info`)
 
 ```
 stage1.*.ghc.hs.opts += -g3
@@ -92,18 +94,13 @@ Typically the `-debug` RTS is built with debug symbols enabled. However, it also
 stage1.rts.ghc.c.opts += -optc-ggdb
 ```
 
-### Building a ticky-enabled stage2 compiler
+### Building a ticky-enabled stage2 compiler (`+ticky_ghc)`
 
 Here we also dump STG syntax since this is necessary to interpret the profile:
 ```
 stage1.*.ghc.hs.opts += -ddump-to-file -ddump-simpl -ddump-stg-final
 stage1.*.ghc.hs.opts += -ticky -ticky-allocd
 stage1.ghc-bin.ghc.link.opts += -ticky
-```
-
-### Building an eventlog-enabled stage2 compiler
-```
-stage1.ghc-bin.ghc.link.opts += -eventlog
 ```
 
 ## Shell aliases
