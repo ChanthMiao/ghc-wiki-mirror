@@ -1,45 +1,14 @@
 # Running the Testsuite
 
 
-This section gives information on how to use the testsuite. Note that the testsuite driver requires Python 3.
+This section gives information on how to use the testsuite. Note that the testsuite driver requires Python 3. For hadrian trees the testsuite is invoked by hadrian.
 
+```
+./hadrian/build test
+```
 
-The commands on this page can all be executed from the `testsuite` directory.
+NOTE: If you are using a flavour that is not tested by CI then there is no guarantee that the testsuite will pass. You use other flavours at your own risk!
 
-## Speed settings
-
-
-You can run `make fasttest`, `make test` (which uses the default speed settings, and is the same as just `make`) or `make slowtest`.
-
-
-This table shows the differences between these three speed settings.
-
-<table><tr><th> make </th>
-<th> how many tests </th>
-<th> how many ways </th>
-<th> used by whom 
-</th></tr>
-<tr><th> fasttest   </th>
-<th> some </th>
-<th> 1   </th>
-<th> Travis (to stay within time limit) 
-</th></tr>
-<tr><th> test   </th>
-<th> all  </th>
-<th> 1   </th>
-<th> Phabricator (slow takes too long?) 
-</th></tr>
-<tr><th> slowtest   </th>
-<th> all  </th>
-<th> all </th>
-<th> Nightly (slow is ok) 
-</th></tr></table>
-
-
-Note: `make slow` is GHC \>= 7.11 only.
-
-
-See also `Note [validate and testsuite speed]` in the toplevel `Makefile`.
 
 ## Commonly used options
 
@@ -47,67 +16,59 @@ See also `Note [validate and testsuite speed]` in the toplevel `Makefile`.
 You can run the testsuite in parallel to speed it up:
 
 ```wiki
-$ make THREADS=4
+$ ./hadrian/build test -j4
 ```
 
 
 By default the testsuite uses the stage2 compiler. If you want to use another stage then:
 
 ```wiki
-$ make stage=1
+$ ./hadrian/build test --test-compiler=stage1
 ```
 
 
 To run the testsuite against a different GHC, say ghc-5.04 (this assumes the name specified corresponds to an executable on your path):
 
 ```wiki
-$ make TEST_HC=ghc-5.04
+$ ./hadrian/build test --test-compiler=$(which ghc-5.04)
 ```
 
 
 To run an individual test or tests (eg. tc054):
 
 ```wiki
-$ make TEST=tc054
+$ ./hadrian/build test --only="tc054")
 ```
-
 
 To run only performance tests:
 
 ```wiki
-$ make ONLY_PERF_TESTS=YES
+$ ./hadrian/build test --only-perf
 ```
-
 
 See [performance tests](building/running-tests/performance-tests) for more details on performance tests. To run everything but the performance tests:
 
 ```wiki
-$ make SKIP_PERF_TESTS=YES
+$ ./hadrian/build test --skip-perf
 ```
 
+To only run a subset of tests you can point hadrian to one (or more) subdirectories to query for tests to run:
 
-To make this even faster, you can also go straight to the subdirectory containing the test (e.g ./tests/typecheck/should_compile/) and say 'make TEST=tc054' from there, which will save some time as the testsuite framework won't need to search as long to find the test you are referring to.
+```
+$ ./hadrian/build test --test-root-dirs=testsuite/tests/driver
+```
 
 
 To run several tests, you just space separate them:
 
 ```wiki
-$ make TEST="tc053 tc054"
+$ ./hadrian/build test --only="tc053 tc054"
 ```
-
-
-You can also run a whole group of related tests by changing to a subdirectory in the test cases tree:
-
-```wiki
-$ cd ./tests/array
-$ make
-```
-
 
 To run the tests one particular way only (eg. GHCi):
 
 ```wiki
-$ make WAY=ghci
+$ ./hadrian/build test --test-way=ghci
 ```
 
 
@@ -117,7 +78,7 @@ The testsuite ways are defined in `testsuite/config/ghc`.
 To add specific options to the compiler:
 
 ```wiki
-$ make EXTRA_HC_OPTS='+RTS -K32M -RTS' 
+$ EXTRA_HC_OPTS='+RTS -K32M -RTS' ./hadrian/build test
 ```
 
 
@@ -125,39 +86,45 @@ By default tests clean up after themselves. If you want to keep the temporary fi
 
 
 ```wiki
-$ make CLEANUP=0
+$ ./hadrian/build test -k
 ```
 
-## Additional Packages
-
-
-Some of the tests in the testsuite rely on packages that aren't part of the standard libraries included with GHC (grep for `reqlib`). These tests will be skipped then unless you [install](debugging/installing-packages-inplace) the required packages for them. Since we don't run these tests very often, some might be currently broken.
-
-
-The extra packages are:
-
-- hmatrix
-- mtl
-- parallel
-- parsec
-- primitive
-- QuickCheck
-- random
-- regex-compat
-- syb
-- stm
-- utf8-string
-- vector
-
-
-These can be easily installed from the root of the source tree using,
+Using in conjunction with `-V` to increase the verbosity, you can inspect the command used to run the test which can be useful to reproduce directly without complications of the testsuite driver.
 
 ```wiki
-cabal install --with-compiler=`pwd`/inplace/bin/ghc-stage2 --package-db=`pwd`/inplace/lib/package.conf.d mtl parallel parsec primitive QuickCheck random regex-compat syb stm utf8-string vector
+$ ./hadrian/build test -V
 ```
 
+## Speed settings
 
-You may need to add `--disable-library-profiling` if your GHC tree is built without the profiling way. If version bounds are problematic you may also need to add `--allow-newer`.
+The `--test-speed` option controls some settings about which tests are run and in what configurations:
+
+
+This table shows the differences between these three speed settings.
+
+<table><tr><th> --test-speed </th>
+<th> how many tests </th>
+<th> how many ways </th>
+<th> used by whom 
+</th></tr>
+<tr><th> fast   </th>
+<th> some </th>
+<th> 1   </th>
+<th> Typically unused
+</th></tr>
+<tr><th> normal (default)   </th>
+<th> all  </th>
+<th> 1   </th>
+<th> CI (slow takes too long) 
+</th></tr>
+<tr><th> slow   </th>
+<th> all  </th>
+<th> all </th>
+<th> Nightly (slow is ok) 
+</th></tr></table>
+
+
+See also `Note [validate and testsuite speed]` in the toplevel `Makefile`.
 
 ## Problems running the testsuite
 
@@ -169,26 +136,34 @@ If the testsuite fails mysteriously, make sure that the timeout utility is worki
 
 There are a few possible explanations for a test being skipped run:
 
-- You are missing libraries required by the test (see the "Additional Packages" section above)
-- The test is a performance test yet the compiler was built with `-DDEBUG` (perhaps the tree was built with `./validate --slow` or with `BuildFlavour = devel2` in `mk/build.mk`?)
+- The test is a performance test yet the compiler was built with `-DDEBUG` (perhaps the tree was built with `./validate --slow` or with `--flavour=devel2`?)
 - There was an error evaluating a `.T` file; see the output from the testsuite driver's initialization phase for hints.
 
 ## Running tests in the same environments as CI
 
 It is fairly straightforward to locally reproduce the exact results that one gets when running the testsuite in one of the Linux environments that we test in CI, using Docker. There is a registry running at `registry.gitlab.haskell.org` which hosts and serves all the Linux Docker images that we use in CI. The sources of those images can be found in the [`ghc/ci-images`](https://gitlab.haskell.org/ghc/ci-images) repository.
 
-Let's take a concrete example: the `PartialDownsweep` test is failing in the `validate-x86_64-linux-deb8-hadrian` CI job. By looking at the `.gitlab-ci.yml`'s `DOCKER_REV` entry for the job's commit, you can find the `ci-images` commit that the CI job used. For our example, we will use the following commit: `ac65f31dcffb09cd7ca7aaa70f447fcbb19f427f`. You can now issue a `docker` command that pulls the image (if needed) and drops you into a corresponding shell:
+It is helpful to use the `ghc-docker.sh` script for setting up your docker image. - https://gitlab.haskell.org/ghc/ghc/-/snippets/4471
 
-``` sh
-$ docker run -it registry.gitlab.haskell.org/ghc/ci-images/x86_64-linux-deb8:ac65f31dcffb09cd7ca7aaa70f447fcbb19f427f
+You may first have to login to the docker registry using your gitlab credentials:
+
+```
+docker login registry.gitlab.haskell.org
 ```
 
-Once in that shell, you can clone ghc (`git clone --recursive https://gitlab.haskell.org/ghc/ghc.git`) and run the commands from the job's script (you can find them in the corresponding section of the `.gitlab-ci.yml` file) in order to reproduce the problem you are interested in fixing. In our example:
+Let's take a concrete example: the `PartialDownsweep` test is failing in the `validate-x86_64-linux-deb8-hadrian` CI job. By looking at the `.gitlab-ci.yml`'s `DOCKER_REV` entry for the job's commit, you can find the `ci-images` commit that the CI job used. For our example, we will use the following commit: `ac65f31dcffb09cd7ca7aaa70f447fcbb19f427f`. You can now the `ghc-docker.sh` script that pulls the image (if needed) and drops you into a corresponding shell:
 
 ``` sh
-$ git clone --recursive https://gitlab.haskell.org/ghc/ghc.git
-$ cd ghc
-$ ./boot; ./configure; hadrian/build.sh -j test --only=PartialDownsweep
+$ ./ghc-docker.sh registry.gitlab.haskell.org/ghc/ci-images/x86_64-linux-deb8:ac65f31dcffb09cd7ca7aaa70f447fcbb19f427f
+```
+One in the shell you can run the commands from the CI configuration:
+
+```
+.gitlab/ci.sh setup
+.gitlab/ci.sh configure
+.gitlab/ci.sh build_hadrian
+.gitlab/ci.sh test_hadrian
+etc
 ```
 
 Windows and OS X jobs on the other hand do not run through Docker and you therefore need access to real machines running those systems in order to reproduce any problem that you observe in the corresponding CI jobs.
