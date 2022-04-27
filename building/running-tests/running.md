@@ -92,7 +92,18 @@ $ ./hadrian/build test -k
 Using in conjunction with `-V` to increase the verbosity, you can inspect the command used to run the test which can be useful to reproduce directly without complications of the testsuite driver.
 
 ```wiki
-$ ./hadrian/build test -V
+$ ./hadrian/build test -k -V
+```
+
+## Running the testsuite inplace
+
+By default each test is run in a new temporary directory to isolate each test from previous runs of the compiler. Sometimes it is desirable to run the tests in-place, so the compilation artifacts are placed next to the test files. This is quite an expert thing to do, so be careful.
+
+```
+cp testsuite/ghc/config _build/test-config
+# Set config.local= True
+vim _build/test-config
+./hadrian/build test --test-config-file=_build/test-config
 ```
 
 ## Speed settings
