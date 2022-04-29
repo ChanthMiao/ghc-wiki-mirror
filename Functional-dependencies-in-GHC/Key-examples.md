@@ -102,7 +102,7 @@ class HasField (name :: Symbol) s a | name s -> a where
 
 data T = MkT { fld :: forall a. [a] -> [a] }
 
-instance {-# DYSFUNCTIONAL #-} HasField "fld" T ([p] -> [p])
+instance {-# DYSFUNCTIONAL #-} HasField "fld" T ([p] -> [p]) where
   getField (MkT f) = f
 
 f x = (getField @"fld" x, True)
@@ -121,7 +121,7 @@ It turns out that with LIBERAL and UNDECIDABLE you can trick GHC into lifting th
 ```
 instance {-# LIBERAL, UNDECIDABLE #-}
          HasField "fld" T ([p] -> [p])
-         => HasField "fld" T ([p] -> [p])
+         => HasField "fld" T ([p] -> [p]) where
   getField (MkT f) = f
 ```
 We have added a strange context to the instance declaration, equal to itself!  Now the LCC is satisfied.  You might think that the instance is now non-terminating, because solving `HasField "fld" T ([p]->[p])` via the intance gives us a new sub-goal `HasField "fld" T ([p]->[p])`, and so on.
