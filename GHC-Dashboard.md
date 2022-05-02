@@ -17,6 +17,10 @@ Each Tuesday we meet to discuss the week's issues in order to triage and assign
 work between ourselves. Our assigned and milestoned tickets form the basis of what
 we are currently working on and the issues we deem important for the release.
 
+If a ticket is milestoned and assigned to somebody then it should be at least be
+considered for work before the next release. Invariably some tickets get deprioritised
+as work-loads change and difficulties with patches become evident.
+
 # Releases
 
 These are the current releases which are planned.
