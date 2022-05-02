@@ -4,16 +4,16 @@ This page summarises the state of play of GHC's release engineering efforts.
 
 We advise users to use the following recent releases:
 
-- [GHC 9.2.1](https://gitlab.haskell.org/ghc/ghc/-/milestones/365) (current major release)
-- [GHC 9.0.2](https://gitlab.haskell.org/ghc/ghc/-/milestones/367) (stable major release)
+- GHC %9.2.2 (current major release)
+- GHC %9.0.2 (stable major release)
 
 Further details on our release policies can be found in on the [Wiki](working-conventions/releases).
 We release GHC on multiple platforms; the [platforms page](platforms) gives details.
 
 ## Future releases
 
-- [GHC 9.2.2](https://gitlab.haskell.org/ghc/ghc/-/milestones/373) is currently being prepared and should be available by late January
-- [GHC 9.4.1](https://gitlab.haskell.org/ghc/ghc/-/milestones/370) is currently in the planning stage
+- GHC %9.2.3 is currently being prepared and should be available by end of May
+- GHC %9.4.1 is currently in the alpha stage and will be delivered in the next few months (June/July)
 
 ## Previous releases
 
