@@ -20,7 +20,7 @@ If you believe that your bug may have security implications please refer to GHC'
 
 - **Is it a bug at all?**.  Take a look at ["What to do when something goes wrong"](http://www.haskell.org/ghc/docs/latest/html/users_guide/gone_wrong.html) from the GHC User's Guide, which will give you some guidance as to whether the behaviour you're seeing is really a bug or not.
 
-- **Duplicate bug reports**.  Please search for existing tickets on the [bug tracker](https://gitlab.haskell.org/ghc/ghc/issues)  If your problem has already been reported, it saves time to have all the manifestations of the same bug gathered together.  If you get an error message from GHC, a good search key is usually the non-program-specific part of the error message.
+- **Duplicate bug reports**.  Please search for existing tickets on the [bug tracker](https://gitlab.haskell.org/ghc/ghc/issues).  If your problem has already been reported, it saves time to have all the manifestations of the same bug gathered together.  If you get an error message from GHC, a good search key is usually the non-program-specific part of the error message.
 
   If you do find an existing ticket that seems to describe the same problem, then
 
