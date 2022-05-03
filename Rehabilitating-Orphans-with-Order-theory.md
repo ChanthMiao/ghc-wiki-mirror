@@ -51,7 +51,9 @@ In [2], Aaron Turon, one of the core rust designers (as in the ones with the PhD
 - In both Rust and Haskell today, while the instances themselves are monotonic, the consistency checks aren't and cannot be.
 - Rust prohibits orphans completely, unlike Haskell, but has much more complicated subtle orphan checks, sometimes observing whether the upstream instances (cover as much as they could), to compensate.
 
-I am not advocating for the Rust solution, but I do want to credit them for exploring this path. It's precisely the non-monotonicity of the consistency checks that opens the door to a vast and rich design space, and and as far as I know they recognized it first.
+I am not advocating for the Rust current solution, but I do want to credit them for exploring this path. It's precisely the non-monotonicity of the consistency checks that opens the door to a vast and rich design space, and and as far as I know they recognized it first.
+
+More recently, the Rust folks have also started questioned prohibiting orphans too! https://smallcultfollowing.com/babysteps//blog/2022/04/17/coherence-and-crate-level-where-clauses/ was just written by one of the main developers, and has recast the problem in a very similar way to us here. It is worth a read.
 
 ## Solution
 
