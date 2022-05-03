@@ -14,7 +14,7 @@ To report a bug:
  - Register an account on this GitLab instance
  - Create a [new bug](https://gitlab.haskell.org/ghc/ghc/issues), and enter your bug report. Make a new ticket for your bug unless you are 100% sure there is a ticket for your exact problem.
 
-If you believe that your bug may have security implications please refer to GHC's [Security Disclosure Policy](http://localhost:8000/disclosures.html).
+If you believe that your bug may have security implications please refer to GHC's [Security Disclosure Policy](https://www.haskell.org/ghc/disclosures.html).
 
 ## How do I tell if I should report my bug?
 
