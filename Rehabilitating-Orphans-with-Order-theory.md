@@ -53,7 +53,8 @@ In [2], Aaron Turon, one of the core rust designers (as in the ones with the PhD
 
 I am not advocating for the Rust current solution, but I do want to credit them for exploring this path. It's precisely the non-monotonicity of the consistency checks that opens the door to a vast and rich design space, and and as far as I know they recognized it first.
 
-More recently, the Rust folks have also started questioned prohibiting orphans too! https://smallcultfollowing.com/babysteps//blog/2022/04/17/coherence-and-crate-level-where-clauses/ was just written by one of the main developers, and has recast the problem in a very similar way to us here. It is worth a read.
+More recently, the Rust folks have also started questioned prohibiting orphans too!
+[3] was just written by one of the main developers, and has recast the problem in a very similar way to us here. It is worth a read.
 
 ## Solution
 
@@ -119,4 +120,6 @@ Maybe it's fine, but perhaps that last restriction is a little bit onerous? Say 
 
 [1]: Non-Reformist Reform for Haskell Modularity. PhD thesis, Saarland University, 2019. https://people.mpi-sws.org/~skilpat/papers/kilpatrick-thesis-nov-2019-publication.pdf
 
-[2]: Negative reasoning in Chalk, Aaron Turon, 2017. https://aturon.github.io/tech/2017/04/24/negative-chalk/ 
+[2]: Negative reasoning in Chalk, Aaron Turon, 2017. https://aturon.github.io/tech/2017/04/24/negative-chalk/
+
+[3]: Coherence and crate-level where-clauses, Niko Matsakis, Apr 17, 2022. https://smallcultfollowing.com/babysteps//blog/2022/04/17/coherence-and-crate-level-where-clauses/
