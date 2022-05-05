@@ -18,6 +18,13 @@ This is an ongoing effort to make GHC more modular.
 * Make GHC multi-sessions, multi-targets, multi-threaded...
     * It will be easier with constrained side-effects and a more modular code-base
 
+External resources
+------------------
+
+For more details, see https://hsyl20.fr/home/posts/2022-05-03-modularizing-ghc-paper.html
+
+Sylvain, Jeffrey and John wrote a large paper expanding upon the ideas here.
+
 Principles
 ==========
 
