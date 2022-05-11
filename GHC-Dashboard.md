@@ -30,7 +30,7 @@ These are the current releases which are planned.
 We are still in the planning stage for the 9.6.1 release. The main focus of the
 release will be the javascript and wasm backends.
 
-## %9.4.1 - June/July 2022
+## %9.4.1 - late July 2022
 
 Release Manager: @bgamari
 
@@ -40,9 +40,9 @@ home units and the error message infrastructure has been revamped.
 
 * The branch for this release was cut on 1st April 2022
 * 9.4.1-alpha1 was released on 1st May 2022
+* 9.4.1-alpha2 is scheduled for 20th May 2022
 
-
-## %9.2.3 - Late May 2022
+## %9.2.3 - (by 20th May)
 
 Release Manager: @wz1000
 
