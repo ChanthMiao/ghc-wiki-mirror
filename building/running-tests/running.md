@@ -37,7 +37,7 @@ $ ./hadrian/build test --test-compiler=$(which ghc-5.04)
 To run an individual test or tests (eg. tc054):
 
 ```wiki
-$ ./hadrian/build test --only="tc054")
+$ ./hadrian/build test --only="tc054"
 ```
 
 To run only performance tests:
