@@ -21,9 +21,13 @@ This is an ongoing effort to make GHC more modular.
 External resources
 ------------------
 
-For more details, see https://hsyl20.fr/home/posts/2022-05-03-modularizing-ghc-paper.html
+1. Paper https://hsyl20.fr/home/posts/2022-05-03-modularizing-ghc-paper.html
 
-Sylvain, Jeffrey and John wrote a large paper expanding upon the ideas here.
+   Sylvain, Jeffrey and John wrote a large paper expanding upon the ideas here.
+
+2. https://matrix.to/#/#ghc-modularity:matrix.org
+
+   Matrix chat root for this project.
 
 Principles
 ==========
