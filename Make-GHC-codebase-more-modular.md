@@ -29,6 +29,8 @@ External resources
 
    Matrix chat root for this project.
 
+3. https://summerofcode.withgoogle.com/programs/2022/projects/WWgHBTde GSOC project
+
 Principles
 ==========
 
