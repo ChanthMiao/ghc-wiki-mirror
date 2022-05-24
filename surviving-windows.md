@@ -100,6 +100,12 @@ Version 2 of WSL abandons the user-space emulation approach in favor of full hyp
 
 ## Hints
 
+## Printing strings in GDB
+
+If inspecting a string in GDB fails, you may need to run `set charset UTF-8`.
+
+See <https://stackoverflow.com/questions/72223866/gdb-error-reading-variable-for-any-string-object>
+
 ## Catching invalid `msvcrt` calls
 
 It can be useful to set a breakpoint on `_invalid_parameter` to catch invalid C calls.
