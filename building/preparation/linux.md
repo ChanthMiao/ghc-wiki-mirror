@@ -71,7 +71,7 @@ You can make sure you have all dependencies by
 But this might install some packages you do not use in your system (e.g. Sphinx).  Alternatively install the following:
 
 ```shell
-   sudo apt-get install build-essential git autoconf python3 libgmp-dev libncurses-dev
+   sudo apt-get install build-essential git autoconf python3 libgmp-dev libnuma-dev libncurses-dev
    cabal v2-install alex happy
 ```
 
