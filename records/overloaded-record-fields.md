@@ -1,9 +1,9 @@
 The Overloaded Record Fields family of extensions for GHC allow multiple record datatypes to share the same field names, and make it possible for type information to disambiguate fields. There is no single `OverloadedRecordFields` extension, but rather a family of related extensions:
  * `DisambiguateRecordFields`: makes use of constructor names to disambiguate fields in record construction or pattern matching.
- * `DuplicateRecordFields`: permits a module to define the same field name in multiple datatypes.
- * `OverloadedLabels`: provides `#field` syntax for an identifier whose meaning is determined by typeclass instance resolution. Intended for use with the `HasField` magic type class.
- * `NoFieldSelectors`: prevents fields being in scope as selector functions. (Not yet released as of January 2020.)
- * `RecordDotSyntax`: permits `expression.field` syntax for record projection. (Not yet released as of January 2020.)
+ * `DuplicateRecordFields` (GHC 8.0.1): permits a module to define the same field name in multiple datatypes.
+ * `OverloadedLabels` (GHC 8.0.1): provides `#field` syntax for an identifier whose meaning is determined by typeclass instance resolution. Intended for use with the `HasField` magic type class (GHC 8.2.1).
+ * `NoFieldSelectors` (GHC 9.2.1): prevents fields being in scope as selector functions.
+ * `RecordDotSyntax` (GHC 9.2.1): permits `expression.field` syntax for record projection.
 
 For user-facing documentation, see the GHC user's guide:
 
