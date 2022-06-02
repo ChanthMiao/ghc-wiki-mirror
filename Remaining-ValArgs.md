@@ -198,3 +198,33 @@ tc_args arity mk_frr_ctxt
 ```
 
 So we perform a representation-polymorphism check on the remaining value arguments, obtaining a coercion `arg_co`. We eta-expand for this argument using a `WpFun` `HsWrapper`. Finally, we let-bind previous arguments with a new form of `HsWrapper`, `WpHsLet`. Because the multiplicities can have changed (as discussed in the previous sections), we need to insert some additional casts at different sets of multiplicities (these are the two `mkWpCastN`s in the code above).
+
+### Pitfalls
+
+#### checkCanEtaExpand
+
+The `checkCanEtaExpand` function in `GHC.Core.Lint` can't handle applications interspersed with coercions, erroring out on the previous example:
+
+```haskell
+((#,#) @LiftedRep @RR @Char @a (chr i)) |> co1
+```
+
+where `co1` is a coercion that allows us to eta-expand the second argument, `(a :: TYPE RR) ~# (a' :: TYPE FloatRep)`.
+
+#### `oneShot`
+
+Eta-expanding in `tcRemainingValArgs` can drop one-shot information. We have
+
+```haskell
+oneShot :: forall {q :: RuntimeRep} {r :: RuntimeRep}
+                  (a :: TYPE q) (b :: TYPE r)
+        . (a -> b) -> a -> b
+```
+
+so we should eta-expand to ensure that we fix the representation of the second argument of `oneShot`. But if we do that carelessly we end up transforming `oneShot f` to
+
+```haskell
+\ y -> let x = f oneShot x y
+```
+
+**without** any one-shot information on `y`, which is precisely what the `oneShot` function was meant to achieve!
