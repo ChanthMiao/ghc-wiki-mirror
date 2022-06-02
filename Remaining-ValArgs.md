@@ -224,7 +224,7 @@ oneShot :: forall {q :: RuntimeRep} {r :: RuntimeRep}
 so we should eta-expand to ensure that we fix the representation of the second argument of `oneShot`. But if we do that carelessly we end up transforming `oneShot f` to
 
 ```haskell
-\ y -> let x = f oneShot x y
+\ y -> let x = f in oneShot x y
 ```
 
 **without** any one-shot information on `y`, which is precisely what the `oneShot` function was meant to achieve!
