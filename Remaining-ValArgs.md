@@ -1,6 +1,10 @@
-The representation-polymorphism checks ensure that arguments and lamda binders have a fixed runtime representation. However, there is one tricky situation: partial applications of functions with representation-polymorphic arguments. GHC manipulates several such functions.
+The representation-polymorphism checks ensure that arguments and lamda binders have a fixed runtime representation. However, there is one tricky situation: partial applications of functions with representation-polymorphic arguments. 
+
+This page gives an overview of how GHC typechecks these partial applications. The guiding principle is that we need to be able to eta-expand these partial applications to full arity. This means in particular that the remaining arguments must have a known runtime representation.
 
 ## Functions with representation-polymorphic arguments in GHC
+
+Let's first review which functions are concerned.
 
 ### Wired-in `Id`s
 
