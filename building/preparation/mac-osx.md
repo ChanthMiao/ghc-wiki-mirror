@@ -62,7 +62,7 @@ Successful builds of older GHC sources have been reported using Xcode 3.0, 2.4 a
 Secondly, you need an installation of GHC for use as your bootstrap compiler environment. 
 
 
-There are 4 different choices. Choose the one you are most comfortable with! The options below should be a GHC version \>= 7.8.3.
+There are four different choices. Choose the one you are most comfortable with! The options below should be a GHC version \>= 7.8.3.
 
 1. Install a [binary distribution from GHC](http://www.haskell.org/ghc/download). 
 1. Get the relocatable .app bundle using [ghcformacosx](http://github.com/ghcformacosx/ghc-dot-app)
@@ -84,13 +84,8 @@ If you are trying out  using GHC head ( currently GHC 7.9 ) for software dev, yo
 
 By default GHC tries to link to a system installed GMP lib, but depending on how you wish to distribute the resulting applications,
 its worth considering either using one of the non GMP integer libs.
-If you're OK with static linking GMP into the GHC RTS,
-you can add the line 
-
-`libraries/integer-gmp_CONFIGURE_OPTS += --configure-option=--with-intree-gmp`
-
-
-to you `mk/build.mk` file  (which hosts all your other build system config preferences also.)
+If you're OK with static linking GMP into the `ghc-bignum`,
+you can add `--with-intree-gmp` to your `./configure` command-line.
 
 ## Supporting Older OS X versions with your build
 
