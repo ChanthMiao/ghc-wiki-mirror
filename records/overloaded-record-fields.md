@@ -43,6 +43,7 @@ Planned/draft GHC proposals:
  - Change `OverloadedRecordDot` parser to permit pseudo-keywords (#21226)
  - Implement unrestricted `OverloadedLabels` (#11671)
  - Write a proposal for datatype names as module qualifiers
+ - Improve error messages related to records (see [tickets](https://gitlab.haskell.org/ghc/ghc/-/issues/?sort=updated_desc&state=opened&label_name%5B%5D=error%20messages&label_name%5B%5D=records))
 
 ## Documentation
 
@@ -68,6 +69,7 @@ Planned/draft GHC proposals:
 
 The extension was initially implemented in 2013 as a Google Summer of Code project, by Adam Gundry under the mentorship of Simon Peyton Jones.
 
+- [Discussion of the problem](records)
 - [Simple Overloaded Record Fields (SORF)](records/overloaded-record-fields/sorf), Simon PJ's original proposal
 - [Declared Overloaded Record Fields (DORF)](records/declared-overloaded-record-fields), a counterpoint proposal by Anthony Clayden
 - [Discussion of the problem and possible solutions](records)
