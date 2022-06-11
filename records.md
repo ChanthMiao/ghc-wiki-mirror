@@ -13,7 +13,7 @@ There are two rather different sets of issues:
 
 This page focuses exclusively on the first, narrow issue of disambiguating record field names.  We have a separate Wiki page, [ExtensibleRecords](extensible-records), on the broad issue of first class record types.
 
-**This page summarises the problem, and discusses alternative possible designs. [OverloadedRecordFields](records/overloaded-record-fields), an extension that has been implemented (but not yet merged into HEAD as of January 2015), is described separately.**
+**This page summarises the problem, and discusses alternative possible designs. See the [Overloaded Record Fields](records/overloaded-record-fields) page for more up to date status of related GHC extensions.**
 
 ## The problem: record name spacing
 
