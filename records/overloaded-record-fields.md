@@ -36,6 +36,14 @@ Planned/draft GHC proposals:
  - [HasField redesign](https://github.com/adamgundry/ghc-proposals/blob/hasfield-redesign/proposals/0000-hasfield-redesign.rst)
  - Datatype names as module qualifiers in updates (no proposal yet, see [discussion](https://github.com/ghc-proposals/ghc-proposals/discussions/506#discussioncomment-2868700))
 
+## Task list
+
+ - Finish and submit GHC proposal for relaxing `HasField` constraints
+ - Finish and submit GHC proposal for `HasField` redesign (see [comment](https://github.com/ghc-proposals/ghc-proposals/pull/510#issuecomment-1137887333))
+ - Change `OverloadedRecordDot` parser to permit pseudo-keywords (#21226)
+ - Implement unrestricted `OverloadedLabels` (#11671)
+ - Write a proposal for datatype names as module qualifiers
+
 ## Documentation
 
  - [`DisambiguateRecordFields` extension](https://downloads.haskell.org/ghc/latest/docs/html/users_guide/exts/disambiguate_record_fields.html)
