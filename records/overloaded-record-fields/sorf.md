@@ -1,6 +1,6 @@
 # Simple Overloaded Record Fields (SORF)
 
-**This page describes the original design by Simon PJ for Simple Overloaded Record Fields, which eventually became the [OverloadedRecordFields](records/overloaded-record-fields) extension. It is retained for historical purposes, and does not reflect the final design as implemented.**
+**This page describes the original design by Simon PJ for Simple Overloaded Record Fields, which eventually became the [Overloaded Record Fields](records/overloaded-record-fields) family of extensions. It is retained for historical purposes, and does not reflect the final design as implemented.**
 
 
 This page summarises a possible design that would allow different records to share a single field label.  Although it's a simple enough idea there are numerous ramifications.  Records are a swamp! Nevertheless, this is the simplest proposal that I know that satisfies the main request, that of having multiple records with the same field name.
