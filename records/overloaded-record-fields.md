@@ -29,21 +29,21 @@ Other related GHC proposals (not yet accepted):
  - [Disambiguate Record Update](https://github.com/Ericson2314/ghc-proposals/blob/disambiguate-record-update/proposals/0000-disambiguate-record-update.rst) and [related discussion](https://github.com/ghc-proposals/ghc-proposals/discussions/506)
  - [Local modules](https://github.com/goldfirere/ghc-proposals/blob/local-modules/proposals/0000-local-modules.rst)
  - [Add Row Polymorphism to Haskell](https://github.com/jvanbruegge/ghc-proposals/blob/row-polymorphism/proposals/0000-row-polymorphism.rst)
+ - [Relaxing HasField constraints](https://github.com/ocharles/ghc-proposals/blob/hasfield/proposals/0000-hasfield-incoherence.rst)
 
 Planned/draft GHC proposals:
 
- - [Relaxing HasField constraints](https://github.com/ocharles/ghc-proposals/blob/hasfield/proposals/0000-hasfield-incoherence.rst)
  - [HasField redesign](https://github.com/adamgundry/ghc-proposals/blob/hasfield-redesign/proposals/0000-hasfield-redesign.rst)
  - Datatype names as module qualifiers in updates (no proposal yet, see [discussion](https://github.com/ghc-proposals/ghc-proposals/discussions/506#discussioncomment-2868700))
 
 ## Task list
 
- - Finish and submit GHC proposal for relaxing `HasField` constraints
  - Finish and submit GHC proposal for `HasField` redesign (see [comment](https://github.com/ghc-proposals/ghc-proposals/pull/510#issuecomment-1137887333))
  - Change `OverloadedRecordDot` parser to permit pseudo-keywords (#21226)
  - Implement unrestricted `OverloadedLabels` (#11671)
  - Write a proposal for datatype names as module qualifiers
  - Improve error messages related to records (see [tickets](https://gitlab.haskell.org/ghc/ghc/-/issues/?sort=updated_desc&state=opened&label_name%5B%5D=error%20messages&label_name%5B%5D=records))
+ - Improve interaction between `TemplateHaskell` and `DuplicateRecordFields` (see [tickets](https://gitlab.haskell.org/ghc/ghc/-/issues/?sort=updated_desc&state=opened&label_name%5B%5D=OverloadedRecordFields&label_name%5B%5D=TemplateHaskell))
 
 ## Documentation
 
