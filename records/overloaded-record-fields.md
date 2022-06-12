@@ -30,6 +30,7 @@ Other related GHC proposals (not yet accepted):
  - [Local modules](https://github.com/goldfirere/ghc-proposals/blob/local-modules/proposals/0000-local-modules.rst)
  - [Add Row Polymorphism to Haskell](https://github.com/jvanbruegge/ghc-proposals/blob/row-polymorphism/proposals/0000-row-polymorphism.rst)
  - [Relaxing HasField constraints](https://github.com/ocharles/ghc-proposals/blob/hasfield/proposals/0000-hasfield-incoherence.rst)
+ - [Add warning for incomplete record selectors: proposal 516](https://github.com/adamgundry/ghc-proposals/blob/incomplete-record-selectors/proposals/0000-incomplete-record-selectors.rst)
 
 Planned/draft GHC proposals:
 
