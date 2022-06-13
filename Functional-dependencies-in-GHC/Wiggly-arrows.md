@@ -15,11 +15,36 @@ In the following, suppose we have:
 ```hs
 class C a b | a ~> b
 instance C Int Bool
+instance C Char Bool
 
 class D a b c | a ~> b
 instance D Int Bool Int
 instance D Int Char Bool
 ```
+
+When comparing a wanted constraint with instances, we use a variant of the rule
+for functional dependencies:
+
+ * If any instances *match* the constraint, use the existing matching rules for
+   instances.
+
+ * If none match, find all instance declarations that *unify* with it. If there is
+   more than one such instance, do nothing.
+
+ * If there is exactly one unifying instance, then for each wiggly arrow `lhs ~>
+   rhs` where the instance matches all the `lhs` parameters, refine the shape of
+   the `rhs` parameters to match the instance as well.  This may or may not be
+   enough to allow the instance to match; we make the refinement anyway.
+
+For example, if we have `[W] C Int beta` we can refine `beta := Bool` based on
+the `C Int Bool` instance.
+
+When interacting (given or wanted) constraints, unlike functional dependencies,
+we do not learn anything from wiggly arrows. For example, if we have wanteds `C
+Int alpha` and `C Int beta` we do not learn that `alpha ~ beta`.  As the `D`
+example demonstrates this might be overly restrictive: if we have `D Int gamma1 delta`
+and `D Int gamma2 delta` we do not want `gamma1 ~ gamma2` as we could instead
+later have `gamma1 ~ Bool, delta1 ~ Int` and `gamma2 ~ Char, delta1 ~ Bool`.
 
 For the ambiguity check, wiggly arrows are treated just like functional
 dependencies.  The ambiguity check is in any case an approximation (because even
@@ -30,22 +55,6 @@ inference will fail with ambiguity errors.  For example, the type `C a b => a`
 will not be considered ambiguous, even though `b` appears only in the
 constraint, because it is determined by the wiggly arrow from `a`.
 
-When interacting (given or wanted) constraints, unlike functional dependencies,
-we do not learn anything from wiggly arrows. For example, if we have wanteds `C
-Int alpha` and `C Int beta` we do not learn that `alpha ~ beta`.  As the `D`
-example demonstrates this might be overly restrictive: if we have `D Int gamma1 delta`
-and `D Int gamma2 delta` we do not want `gamma1 ~ gamma2` as we could instead
-later have `gamma1 ~ Bool, delta1 ~ Int` and `gamma2 ~ Char, delta1 ~ Bool`.
-
-When comparing a wanted constraint with instances, we use a variant of the rule
-for functional dependencies.  If there is a wiggly arrow `lhs ~> rhs`, and out
-of the instances that unify with the constraint, exactly one instance head
-matches in the `lhs` parameters, we refine the shape of the `rhs` parameters to
-match the instance head as well.  This may or may not be enough to allow the
-instance to match; we make the refinement anyway. Note that we do not require
-the `rhs` parameters to be **equal** to the `lhs` parameters.  For example, if
-we have wanted `C Int beta` we can refine `beta ~ Bool` based on the `C Int
-Bool` instance.
 
 ## `SetField` examples
 
@@ -139,6 +148,8 @@ that match in the `x` and `s` parameters to unify the `t` parameters:
 
 ```
 
+**Question**: this feels rather like a convenient syntax for the
+[SameModulo approach](https://github.com/effectfully-ou/sketches/tree/master/has-lens-done-right#the-samemodulo-approach-full-code). Is there a semantic difference?
 
 
 ## Key examples
@@ -214,3 +225,53 @@ instance HasField "fld" T ([p] -> [p])
 ```
 If we have `[W] HasField "fld" T alpha`, that will unify with only
 one instance, so we will emit `[W] alpha ~ ([beta] -> [beta])`.
+
+
+## Wiggly arrows generalise Single Choice Inference
+
+The [Single Choice Inference](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies-in-GHC/Single-choice-inference)
+approach can be expressed using wiggly arrows.  In particular, `singlechoice(a)`
+can be specified as `~> a` (i.e. a wiggly arrow with an empty LHS). This means
+that whenever there is exactly one unifying instance, the `a` parameter will
+always be refined to match.
+
+
+## More examples
+
+### Zip
+
+From #19568 consider the `Zip` type family
+
+```hs
+type family Zip as bs = r | r -> as bs where
+  Zip '[]       '[]       = '[]
+  Zip (a ': as) (b ': bs) = '(a, b) ': Zip as bs
+```
+
+which can be reformulated as a class with wiggly arrows:
+
+```hs
+class Zip as bs cs | as bs -> cs, as ~> bs, bs ~> cs, cs ~> as
+
+instance Zip '[] '[] '[]
+instance (Zip as bs cs, ab ~ '(a, b)) => Zip (a : as) (b : bs) (ab : cs)
+```
+
+Now if we have `[W] Zip a '[] c` we get refinements `a := '[]` and `c := '[]`.
+
+Similarly if we have `[W] Zip as bs (c : cs)` we get refinements `as := (a : as')`,
+`bs := (b : bs')`, `c := '(a, b)`. Note that it is crucial we have `ab ~ '(a, b)`
+in the instance context rather than the head, because otherwise the instance would
+not match the constraint until we know `c` was a pair.
+
+**Question**: how does this compare to approaches based on
+```hs
+type family SameShapeAs xs ys :: Constraint where
+  SameShapeAs '[]      ys = (ys ~ '[])
+  SameShapeAs (x : xs) ys = (ys ~ Head ys : Tail ys)
+```
+
+That seems enough to give `Zip` with equivalent inference, but requires the
+definition of lots of constraint families and auxiliary definitions like `Head`
+and `Tail`.  Generalising it to work for arbitrary head type constructors seems
+hard.
