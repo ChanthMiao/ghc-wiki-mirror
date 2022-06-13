@@ -138,3 +138,79 @@ that match in the `x` and `s` parameters to unify the `t` parameters:
   --                       SetField "foo" s t b => b -> s -> (t, t)
 
 ```
+
+
+
+## Key examples
+
+Here are the
+[key examples](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies-in-GHC/key-examples)
+with the fundeps replaced with wiggly arrows.
+
+### Example 1
+
+```hs
+class Mul a b c | a b ~> c
+instance Mul a b c => Mul a (Vec b) (Vec c)
+```
+Try solving `[W] Mul alpha (Vec beta) beta`. (This unifies with the instance
+with `b := beta, beta := Vec delta, a := alpha` where `delta` is fresh.)
+Here the LHS of the wiggly arrow matches so we refine `beta := Vec gamma`,
+match the instance and simplify to `[W] Mul alpha (Vec gamma) gamma`.
+So we get a loop, just as before.  Wiggly arrows do not have guaranteed termination.
+
+### Example 2
+
+```hs
+class CX x a b | a ~> b where
+  op :: x -> a -> b
+
+instance                 CX Bool [x] [x]
+instance  CX Char x y => CX Char [x] [Maybe y]
+```
+and try solving `[W] CX Bool [alpha] beta`.
+Ths unifies only with the first instance, so we get `beta := [alpha]` and solve.
+No problem.
+
+###  Example 3
+
+```hs
+class D a b c | b ~> c
+
+instance (q ~ Int)  => D Int  p (Int,q)
+instance (s ~ Bool) => D Bool r (s,Bool)
+```
+try solving `[W] C alpha beta (gamma, delta)`.
+This unifies with both instances, so we do nothing.
+
+### Example 4
+
+```hs
+class TypeEq a b (res :: Bool)  | a b ~> res
+
+instance {-# OVERLAPPING #-}  TypeEq a a True
+instance {-# OVERLAPPABLE #-} TypeEq a b False
+```
+
+Try solving `[W] TypeEq Int Bool alpha`.  This unifies only with the second
+instance, so we get `alpha := False`.
+
+Try solving `[W] TypeEq Int Int alpha`.  This unifies with both, but first is
+most specific, so we pick it, and get `alpha := True`.
+
+Try solving `[W] TypeEq Int Int False`.  This unifies only with the second
+instance, so we select it.
+
+### Example 5
+
+```hs
+class HasField (name :: Symbol) s a | name s ~> a where
+  getField :: s -> a
+
+data T = MkT { fld :: forall a. [a] -> [a] }
+
+instance HasField "fld" T ([p] -> [p])
+  getField (MkT f) = f
+```
+If we have `[W] HasField "fld" T alpha`, that will unify with only
+one instance, so we will emit `[W] alpha ~ ([beta] -> [beta])`.
