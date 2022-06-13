@@ -7,6 +7,7 @@ This is the root page for examples and issues about functional dependencies in G
 * [Background and terminology](Functional-dependencies-in-GHC/background-and-terminology)
 * [Key examples](Functional-dependencies-in-GHC/key-examples)
 * [Single-choice inference](Functional-dependencies-in-GHC/Single-choice-inference)
+* [Wiggly arrows](Functional-dependencies-in-GHC/Wiggly-arrows)
 
 The rest this page gathers other useful links.
 
