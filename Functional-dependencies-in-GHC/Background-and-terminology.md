@@ -8,7 +8,7 @@ Go up to [Functional dependencies in GHC](https://gitlab.haskell.org/ghc/ghc/-/w
 
 # 1. Terminology
 
-## Confluence
+## 1.1 Confluence
 
 **Confluence** means that:
 
@@ -21,9 +21,9 @@ Go up to [Functional dependencies in GHC](https://gitlab.haskell.org/ghc/ghc/-/w
   ```
 * You can re-order instance declarations without affecting whether the program typechecks, or what it means
 
-#18851 has some interesting examples of non-confluence.
+Ticket #18851 has some interesting examples of non-confluence.
 
-## Termination
+## 1.2 Termination
 
 **Termination** means that type inference terminates.  For example
 ```
@@ -39,7 +39,7 @@ instance C [[a]] => C [a] where ...
 ```
 and wanted to solve `[W] C [a]`, you could use the instance decl, to get a new sub-goal `[W] C [[a]]`.  Then repeat ad infinitum.
 
-### The Paterson conditions
+### 1.3 The Paterson conditions
 
 The Paterson conditions try to ensure termination, by ensuring that, when you use an instance decl, the sub-goals are "smaller" than the head. E.g.
 ```
@@ -51,7 +51,7 @@ The Paterson conditions are described in the user manual under [Instance termina
 
 Note: the Paterson conditions subsume the Bound Variable Condition (Defn 8) of the JFP-paper.
 
-## The relative importance of confluence and termination
+## 1.4 The relative importance of confluence and termination
 
 Generally,
 * We'd like to be able to guarantee both termination and confluence.
@@ -65,7 +65,7 @@ Generally,
 
 The *coverage condition* applies to each individual instance declaration.
 
-## Strict coverage condition (SCC)
+## 2.1 Strict coverage condition (SCC)
 
 The **(strict) coverage condition** is given in the user manual under [Instance termination rules](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/instances.html?highlight=undecidable#instance-termination-rules) and in Defn 7 of of the JFP-paper.  Consider
 ```
@@ -75,7 +75,7 @@ instance C2 [p] [q]   -- Does not satisfy strict coverage
 ```
 From the class decl for `C2` the first parameter should fix the second; that is true of the first instance here, but not of the second, because `q` is not fixed when you fix `p`.
 
-## Liberal coverage condition (LCC)
+## 2.2 Liberal coverage condition (LCC)
 
 The **liberal coverage condition** is more liberal because it takes into account the context of the instance.  For example
 ```
@@ -92,7 +92,7 @@ See Defn 12 of the JFP-paper (Section 6.1), which calls it the "weak coverage co
 
 The *instance consistency condition* applies to each pair-wise combination of instance declarations.
 
-## Strict instance consistency condition (SICC)
+## 3.1 Strict instance consistency condition (SICC)
 
 Consider these two instances
 ```
@@ -114,7 +114,7 @@ Then, for each functional dependency `fdi`, of form `ai1; ...; aik -> ai0`, the 
 condition must hold: for any substitution S such that S(ti1; ..., tik) = S(si1; ..., sik)
 we must have that S(ti0) = S(si0).
 
-## Liberal instance consistency condition (LICC)
+## 3.2 Liberal instance consistency condition (LICC)
 
 Consider
 ```
@@ -141,6 +141,6 @@ condition must hold: for any substitution S such that S(ti1; ..., tik) = S(si1; 
 there must exist a substitution T such that
 we must have that T(S(ti0)) = T(S(si0)); or equivalently S(ti0) and S(si0) are unifiable.
 
-## Relevant tickets
+## 3.3 Relevant tickets
 
 See #15632 (Undependable dependencies).
