@@ -39,7 +39,7 @@ instance C [[a]] => C [a] where ...
 ```
 and wanted to solve `[W] C [a]`, you could use the instance decl, to get a new sub-goal `[W] C [[a]]`.  Then repeat ad infinitum.
 
-### 1.3 The Paterson conditions
+## 1.3 The Paterson conditions
 
 The Paterson conditions try to ensure termination, by ensuring that, when you use an instance decl, the sub-goals are "smaller" than the head. E.g.
 ```
