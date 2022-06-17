@@ -22,14 +22,15 @@ instance D Int Bool Int
 instance D Int Char Bool
 ```
 
-When comparing a wanted constraint with instances, we use a variant of the rule
+When **comparing a wanted constraint with instances**, we use a variant of the rule
 for functional dependencies:
 
  * If any instances *match* the constraint, use the existing matching rules for
    instances.
 
  * If none match, find all instance declarations that *unify* with it. If there is
-   more than one such instance, do nothing.
+   more than one such instance, do nothing. (TODO: maybe we could do something more
+   refined if there are overlapping instances.)
 
  * If there is exactly one unifying instance, then for each wiggly arrow `lhs ~>
    rhs` where the instance matches all the `lhs` parameters, refine the shape of
@@ -39,14 +40,14 @@ for functional dependencies:
 For example, if we have `[W] C Int beta` we can refine `beta := Bool` based on
 the `C Int Bool` instance.
 
-When interacting (given or wanted) constraints, unlike functional dependencies,
+When **interacting constraints** (given or wanted), unlike functional dependencies,
 we do not learn anything from wiggly arrows. For example, if we have wanteds `C
 Int alpha` and `C Int beta` we do not learn that `alpha ~ beta`.  As the `D`
 example demonstrates this might be overly restrictive: if we have `D Int gamma1 delta`
 and `D Int gamma2 delta` we do not want `gamma1 ~ gamma2` as we could instead
 later have `gamma1 ~ Bool, delta1 ~ Int` and `gamma2 ~ Char, delta1 ~ Bool`.
 
-For the ambiguity check, wiggly arrows are treated just like functional
+For the **ambiguity check**, wiggly arrows are treated just like functional
 dependencies.  The ambiguity check is in any case an approximation (because even
 if a type is "ambiguous", there may be particular instantiations in which the
 constraints can be solved anyway).  Thus it is fine to trust the programmer
@@ -55,6 +56,7 @@ inference will fail with ambiguity errors.  For example, the type `C a b => a`
 will not be considered ambiguous, even though `b` appears only in the
 constraint, because it is determined by the wiggly arrow from `a`.
 
+There is no **instance consistency check** for wiggly arrows. For example, the user is at liberty to define instances for `C Int Bool` and `C Int Char`; this means that a constraint `[W] C Int alpha` will no longer refine `alpha`.
 
 ## `SetField` examples
 
@@ -275,3 +277,21 @@ That seems enough to give `Zip` with equivalent inference, but requires the
 definition of lots of constraint families and auxiliary definitions like `Head`
 and `Tail`.  Generalising it to work for arbitrary head type constructors seems
 hard.
+
+### Plus
+
+Consider:
+
+```hs
+data Nat = Z | S Nat
+
+type Plus :: Nat -> Nat -> Nat -> Constraint
+class Plus x y z | x y -> z, y z ~> x, x z ~> y
+
+instance Plus Z y y
+instance Plus x y z => Plus (S x) y (S z)
+```
+
+Morally `Plus` could have three fundeps `x y -> z, y z -> x, x z -> y`, because any two parameters determine the other. However the instance consistency condition rejects these instances if fundeps are used, perhaps because we might have some `y ~ S y` which would match both?
+
+...
