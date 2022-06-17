@@ -133,6 +133,7 @@ These labels identify compiler subsystems which are in some way implicated in a 
  * ~"remote GHCi": The GHCi external interpreter feature (`-fexternal-interpreter`)
  * ~"renamer": GHC's renamer
  * ~"RTS": The GHC runtime system
+ * ~"RTS stats": The accounting of statistics in RTS, i.e. `+RTS -s`
  * ~"simplifier": GHC's Core simplifier (see Optimisations section below for more specific labels)
  * ~"split-objs": GHC's object-splitting mechanism for reducing binary size (`-split-objs`; deprecated since 8.10)
 
