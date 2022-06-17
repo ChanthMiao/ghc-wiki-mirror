@@ -1,13 +1,18 @@
 "Wiggly arrows" are another idea for guiding type inference, comparable to [Single choice inference](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies-in-GHC/Single-choice-inference).
 
-A normal fundep `lhs -> rhs` means that if the `lhs` parameters are fully
+A **true fundep** `lhs -> rhs` means that if the `lhs` parameters are fully
 determined, the `rhs` parameters will necessarily be fully determined by the
 instances.  That is, instances are supposed to imply the existence of a
-function.
+function.  True fundeps should always be translatable to use type families
+instead.
 
-A wiggly arrow `lhs ~> rhs` means that we can use (partial) knowledge about the
+A **wiggly arrow** `lhs ~> rhs` means that we can use (partial) knowledge about the
 `lhs` parameters to guide type inference for the `rhs` parameters, based on the
 class instances, even though there may not be a function determining them fully.
+
+Our hypothesis is that all current uses of functional dependencies can either
+use true fundeps or wiggly arrows.
+
 
 ## The idea
 
@@ -15,48 +20,70 @@ In the following, suppose we have:
 ```hs
 class C a b | a ~> b
 instance C Int Bool
-instance C Char Bool
-
-class D a b c | a ~> b
-instance D Int Bool Int
-instance D Int Char Bool
+instance C Char [b]
 ```
 
-When **comparing a wanted constraint with instances**, we use a variant of the rule
-for functional dependencies:
-
- * If any instances *match* the constraint, use the existing matching rules for
-   instances.
-
- * If none match, find all instance declarations that *unify* with it. If there is
-   more than one such instance, do nothing. (TODO: maybe we could do something more
-   refined if there are overlapping instances.)
-
- * If there is exactly one unifying instance, then for each wiggly arrow `lhs ~>
-   rhs` where the instance matches all the `lhs` parameters, refine the shape of
-   the `rhs` parameters to match the instance as well.  This may or may not be
-   enough to allow the instance to match; we make the refinement anyway.
+When **comparing a wanted constraint with instances**, we use the normal
+improvement rule for functional dependencies.  For each wiggly arrow `lhs ~>
+rhs`, if the instance matches all the `lhs` parameters, refine the shape of the
+`rhs` parameters to match the instance as well.  This may or may not be enough
+to allow the instance to match; we make the refinement anyway.
 
 For example, if we have `[W] C Int beta` we can refine `beta := Bool` based on
-the `C Int Bool` instance.
+the `C Int Bool` instance.  If we have `[W] C Char gamma`, we can refine `gamma
+:= [delta]` where `delta` is fresh.
 
-When **interacting constraints** (given or wanted), unlike functional dependencies,
-we do not learn anything from wiggly arrows. For example, if we have wanteds `C
-Int alpha` and `C Int beta` we do not learn that `alpha ~ beta`.  As the `D`
-example demonstrates this might be overly restrictive: if we have `D Int gamma1 delta`
-and `D Int gamma2 delta` we do not want `gamma1 ~ gamma2` as we could instead
-later have `gamma1 ~ Bool, delta1 ~ Int` and `gamma2 ~ Char, delta1 ~ Bool`.
+When **interacting constraints** (given or wanted), unlike functional
+dependencies, we do not learn anything from wiggly arrows. For example, if we
+have wanteds `C Char alpha` and `C Char beta` we do not learn that `alpha ~
+beta` (as we would with true fundeps), merely that they both have the same outer
+structure.  This would be overly restrictive, because both `C Char [Int]` and `C
+Char [Bool]` are solvable, and we certainly do not have `[Int] ~ [Bool]`.
 
 For the **ambiguity check**, wiggly arrows are treated just like functional
 dependencies.  The ambiguity check is in any case an approximation (because even
 if a type is "ambiguous", there may be particular instantiations in which the
 constraints can be solved anyway).  Thus it is fine to trust the programmer
 here; the worst that can happen if they use too many wiggly arrows is that type
-inference will fail with ambiguity errors.  For example, the type `C a b => a`
-will not be considered ambiguous, even though `b` appears only in the
-constraint, because it is determined by the wiggly arrow from `a`.
+inference will fail with ambiguity errors.  For example, the type `(C a b, D b)
+=> a` will not be considered ambiguous, even though the constraint `D b` does
+not mention any variables present in the type, because `b` is determined by the
+wiggly arrow from `a`.
 
-There is no **instance consistency check** for wiggly arrows. For example, the user is at liberty to define instances for `C Int Bool` and `C Int Char`; this means that a constraint `[W] C Int alpha` will no longer refine `alpha`.
+There is no **coverage condition** for wiggly arrows.  In particular, `instance
+C Char [b]` is permitted even though `b` is not covered, and would be rejected
+by a true fundep (even under the LCC).
+
+We use the **liberal instance consistency check** (LICC) for wiggly arrows. For example, the
+following is rejected:
+```hs
+class D a b c | a ~> b
+instance D Int Bool Int
+instance D Int Char Bool
+```
+
+It wouldn't be useful to accept these instances, because if we had a wanted `[W]
+D Int alpha beta` we would be able to refine `alpha := Bool` from the first
+instance and `alpha := Char` from the second, at which point we would fail with
+an unsolvable constraint.  The point of the instance consistency check is merely
+to reject such nonsense earlier.
+
+TODO: Sam observes that the following should perhaps be rejected too:
+```hs
+class D a b c | a ~> b
+instance D Int Bool Int
+instance x ~ Char => D Int x Bool
+```
+but the LICC as stated will accept it, because the instance heads are unifiable.
+Adam thinks we might be able to slightly strengthen the LICC to rule this out,
+by requiring that under the unifying substitution the instance contexts should
+not be obviously inconsistent.
+
+TODO: which consistency condition do we need for true fundeps?
+
+TODO: the rest of this page needs to be reviewed to make sure it is consistent
+with the (revised) idea described above.
+
 
 ## `SetField` examples
 
@@ -214,6 +241,10 @@ most specific, so we pick it, and get `alpha := True`.
 Try solving `[W] TypeEq Int Int False`.  This unifies only with the second
 instance, so we select it.
 
+TODO: these instances violate LICC so will be rejected.  Moreover we want to
+reject them, because they allow `[W] TypeEq Int Int False` to be solved, which
+makes very little sense.
+
 ### Example 5
 
 ```hs
@@ -229,13 +260,40 @@ If we have `[W] HasField "fld" T alpha`, that will unify with only
 one instance, so we will emit `[W] alpha ~ ([beta] -> [beta])`.
 
 
-## Wiggly arrows generalise Single Choice Inference
+## Wiggly arrows versus Single Choice Inference
 
 The [Single Choice Inference](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies-in-GHC/Single-choice-inference)
-approach can be expressed using wiggly arrows.  In particular, `singlechoice(a)`
-can be specified as `~> a` (i.e. a wiggly arrow with an empty LHS). This means
-that whenever there is exactly one unifying instance, the `a` parameter will
-always be refined to match.
+approach suggests that if there is exactly one instance that could match a
+wanted constraint, refine the constraint based on the instance.
+
+When **comparing a wanted constraint with instances**, we could say:
+
+ * If any instances *match* the constraint, use the existing matching rules for
+   instances.
+
+ * If none match, find all instance declarations that *unify* with it. If there is
+   more than one such instance, do nothing. (TODO: maybe we could do something more
+   refined if there are overlapping instances.)
+
+ * If there is exactly one unifying instance, then for each wiggly arrow `lhs ~>
+   rhs` where the instance matches all the `lhs` parameters, refine the shape of
+   the `rhs` parameters to match the instance as well.  This may or may not be
+   enough to allow the instance to match; we make the refinement anyway.
+
+This definition would mean that `singlechoice(a)` can be specified as `~> a`
+(i.e. a wiggly arrow with an empty LHS). This means that whenever there is
+exactly one unifying instance, the `a` parameter will always be refined to
+match.
+
+Alongside this it would make sense to say there is no **instance consistency
+check** for wiggly arrows. For example, the user is at liberty to define
+instances for `C Int Bool` and `C Int Char`; this means that a constraint `[W] C
+Int alpha` will no longer refine `alpha`.
+
+We could do this, but it takes wiggly arrows further from current fundeps, and
+moreover it violates the open world assumption: adding an instance can make code
+cease to type-check because some constraint no longer has a single choice.
+Hence we prefer the simpler design described above.
 
 
 ## More examples
