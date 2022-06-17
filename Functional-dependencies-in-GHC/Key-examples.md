@@ -85,13 +85,26 @@ instance TypeEq a b False
 These instances satisfy SCC, but not SICC.
 Nor does it satisfy the more liberal LICC, because True and False are not unifiable!  But imagine we rewrote it like this:
 ```
-instance r ~ True  => TypeEq a a r
-instance r ~ False => TypeEq a b r
+instance {-# OVERLAPPING #-}  r ~ True  => TypeEq a a r
+instance {-# OVERLAPPABLE #-} r ~ False => TypeEq a b r
 ```
 Now the fundep is effectively vacuous, but if it remains we'd need LCC and LICC.  But the program works fine: the overlapping-instance technology will pick an instance only when it is the unique one, and that will fix `r`.
 
-But it's a bit un-satisfying to have to encode our desired behaviour like this.
-(Question: with bidirectional fundeps is this encoding even always possible?)
+You might think that it's a bit un-satisfying to have to encode our desired behaviour like this.
+(Question: with bidirectional fundeps is this encoding even always possible?)  But there is a good reason. Suppose we allowed the instances
+```
+class TypeEq a b (res :: Bool)  | a b -> res
+instance TypeEq a a True
+instance TypeEq a b False
+```
+and we want to solve `[W] TypeEq Int Int False`.  Well that does not match the first instance, but it does match the second, so we'll succeed, instantiating `a` and `b` to `Int`!  But that was definitely not what we intended.  If instead we had the rewritten form
+```
+instance {-# OVERLAPPING #-}  r ~ True  => TypeEq a a r
+instance {-# OVERLAPPABLE #-} r ~ False => TypeEq a b r
+```
+and try to solve `[W] TypeEq Int Int False`.  We'd pick the first, and end up trying to solve `False ~ True` which is exactly what should happen.
+
+TL;DR: weakening beyond LICC is dangerous.
 
 ## Example 5: Even LCC is too restrictive
 
