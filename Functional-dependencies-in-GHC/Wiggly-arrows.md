@@ -68,6 +68,8 @@ instance and `alpha := Char` from the second, at which point we would fail with
 an unsolvable constraint.  The point of the instance consistency check is merely
 to reject such nonsense earlier.
 
+TODO: actually we might want SICC, see below.
+
 TODO: Sam observes that the following should perhaps be rejected too:
 ```hs
 class D a b c | a ~> b
@@ -85,19 +87,81 @@ TODO: the rest of this page needs to be reviewed to make sure it is consistent
 with the (revised) idea described above.
 
 
+## Instance consistency
+
+Thinking about it further, Adam thinks the LICC may be too liberal. In
+particular, key example 2 shows it does "weird improvement" and key example 3
+shows it is non-confluent.  So perhaps we should require the SICC instead?  In
+most cases, instances using the LICC can be rewritten to use a type equality
+constraint in the context instead, and thereby satisfy the SICC.
+
+The justification for this is that under the SICC, once an instance has
+established how much information can be obtained from a particular wiggly arrow
+`lhs ~> rhs` and a particular choice of `lhs`, other instances are required to
+be completely consistent with that choice.  LICC allows other instances to
+provide more or less information, and thereby risks making it possible to
+observe the order in which instances are used.
+
+Something that is not quite clear in the presentation of SICC is that it should
+presumably be considered up to renaming/alpha-equivalence. That is, presumably
+the following pass SICC:
+
+```hs
+class C a b c | a ~> b
+instance a ~ Bool => C Int [a] Bool
+instance a ~ Char => C Int [b] Char
+```
+
+
+## What's the difference between fundeps and type equalities?
+
+Consider:
+
+```hs
+class C a b c | a ~> b
+
+instance C Int Char Bool -- (1)
+
+instance x ~ Char => C Int x Bool -- (2)
+```
+
+A longstanding point of confusion for fundeps has been what precisely the
+difference is between (1) and (2).  With wiggly arrows and SICC, the position is
+this:
+
+ * (1) says that a constraint `[W] C Int alpha beta` allows us to derive
+   `[W] alpha ~ Char` irrespective of whether we commit to the instance.  All
+   other instances must be consistent with this choice (at least under SICC).
+   As the example demonstrates, this may not be enough to make the instance apply.
+   And even when the instance matches, overlapping instances may mean that we cannot
+   commit to it immediately.
+
+ * (2) says that we can refine `x ~ Char` only after committing to the instance
+   (i.e. once it matches and any overlaps have been resolved).  For example,
+   from `[W] C Int alpha beta` we will not learn anything, but from
+   `[W] C Int alpha Bool` we will match the instance and require `[W] alpha ~ Char`
+   from the instance context.
+
+If a collection of instances pass LICC but not SICC, it should always be
+possible to reformulate them to pass SICC by taking the anti-unifier, putting
+variables in the instance heads and introducing equality constraints in the
+contexts instead.  This has the effect of delaying the additional constraints
+until it is known which instance is applicable.
+
+
 ## `SetField` examples
 
 Suppose we define
 
 ```hs
-class SetField x s t b | x t -> b  -- normal fundep
+class SetField x s t b | x t -> b    -- true fundep
                        , x s ~> t    -- wiggly
                        , x t ~> s    -- wiggly
                        where
   setField :: b -> s -> t
 ```
 
-Here `x t -> b` is a normal fundep, because if we know the record type and field
+Here `x t -> b` is a true fundep, because if we know the record type and field
 name, we know the field's type.  (Actually this might still be a bit
 restrictive, because it prevents instances for polymorphic fields, but that's a
 design choice we can make.)
@@ -193,8 +257,7 @@ with the fundeps replaced with wiggly arrows.
 class Mul a b c | a b ~> c
 instance Mul a b c => Mul a (Vec b) (Vec c)
 ```
-Try solving `[W] Mul alpha (Vec beta) beta`. (This unifies with the instance
-with `b := beta, beta := Vec delta, a := alpha` where `delta` is fresh.)
+Try solving `[W] Mul alpha (Vec beta) beta`.
 Here the LHS of the wiggly arrow matches so we refine `beta := Vec gamma`,
 match the instance and simplify to `[W] Mul alpha (Vec gamma) gamma`.
 So we get a loop, just as before.  Wiggly arrows do not have guaranteed termination.
@@ -208,9 +271,23 @@ class CX x a b | a ~> b where
 instance                 CX Bool [x] [x]
 instance  CX Char x y => CX Char [x] [Maybe y]
 ```
-and try solving `[W] CX Bool [alpha] beta`.
-Ths unifies only with the first instance, so we get `beta := [alpha]` and solve.
-No problem.
+and try solving `[W] CX Bool [alpha] beta`. Since we are allowed to use wiggly
+arrows from both instances regardless of whether they match, we get
+`beta := [alpha], beta := [Maybe gamma]` and hence `[W] CX Bool [Maybe gamma] [Maybe gamma]`,
+i.e. weird improvement.
+
+But note that these declarations require LICC. If we instead demand SICC this
+doesn't arise. Instead the second instance will need to be rewritten like this:
+
+```hs
+instance                                CX Bool [x] [x]
+instance  (CX Char x y, x ~ Maybe y) => CX Char [x] [x]
+```
+
+Now everything is fine: `[W] CX Bool [alpha] beta` gives `beta := [alpha]` and
+so becomes `[W] CX Bool [alpha] [alpha]` which matches the first instance and
+leaves us with the fully general type we expect.
+
 
 ###  Example 3
 
@@ -220,8 +297,19 @@ class D a b c | b ~> c
 instance (q ~ Int)  => D Int  p (Int,q)
 instance (s ~ Bool) => D Bool r (s,Bool)
 ```
-try solving `[W] C alpha beta (gamma, delta)`.
-This unifies with both instances, so we do nothing.
+
+Under LICC this violates confluence, including with wiggly arrows.  But under
+SICC these instances are rejected.  Instead the user must write:
+
+```hs
+instance (q ~ Int)  => D Int  p (q,q)
+instance (s ~ Bool) => D Bool r (s,s)
+```
+
+Now `[W] C alpha beta (gamma, delta)` does not make any progress.  If we later
+learn `alpha ~ Int` then the first instance applies and gives
+`gamma ~ Int, delta ~ Int`.
+
 
 ### Example 4
 
@@ -232,18 +320,15 @@ instance {-# OVERLAPPING #-}  TypeEq a a True
 instance {-# OVERLAPPABLE #-} TypeEq a b False
 ```
 
-Try solving `[W] TypeEq Int Bool alpha`.  This unifies only with the second
-instance, so we get `alpha := False`.
+These instances violate LICC, let alone SICC.  And we want to reject them,
+because otherwise `[W] TypeEq Int Int False` is solvable.  Instead the user
+should write:
 
-Try solving `[W] TypeEq Int Int alpha`.  This unifies with both, but first is
-most specific, so we pick it, and get `alpha := True`.
+```hs
+instance {-# OVERLAPPING #-}  r ~ True  => TypeEq a a r
+instance {-# OVERLAPPABLE #-} r ~ False => TypeEq a b r
+```
 
-Try solving `[W] TypeEq Int Int False`.  This unifies only with the second
-instance, so we select it.
-
-TODO: these instances violate LICC so will be rejected.  Moreover we want to
-reject them, because they allow `[W] TypeEq Int Int False` to be solved, which
-makes very little sense.
 
 ### Example 5
 
@@ -256,8 +341,36 @@ data T = MkT { fld :: forall a. [a] -> [a] }
 instance HasField "fld" T ([p] -> [p])
   getField (MkT f) = f
 ```
-If we have `[W] HasField "fld" T alpha`, that will unify with only
-one instance, so we will emit `[W] alpha ~ ([beta] -> [beta])`.
+If we have `[W] HasField "fld" T alpha`, we get `[W] alpha ~ ([beta] -> [beta])`,
+just as we want.
+
+
+### Example 6
+
+We do not need the circular instance trick to bypass the coverage condition,
+because wiggly arrows do not enforce the coverage condition anyway.
+
+
+### Example 7
+
+The example as stated violates SICC, but we can rewrite it thus:
+
+```hs
+class HasField field s a | field s ~> a where ...
+
+-- Generic instance
+instance {-# OVERLAPPABLE #-}
+         GHasField field s a => HasField field s a  where ...
+
+-- Specific instance
+instance a ~ Int => HasField "foo" Foo a  where ...
+```
+
+The combination of a wiggly arrow `field s ~> a` and a fully polymorphic
+"generic instance" `HasField field s a` is fine.  The wiggly arrow relaxes the
+ambiguity check.  The SICC means that the specific instances must be written
+using equality constraints in the context.
+
 
 
 ## Wiggly arrows versus Single Choice Inference
@@ -272,7 +385,7 @@ When **comparing a wanted constraint with instances**, we could say:
    instances.
 
  * If none match, find all instance declarations that *unify* with it. If there is
-   more than one such instance, do nothing. (TODO: maybe we could do something more
+   more than one such instance, do nothing. (Maybe we could do something more
    refined if there are overlapping instances.)
 
  * If there is exactly one unifying instance, then for each wiggly arrow `lhs ~>
@@ -350,6 +463,10 @@ instance Plus Z y y
 instance Plus x y z => Plus (S x) y (S z)
 ```
 
-Morally `Plus` could have three fundeps `x y -> z, y z -> x, x z -> y`, because any two parameters determine the other. However the instance consistency condition rejects these instances if fundeps are used, perhaps because we might have some `y ~ S y` which would match both?
+Morally `Plus` could have three fundeps `x y -> z, y z -> x, x z -> y`, because
+any two parameters determine the other. However the instance consistency
+condition rejects these instances if fundeps are used, because `Plus (S x) (S y)
+(S y)` would appear to match both.  (In fact this constraint is unsatisfiable,
+but that requires an inductive proof.)
 
-...
+See also [further discussion on the Evidenced Functional Dependencies page](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies/Evidenced-Functional-Dependencies#adding-natural-numbers-with-3-way-fun-dep).
