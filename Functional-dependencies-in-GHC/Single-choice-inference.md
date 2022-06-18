@@ -2,7 +2,7 @@
 
 This page describes a new design idea for in the functional-dependency space.
 
-Go up to [Functional dependencies in GHC](..)
+Go up to [Functional dependencies in GHC](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies-in-GHC)
 
 ## Overview
 
