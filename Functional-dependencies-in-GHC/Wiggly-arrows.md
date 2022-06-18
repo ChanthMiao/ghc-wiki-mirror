@@ -83,9 +83,6 @@ not be obviously inconsistent.
 
 TODO: which consistency condition do we need for true fundeps?
 
-TODO: the rest of this page needs to be reviewed to make sure it is consistent
-with the (revised) idea described above.
-
 
 ## Instance consistency
 
@@ -102,6 +99,21 @@ be completely consistent with that choice.  LICC allows other instances to
 provide more or less information, and thereby risks making it possible to
 observe the order in which instances are used.
 
+Perhaps we should have a specific modifier to explicitly relax the SICC to the
+LICC for a particular instance, or impose no check at all?  That would allow the
+programmer to choose potential non-confluence in exchange for more power.  For
+example, this could be allowed:
+
+```hs
+class C a b | a ~> b
+instance C Int Char
+instance %SkipInstanceConsistencyCheck C Int Bool
+```
+But is it ever useful to do this? It might be if `C Int Char` and `C Int Bool`
+could be directly solved without applying fundep refinements; but as soon as the
+fundep refinements happen (e.g. with `C Int alpha`) we will get
+`Char ~ Bool` and fail with inconsistency.
+
 Something that is not quite clear in the presentation of SICC is that it should
 presumably be considered up to renaming/alpha-equivalence. That is, presumably
 the following pass SICC:
@@ -111,6 +123,29 @@ class C a b c | a ~> b
 instance a ~ Bool => C Int [a] Bool
 instance a ~ Char => C Int [b] Char
 ```
+
+
+## Interacting wanteds without LCC leads to non-confluence
+
+This example shows that since wiggly arrows drop the LCC, they must also drop
+wanted-wanted interactions.  The following instance (from
+[this comment](https://gitlab.haskell.org/ghc/ghc/-/issues/8634#note_86125)
+and see also
+[this comment](https://gitlab.haskell.org/ghc/ghc/-/issues/8634#note_86143))
+is allowed for wiggly arrows but not fundeps as it violates LCC:
+
+```hs
+class F a b | a ~> b where
+   f :: a -> b -> a
+
+instance F b a => F [a] [b]
+```
+
+Suppose we had the constraints `[W] F [alpha] [beta], F [alpha] gamma`.  Using
+the instance we simplify to `[W] gamma ~ [beta'], F beta alpha, F beta' alpha`.
+But if the original wanteds were allowed to interact to derive `gamma ~ [beta]`
+we could also simplify to `[W] gamma ~ [beta], F beta alpha`, i.e. constraint
+solving would not be confluent.
 
 
 ## What's the difference between fundeps and type equalities?
@@ -456,17 +491,26 @@ Consider:
 ```hs
 data Nat = Z | S Nat
 
-type Plus :: Nat -> Nat -> Nat -> Constraint
-class Plus x y z | x y -> z, y z ~> x, x z ~> y
+type Add :: Nat -> Nat -> Nat -> Constraint
+class Add x y z | x y -> z, y z ~> x, x z ~> y
 
-instance Plus Z y y
-instance Plus x y z => Plus (S x) y (S z)
+instance Add Z y y
+instance Add x y z => Add (S x) y (S z)
 ```
 
-Morally `Plus` could have three fundeps `x y -> z, y z -> x, x z -> y`, because
-any two parameters determine the other. However the instance consistency
-condition rejects these instances if fundeps are used, because `Plus (S x) (S y)
-(S y)` would appear to match both.  (In fact this constraint is unsatisfiable,
-but that requires an inductive proof.)
+Morally `Add` could have three fundeps `x y -> z, y z -> x, x z -> y`, because
+any two parameters determine the other. However the LICC rejects these
+instances, because if `y = S a, z = S a` then the first instance gives `x := Z`
+while the second gives `x := S b`.
 
 See also [further discussion on the Evidenced Functional Dependencies page](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies/Evidenced-Functional-Dependencies#adding-natural-numbers-with-3-way-fun-dep).
+That page defines:
+
+```hs
+instance Add Z b b
+instance {-# OVERLAPPABLE #-} (a ~ S a', c ~ S c', Add a' b c') => Add a b c
+```
+
+This violates SICC but satisfies LICC.  It has the nice property that, for
+example, `[W] Add beta p p` automatically refines `beta := Z`.  It seems to be
+difficult to retain this behaviour while satisfying SICC.
