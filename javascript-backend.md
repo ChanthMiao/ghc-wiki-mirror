@@ -2,25 +2,15 @@ This page is a working document about adding a JavaScript backend to GHC.
 
 This feature has been implemented in [GHCJS](https://github.com/ghcjs/ghcjs) and already has users. GHCJS relies on a GHC fork and our proposal is to integrate GHCJS into GHC.
 
-The tracking ticket is: <https://gitlab.haskell.org/ghc/ghc/-/issues/21078>
+- tracking ticket: <https://gitlab.haskell.org/ghc/ghc/-/issues/21078>
+- target release: 9.6
+- process: development happens in [js-staging](https://gitlab.haskell.org/ghc/ghc/-/tree/wip/js-staging) branch (regularly rebased on `master`). We hope to get it merged when the following conditions are met:
+  1. it can produce a working HelloWorld example
+  2. the branch is clean enough (documentation, etc.)
+  3. it passes reviews
 
-Old doc: https://www.haskell.org/haskell-symposium/2013/ghcjs.pdf
 
 ## FAQ
-
-### Which timeframe?
-
-Initially we were targeting 9.4 but it may be more realistic to target 9.6.
-
-### Which process?
-
-Merging upstream whatever can be useful/tested independently of the rest.
-
-Otherwise we maintain two branches `wip/javascript-backend`, and `wip/js-staging`. `wip/javascript-backend` is the branch into which MRs are merged until we feel that the entire story is well-enough developed to be confidently merged upstream. `wip/js-staging` is real wip code that once finalized is merged into `wip/javascript-backend`. 
-
-To summarize:
-- `wip/javascript-backend`: reviewed code, regularly rebased onto master
-- `wip/js-staging`: wip code, only rebased or changed at stable points, once we are happy merge into `wip/javascript-backend` 
 
 ### How does the JS backend interact with the on-going plans to make GHC runtime retargetable? Is the current plan for JS to merge before runtime retargetability, therefore requiring the user to build a new compiler to use the backend?
 
@@ -99,3 +89,9 @@ A good solution fixes both problems. It has to integrate with iserv, but we stil
 
     * We could have a full bytecode interpreter running in JavaScript, running most of the code in bytecode.
     * We could reuse most of the `iserv` infrastructure, but run compiled JS code (like `-fobject-code`). We'd have to fix the linker to get around the size issue.
+
+## References
+
+- Haskell Symposium 2013 paper: [demo proposal](https://www.haskell.org/haskell-symposium/2013/ghcjs.pdf)
+- HIW2015: [slides](https://wiki.haskell.org/wikiupload/9/95/HIW15-Stegeman-The_State_of_the_GHCJS.pdf)
+- State of WebGHC 2019 (compared with GHCJS): https://webghc.github.io/2019/01/18/state-of-webghc-january-2019.html
