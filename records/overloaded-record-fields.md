@@ -21,6 +21,16 @@ Accepted GHC proposals:
   - [Adding setField to HasField](https://github.com/ghc-proposals/ghc-proposals/blob/master/proposals/0042-record-set-field.rst) (Pending redesign and implementation, see #16232 and !3257)
   - [Unrestricted Overloaded Labels](https://github.com/ghc-proposals/ghc-proposals/blob/master/proposals/0170-unrestricted-overloadedlabels.rst) (Draft implementation needs work, see #11671)
 
+Planned design changes:
+
+ - [Relaxing HasField constraints](https://github.com/ocharles/ghc-proposals/blob/hasfield/proposals/0000-hasfield-incoherence.rst) (proposal at discussion stage)
+ - [Add warning for incomplete record selectors: proposal 516](https://github.com/adamgundry/ghc-proposals/blob/incomplete-record-selectors/proposals/0000-incomplete-record-selectors.rst) (proposal at discussion stage)
+ - Clarify semantics of "functional" dependencies for use in `HasField`/`SetField` (initial thoughts on [Wiggly arrows](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies-in-GHC/Wiggly-arrows) wiki page)
+ - Allow record pattern synonyms to solve `HasField` constraints (question around multi-constructor pattern synonyms: need pattern synonym collections?)
+ - [HasField redesign](https://github.com/adamgundry/ghc-proposals/blob/hasfield-redesign/proposals/0000-hasfield-redesign.rst): split `HasField` into two classes, add type-changing update  (see [comment](https://github.com/ghc-proposals/ghc-proposals/pull/510#issuecomment-1137887333))
+ - Datatype names as module qualifiers in updates (no proposal yet, see [discussion](https://github.com/ghc-proposals/ghc-proposals/discussions/506#discussioncomment-2868700))
+ - Anonymous non-extensible records
+
 Other related GHC proposals (not yet accepted):
 
  - [Separate HasField into GetField and SetField](https://github.com/tysonzero/ghc-proposals/blob/patch-3/proposals/separate-get-set-field.md)
@@ -29,20 +39,11 @@ Other related GHC proposals (not yet accepted):
  - [Disambiguate Record Update](https://github.com/Ericson2314/ghc-proposals/blob/disambiguate-record-update/proposals/0000-disambiguate-record-update.rst) and [related discussion](https://github.com/ghc-proposals/ghc-proposals/discussions/506)
  - [Local modules](https://github.com/goldfirere/ghc-proposals/blob/local-modules/proposals/0000-local-modules.rst)
  - [Add Row Polymorphism to Haskell](https://github.com/jvanbruegge/ghc-proposals/blob/row-polymorphism/proposals/0000-row-polymorphism.rst)
- - [Relaxing HasField constraints](https://github.com/ocharles/ghc-proposals/blob/hasfield/proposals/0000-hasfield-incoherence.rst)
- - [Add warning for incomplete record selectors: proposal 516](https://github.com/adamgundry/ghc-proposals/blob/incomplete-record-selectors/proposals/0000-incomplete-record-selectors.rst)
-
-Planned/draft GHC proposals:
-
- - [HasField redesign](https://github.com/adamgundry/ghc-proposals/blob/hasfield-redesign/proposals/0000-hasfield-redesign.rst)
- - Datatype names as module qualifiers in updates (no proposal yet, see [discussion](https://github.com/ghc-proposals/ghc-proposals/discussions/506#discussioncomment-2868700))
 
 ## Task list
 
- - Finish and submit GHC proposal for `HasField` redesign (see [comment](https://github.com/ghc-proposals/ghc-proposals/pull/510#issuecomment-1137887333))
  - Change `OverloadedRecordDot` parser to permit pseudo-keywords (#21226)
  - Implement unrestricted `OverloadedLabels` (#11671)
- - Write a proposal for datatype names as module qualifiers
  - Improve error messages related to records (see [tickets](https://gitlab.haskell.org/ghc/ghc/-/issues/?sort=updated_desc&state=opened&label_name%5B%5D=error%20messages&label_name%5B%5D=records))
  - Improve interaction between `TemplateHaskell` and `DuplicateRecordFields` (see [tickets](https://gitlab.haskell.org/ghc/ghc/-/issues/?sort=updated_desc&state=opened&label_name%5B%5D=OverloadedRecordFields&label_name%5B%5D=TemplateHaskell))
 
