@@ -3,7 +3,7 @@ A fat interface file is a file which stores the core program at the end of simpl
 Motivations:
 - Faster GHCi startup time when using bytecode interpreter. You no longer have to typecheck and simplify every module every time you start GHCi. This also affects Haskell Language Server.
 - If you can interpret everything (even package modules) makes TH evaluation much more resilient to ABI changes.
-- Third party tooling might like to have access to simplified core
+- Third party tooling might like to have access to simplified core. See https://gitlab.haskell.org/ghc/ghc/-/wikis/Core-interface-section
 - if we distribute these files for all dependencies then you can generate code which passes types at runtime (as needed for a good implementation of typed template haskell)
 
 Related issues: https://gitlab.haskell.org/ghc/ghc/-/issues/21067, https://gitlab.haskell.org/ghc/ghc/-/issues/21700, https://gitlab.haskell.org/ghc/ghc/-/issues/10871
