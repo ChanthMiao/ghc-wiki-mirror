@@ -25,11 +25,15 @@ Planned design changes:
 
  - [Relaxing HasField constraints](https://github.com/ocharles/ghc-proposals/blob/hasfield/proposals/0000-hasfield-incoherence.rst) (proposal at discussion stage)
  - [Add warning for incomplete record selectors: proposal 516](https://github.com/adamgundry/ghc-proposals/blob/incomplete-record-selectors/proposals/0000-incomplete-record-selectors.rst) (proposal at discussion stage)
+ - Split `HasField` into two classes (with no type families) and support representation polymorphism ([HasField redesign](https://github.com/adamgundry/ghc-proposals/blob/hasfield-redesign/proposals/0000-hasfield-redesign.rst) without type-changing update)
  - Clarify semantics of "functional" dependencies for use in `HasField`/`SetField` (initial thoughts on [Wiggly arrows](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies-in-GHC/Wiggly-arrows) wiki page)
+ - Add type-changing update (the remaining parts of [HasField redesign](https://github.com/adamgundry/ghc-proposals/blob/hasfield-redesign/proposals/0000-hasfield-redesign.rst))
  - Allow record pattern synonyms to solve `HasField` constraints (question around multi-constructor pattern synonyms: need pattern synonym collections?)
- - [HasField redesign](https://github.com/adamgundry/ghc-proposals/blob/hasfield-redesign/proposals/0000-hasfield-redesign.rst): split `HasField` into two classes, add type-changing update  (see [comment](https://github.com/ghc-proposals/ghc-proposals/pull/510#issuecomment-1137887333))
  - Datatype names as module qualifiers in updates (no proposal yet, see [discussion](https://github.com/ghc-proposals/ghc-proposals/discussions/506#discussioncomment-2868700))
- - Anonymous non-extensible records
+ - Anonymous non-extensible records?
+ - Modifier for read-only fields?
+
+See also [this comment setting out a possible direction of travel](https://github.com/ghc-proposals/ghc-proposals/pull/510#issuecomment-1137887333).
 
 Other related GHC proposals (not yet accepted):
 
