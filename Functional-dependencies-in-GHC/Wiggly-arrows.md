@@ -1,4 +1,6 @@
-"Wiggly arrows" are another idea for guiding type inference, comparable to [Single choice inference](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies-in-GHC/Single-choice-inference).
+See #21779 for discussion.
+
+"Wiggly arrows" are an idea for an alternative to functional dependencies, used merely to guide type inference. Hopefully this could provide a replacement for some of the current "abuses" of fundeps, and allow fundeps to be subsequently made stricter (e.g. by translation to type families).
 
 A **true fundep** `lhs -> rhs` means that if the `lhs` parameters are fully
 determined, the `rhs` parameters will necessarily be fully determined by the
