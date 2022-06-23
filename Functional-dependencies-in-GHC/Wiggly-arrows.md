@@ -54,8 +54,10 @@ There is no **coverage condition** for wiggly arrows.  In particular, `instance
 C Char [b]` is permitted even though `b` is not covered, and would be rejected
 by a true fundep (even under the LCC).
 
-We use the **liberal instance consistency check** (LICC) for wiggly arrows. For example, the
-following is rejected:
+
+## Instance consistency
+
+The following instances should be rejected:
 ```hs
 class D a b c | a ~> b
 instance D Int Bool Int
@@ -63,66 +65,58 @@ instance D Int Char Bool
 ```
 
 It wouldn't be useful to accept these instances, because if we had a wanted `[W]
-D Int alpha beta` we would be able to refine `alpha := Bool` from the first
-instance and `alpha := Char` from the second, at which point we would fail with
-an unsolvable constraint.  The point of the instance consistency check is merely
-to reject such nonsense earlier.
+D Int alpha beta` we would be able to refine `alpha ~ Bool` from the first
+instance and `alpha ~ Char` from the second, at which point we would fail with
+an unsolvable constraint.  The point of the instance consistency check is to
+reject such nonsense earlier, and also to ensure confluence.
 
-TODO: actually we might want SICC, see below.
-
-TODO: Sam observes that the following should perhaps be rejected too:
+The **liberal instance consistency check** (LICC) is too liberal.  In
+particular, key example 2 shows it does "weird improvement" and key example 3
+shows it is non-confluent.  Moreover it accepts examples like this:
 ```hs
 class D a b c | a ~> b
 instance D Int Bool Int
 instance x ~ Char => D Int x Bool
 ```
-but the LICC as stated will accept it, because the instance heads are unifiable.
-Adam thinks we might be able to slightly strengthen the LICC to rule this out,
-by requiring that under the unifying substitution the instance contexts should
-not be obviously inconsistent.
 
-TODO: which consistency condition do we need for true fundeps?
-
-
-## Instance consistency
-
-Thinking about it further, Adam thinks the LICC may be too liberal. In
-particular, key example 2 shows it does "weird improvement" and key example 3
-shows it is non-confluent.  So perhaps we should require the SICC instead?  In
-most cases, instances using the LICC can be rewritten to use a type equality
-constraint in the context instead, and thereby satisfy the SICC.
-
-The justification for this is that under the SICC, once an instance has
-established how much information can be obtained from a particular wiggly arrow
-`lhs ~> rhs` and a particular choice of `lhs`, other instances are required to
-be completely consistent with that choice.  LICC allows other instances to
-provide more or less information, and thereby risks making it possible to
-observe the order in which instances are used.
-
-Perhaps we should have a specific modifier to explicitly relax the SICC to the
-LICC for a particular instance, or impose no check at all?  That would allow the
-programmer to choose potential non-confluence in exchange for more power.  For
-example, this could be allowed:
-
-```hs
-class C a b | a ~> b
-instance C Int Char
-instance %SkipInstanceConsistencyCheck C Int Bool
-```
-But is it ever useful to do this? It might be if `C Int Char` and `C Int Bool`
-could be directly solved without applying fundep refinements; but as soon as the
-fundep refinements happen (e.g. with `C Int alpha`) we will get
-`Char ~ Bool` and fail with inconsistency.
-
-Something that is not quite clear in the presentation of SICC is that it should
-presumably be considered up to renaming/alpha-equivalence. That is, presumably
-the following pass SICC:
-
+The **strict instance consistency check** (SICC), at least as interpreted on the
+[background page](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies-in-GHC/background-and-terminology#31-strict-instance-consistency-condition-sicc), is too strict.  The following should be allowed:
 ```hs
 class C a b c | a ~> b
-instance a ~ Bool => C Int [a] Bool
-instance a ~ Char => C Int [b] Char
+instance b1 ~ Bool => C Int [b1] Bool
+instance b2 ~ Char => C Int [b2] Char
 ```
+because we can α-rename the second instance to
+```hs
+instance b1 ~ Char => C Int [b1] Char
+```
+and now the instances clearly satisfy the SICC.  Thus we propose to use the following,
+which amounts to the SICC modulo α-equivalence:
+
+**Refined instance consistency condition**.  Consider a declaration for class
+`TC`, and any pair of instance declarations for that class:
+```
+class blah => TC a1 ... an | fd1; ...; fdm
+instance D1 => TC t1...tn
+instance D2 => TC s1...sn
+```
+Then, for each wiggly arrow `di`, of form `ai1; ...; aik ~> ai0`, the following
+condition must hold: for any substitution `S` such that `S(ti1; ..., tik) = S(si1; ..., sik)`
+there must be a permutation of variables `π` such that `π(S(ti0)) = S(si0)`.
+
+Under the SICC, once an instance has established how much information can be
+obtained from a particular wiggly arrow `lhs ~> rhs` and a particular choice of
+`lhs`, other instances are required to be completely consistent with that
+choice.  LICC allows other instances to provide more or less information, and
+thereby risks making it possible to observe the order in which instances are
+used.  In many cases, instances using the LICC can be rewritten to use a type
+equality constraint in the context instead, and thereby satisfy the SICC.
+
+For both fundeps and wiggly arrows the programmer should be able to explicitly
+relax the SICC to the LICC for particular instances, or to impose no check at
+all.  For example, this could be indicated by using a modifier on one of the
+instances.  This would allow the programmer to accept potential non-confluence
+in exchange for being able to express examples that do not satisfy the SICC.
 
 
 ## Interacting wanteds without LCC leads to non-confluence
@@ -514,3 +508,19 @@ instance {-# OVERLAPPABLE #-} (a ~ S a', c ~ S c', Add a' b c') => Add a b c
 This violates SICC but satisfies LICC.  It has the nice property that, for
 example, `[W] Add beta p p` automatically refines `beta := Z`.  It seems to be
 difficult to retain this behaviour while satisfying SICC.
+
+
+## Open questions
+
+Wiggly arrows should be guarded by a language extension, but what should it be
+called? Should we give the arrows themselves a better name?
+
+Do we really want to use the syntax `a ~> b`?  This is close to the syntax of
+the original fundeps paper (Jones 2000).
+
+Given that (in the absence of the coverage condition) wiggly arrows may give
+rise to non-termination of instance search, should they require
+`UndecidableInstances`?
+
+Should we try to tighten up the specification of functional dependencies at the
+same time as introducing wiggly arrows, or should we defer it?
