@@ -55,3 +55,18 @@ Then copy the command line used to run the test in order change directory
 into the right folder and run the failing test.
 
 
+# Nofib
+
+See [documentation here](https://gitlab.haskell.org/ghc/nofib/-/blob/master/shake/README.mkd)
+
+## Build all of nofib
+
+```
+cd nofib
+cabal v2-run -- nofib-run --compiler=/path/to/test-ghc --output=test
+```
+
+## Build just one nofib test
+```
+ cabal v2-run -- nofib-run --compiler=/path/to/test-ghc --output=test
+```
