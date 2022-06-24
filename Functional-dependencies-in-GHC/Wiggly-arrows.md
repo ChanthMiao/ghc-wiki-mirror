@@ -15,6 +15,7 @@ class instances, even though there may not be a function determining them fully.
 Our hypothesis is that all current uses of functional dependencies can either
 use true fundeps or wiggly arrows.
 
+Go up to [Functional dependencies in GHC](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies-in-GHC), which has pointers to terminology etc.
 
 ## The idea
 
