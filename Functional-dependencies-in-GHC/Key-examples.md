@@ -128,6 +128,8 @@ In effect, the fundep gives the *shape* of `alpha` but not its complete type.  T
 
 Here is [a real-world example of someone wanting DYSFUNCTIONAL](https://stackoverflow.com/questions/65514023/how-to-require-functional-dependencies-in-kind-signature).
 
+#8634 is another example of where even the liberal coverage condition was too restrictive.
+
 ## Example 6: LIBERAL can get you DYSFUNCTIONAL
 
 It turns out that with LIBERAL and UNDECIDABLE you can trick GHC into lifting the coverage condition algotether, effectively achieving DYSFUNCTIONAL.  Consider, this variant of Example 5:
