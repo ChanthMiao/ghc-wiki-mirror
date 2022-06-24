@@ -1,5 +1,4 @@
-# Hadrian FAQ
-
+# Compiler
 
 ## Make the stage-1 compiler (only)
 
@@ -15,7 +14,7 @@ In theory this requires rebuilding stage 1, and building all libraries from scra
 ./hadrian/build stage2:exe:ghc-bin --freeze1
 ```
 
-# Compile one specific base-library module, or one specific ghc-stage2 module, on its own.
+## Compile one specific base-library module, or one specific ghc-stage2 module, on its own.
 
 This happens, say, when there is a Lint failure in the libraries or stage2.  I want to compile that particular module, adding -dcore-lint, or -dverbose-core2core.  Today I scroll back through my build log, snip the command line that invoked GHC, add -dcore-lint and run that command.
 
