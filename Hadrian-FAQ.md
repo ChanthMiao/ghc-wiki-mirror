@@ -25,6 +25,10 @@ This happens, say, when there is a Lint failure in the libraries or stage2.  I w
 
 Then you can scroll back through the build log and copy the command like before.
 
+## Do not recompile the RTS every time
+
+Add `--skip=_build/stage1/rts/**` to your command line.
+
 # Testsuite
 
 ## Run one test (make TEST=T23232)
