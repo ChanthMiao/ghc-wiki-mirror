@@ -18,6 +18,10 @@ The rest this page gathers other useful links.
 * [Elaboration on functional dependencies](https://people.cs.kuleuven.be/~tom.schrijvers/portfolio/haskell2017a.html), Karachalias and Schrijvers, Haskell Symposium 2017.  This paper shows how to translate functional dependencies into type families.
 * [Evidenced functional dependencies](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies/Evidenced-Functional-Dependencies) a wiki page developing the Karachalias and Schrijvers paper further.
 
+## Related tickets
+
+Here is the list of [tickets related to functional dependencies](https://gitlab.haskell.org/ghc/ghc/-/issues/?label_name%5B%5D=FunctionalDependencies)
+
 ## Key proposals
 
 * Coverage condition: [Per-instance DYSFUNCTIONAL pragma](https://github.com/ghc-proposals/ghc-proposals/pull/374).
