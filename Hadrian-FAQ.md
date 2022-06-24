@@ -25,27 +25,28 @@ This happens, say, when there is a Lint failure in the libraries or stage2.  I w
 
 Then you can scroll back through the build log and copy the command like before.
 
+# Testsuite
 
-# Run one test (make TEST=T23232)
+## Run one test (make TEST=T23232)
 
 ```
 ./hadrian/build test --only="T23232"
 ```
 
-# Run one test and accept the new output (make TEST=T23234 accept)
+## Run one test and accept the new output (make TEST=T23234 accept)
 
 ```
 ./hadrian/build test --only="T23234" --test-accept
 ```
 
-# Run one test with the stage-1 compiler (less common) (make stage=1 TEST=T3343)
+## Run one test with the stage-1 compiler (less common) (make stage=1 TEST=T3343)
 
 ```
 ./hadrian/build test --only="T23234" --test-compiler=stage1
 ```
 
 
-# Compile the test with the command line used by the test framework.
+## Compile the test with the command line used by the test framework.
 
 ```
 ./hadrian/build test --only="T23234" -k -V
