@@ -219,7 +219,7 @@ module must be recompiled.
 
 ### Interface file invariants
 
-Often the interface file in not touched in order to avoid unnecessary recompilation of external build systems (see [make](make)). As a result, interface files may not change from the previous build, so may contain outdated information. That said, GHC guarantees that:
+Often the interface file is not touched in order to avoid unnecessary recompilation of external build systems (see [make](make)). As a result, interface files may not change from the previous build, so may contain outdated information. That said, GHC guarantees that:
 
 - Interface files have an up to date ABI hash for the corresponding module
   - A changed ABI hash is a necessary but not sufficient condition for recompilation of modules that depend on this module.
@@ -543,7 +543,7 @@ For recompilation avoidance to be really effective, we need to ensure that finge
 
 Template Haskell and Plugins add different kinds of dependencies to normal
 module imports. If a module uses a Template Haskell splice then the result of
-compiling the module can depend on the implementation of a modules imports rather than just their interface. Therefore, a modules ABI can remain the same but not trigger recompilation which can lead to stale results.
+compiling the module can depend on the implementation of a modules imports rather than just their interface. Therefore, a module's ABI can remain the same but not trigger recompilation which can lead to stale results.
 
 There is a similar problem for plugins. If a module uses a plugin then
 depending on the ABI of a plugin is usually not enough. Modules defining
@@ -552,7 +552,7 @@ change. However, we still want to recompile a module if the implementation of
 the plugin changes as we expect the new modifications to the plugin to effect the module we are currently compiling.
 
 The solution is the same in both cases -- rather than just depending on the
-interface file, we also depend on the hash of the resulting object files. Ifthe
+interface file, we also depend on the hash of the resulting object files. If the
 hash of the object file changes, then the module is recompiled.
 
 The dependencies are calculated using the `getLinkDeps`, which is also
