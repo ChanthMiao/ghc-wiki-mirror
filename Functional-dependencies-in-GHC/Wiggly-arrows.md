@@ -213,11 +213,11 @@ fundeps/wiggly arrows).
 We can use knowledge of either the LHS or RHS types or both to solve:
 ```hs
   fun1 :: T () -> T Int
-  fun1 t = setField @"f" 0 t
+  fun1 r = setField @"f" 0 r
   -- constraints arising:  SetField "f" (T ()) (T Int) alpha  (Num alpha)
   -- from x t -> b refine alpha := Int and match the instance
 
-  fun2 t = setField @"f" 0 (t :: T ())
+  fun2 r = setField @"f" 0 (r :: T ())
   -- interim inferred type:  T () -> beta
   -- constraints arising:  SetField "f" (T ()) beta alpha  (Num alpha)
   -- from x s ~> t refine beta := T beta' for fresh beta'
@@ -225,7 +225,7 @@ We can use knowledge of either the LHS or RHS types or both to solve:
   -- generalise over beta'
   -- final inferred type:  Num a => T () -> T a
 
-  fun3 t = (setField @"f" 0 t) :: T Int
+  fun3 r = (setField @"f" 0 r) :: T Int
   -- interim inferred type:  gamma -> T Int
   -- constraints arising:  SetField "f" gamma (T Int) alpha  (Num alpha)
   -- from x t ~> s refine gamma := T gamma' for fresh gamma'
@@ -233,20 +233,20 @@ We can use knowledge of either the LHS or RHS types or both to solve:
   -- generalise over gamma'
   -- final inferred type:  T a -> T Int
 
-  fun4 t = setField @"f" 0 t
+  fun4 r = setField @"f" 0 r
   -- interim inferred type:  delta -> epsilon
   -- constraint arising:  SetField "f" delta epsilon alpha
   -- final inferred type:  (Num b, SetField "f" s t b) => s -> t
-  -- not ambiguous because b is determined from s (by x t -> b)
+  -- not ambiguous because b is determined from t (by x t -> b)
 
-  fun5 t = setField @"g" True . setField @"f" () $ t
+  fun5 r = setField @"g" True . setField @"f" () $ r
   -- interim inferred type: beta -> delta
   -- constraints arising:  SetField "f" beta gamma ()
   --                       SetField "g" gamma delta Bool
   -- final inferred type:  (SetField "f" s t (), SetField "g" t u Bool) => s -> u
-  -- not ambiguous because t is determined (from either s or u)
+  -- not ambiguous because t is determined from either s or u
 
-  fun6 t = setField @"k" 0 . setField @"h" [] $ t
+  fun6 r = setField @"k" 0 . setField @"h" [] $ r
   -- interim inferred type: beta -> delta
   -- constraints arising:  SetField "h" beta gamma [alpha]
   --                       SetField "k" gamma delta epsilon  (Num epsilon)
@@ -275,6 +275,38 @@ that match in the `x` and `s` parameters to unify the `t` parameters:
 
 **Question**: this feels rather like a convenient syntax for the
 [SameModulo approach](https://github.com/effectfully-ou/sketches/tree/master/has-lens-done-right#the-samemodulo-approach-full-code). Is there a semantic difference?
+
+### Record updates with phantom parameters
+
+Consider the following datatype, which has a phantom type parameter (i.e. the
+type parameter does not occur in any of the field types):
+
+```hs
+data T a = MkT { foo :: Char, bar :: Bool }
+```
+
+A consequence of this is that (in traditional Haskell) a record update may
+change the type of the phantom parameter arbitrarily, just as explicitly writing
+out the case analysis can change the type:
+
+```hs
+upd1 :: T a -> T b
+upd1 r = r { foo = 'c' }
+
+upd1' :: T a -> T b
+upd1' r = case r of MkT{bar=b} -> MkT{foo = 'c', bar=b}
+```
+
+Hence we want the following to be accepted:
+```
+upd2 :: T a -> T b
+upd2 r = setField @"foo" 'c' r
+```
+
+This means we need to be prepared to solve the constraint `SetField "foo" (T a)
+(T b) Char`, with `a` and `b` varying freely. Consequently in the class
+`SetField x s t b`, we cannot have a functional dependency `x s b -> t`, because
+`t` is not functionally dependent on the other parameters of the class.
 
 
 ## Key examples
