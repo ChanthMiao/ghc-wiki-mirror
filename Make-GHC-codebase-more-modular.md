@@ -23,7 +23,7 @@ External resources
 
 1. Paper https://hsyl20.fr/home/posts/2022-05-03-modularizing-ghc-paper.html
 
-   Sylvain, Jeffrey and John wrote a large paper expanding upon the ideas here.
+   Sylvain, Jeffrey and John wrote a large paper expanding upon the ideas here.  Here's [the Haskell Discourse thread discussing it](https://discourse.haskell.org/t/modularizing-ghc-paper/4471/6).
 
 2. https://matrix.to/#/#ghc-modularity:matrix.org
 
