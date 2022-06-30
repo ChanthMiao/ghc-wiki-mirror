@@ -21,15 +21,11 @@ This is an ongoing effort to make GHC more modular.
 External resources
 ------------------
 
-1. Paper https://hsyl20.fr/home/posts/2022-05-03-modularizing-ghc-paper.html
+1. Paper ["Modularising GHC"](https://hsyl20.fr/home/posts/2022-05-03-modularizing-ghc-paper.html). Sylvain, Jeffrey and John wrote a large paper expanding upon the ideas here.  Here's [the Haskell Discourse thread discussing it](https://discourse.haskell.org/t/modularizing-ghc-paper/4471/6).
 
-   Sylvain, Jeffrey and John wrote a large paper expanding upon the ideas here.  Here's [the Haskell Discourse thread discussing it](https://discourse.haskell.org/t/modularizing-ghc-paper/4471/6).
+2. [Matrix chat root for this project](https://matrix.to/#/#ghc-modularity:matrix.org)
 
-2. https://matrix.to/#/#ghc-modularity:matrix.org
-
-   Matrix chat root for this project.
-
-3. https://summerofcode.withgoogle.com/programs/2022/projects/WWgHBTde GSOC project
+3. [GSOC project](https://summerofcode.withgoogle.com/programs/2022/projects/WWgHBTde)
 
 Principles
 ==========
