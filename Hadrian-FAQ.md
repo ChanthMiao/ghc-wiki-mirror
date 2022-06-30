@@ -1,6 +1,6 @@
 # Compiler
 
-## Make the stage-1 or stage12 compiler (only)
+## Make the stage-1 or stage-2 compiler (only)
 
 ```
 ./hadrian/build stage1:exe:ghc-bin
