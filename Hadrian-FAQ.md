@@ -40,6 +40,8 @@ Add `--skip=_build/stage1/rts/**` to your command line.
 
 # Testsuite
 
+See [main documentation here](https://gitlab.haskell.org/ghc/ghc/-/blob/master/hadrian/doc/testsuite.md)
+
 ## Run one test (make TEST=T23232)
 
 ```
