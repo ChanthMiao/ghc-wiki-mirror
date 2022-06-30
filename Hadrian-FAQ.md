@@ -1,10 +1,11 @@
 # Compiler
 
-## Make the stage-1 compiler (only)
+## Make the stage-1 or stage12 compiler (only)
 
 ```
 ./hadrian/build stage1:exe:ghc-bin
 ```
+The general form of the targets [is given here](https://gitlab.haskell.org/ghc/ghc/-/blob/master/hadrian/README.md#building-libraries-and-executables)
 
 ## Make the stage-2 compiler after changing (say) one module.
 
