@@ -1,11 +1,19 @@
 # Compiler
 
-## Make the stage-1 or stage-2 compiler (only)
+
+## Make the stage1 or stage2 compiler (only)
 
 ```
 ./hadrian/build stage1:exe:ghc-bin
 ```
 The general form of the targets [is given here](https://gitlab.haskell.org/ghc/ghc/-/blob/master/hadrian/README.md#building-libraries-and-executables)
+
+## Invoke the compiler you have built
+
+Oddly, you have to invoke the stage1 and stage2 compiler quite differently:
+* Stage1: `_build/ghc-stage1`
+* Stage2: `_build/stage1/bin/ghc`
+
 
 ## Make the stage-2 compiler after changing (say) one module.
 
