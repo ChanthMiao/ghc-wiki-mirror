@@ -5,6 +5,7 @@
 
 ```
 ./hadrian/build stage1:exe:ghc-bin
+./hadrian/build stage2:exe:ghc-bin
 ```
 The general form of the targets [is given here](https://gitlab.haskell.org/ghc/ghc/-/blob/master/hadrian/README.md#building-libraries-and-executables)
 
