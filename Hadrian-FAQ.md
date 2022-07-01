@@ -86,3 +86,15 @@ cabal v2-run -- nofib-run --compiler=/path/to/test-ghc --output=test
 ```
  cabal v2-run -- nofib-run --compiler=/path/to/test-ghc --output=test
 ```
+
+## Andreas writes
+
+The best way to ensure output does not get mixed up is to just use a different output folder. Eg --output=only_reals as the output destination.
+
+You can run a specific test by passing a path. Eg.  
+```
+cabal v2-run -- nofib-run --compiler=$HOME/code/HEAD-16/$s2 --output=only_reals spectral/exact-reals
+```
+Compiler args can iirc be passed by adding args one at a time. For example `--compiler-arg "-ticky" --compiler-arg "-ddump-simpl"`.  At the moment you need one `--compiler-arg` flag for each flag to be passed to ghc.
+
+RTS args can be added by adding e,g  `--rts-arg -r` which is the same as passing `+RTS -r` to the executable in question.
