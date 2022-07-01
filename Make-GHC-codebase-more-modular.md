@@ -18,6 +18,10 @@ This is an ongoing effort to make GHC more modular.
 * Make GHC multi-sessions, multi-targets, multi-threaded...
     * It will be easier with constrained side-effects and a more modular code-base
 
+Project plan
+--------------
+Ticket #17957 summarises the overall project plan.
+
 External resources
 ------------------
 
