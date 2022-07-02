@@ -29,7 +29,7 @@ From the [MSYS2 installation instructions](https://github.com/msys2/msys2/wiki/M
 
 Launch the MinGW shell using the shortcuts added to Start Menu: *MinGW-w64 Win32 Shell* or *MinGW-w64 Win64 Shell*.
 
-# Note
+#### Note
 
 
 Do **not** use the *MSYS2 Shell* shortcut.  *MSYS2 Shell* is for building applications that utilize an additional POSIX compatibility layer akin to Cygwin, while the *MinGW-w64* shells are for building native Windows applications.  The latter is the correct environment for building GHC.  For details on the distinction between the two, read the [introduction to MSYS2](https://github.com/msys2/msys2/wiki/MSYS2-introduction).  An easy way to check that you are running the right shell is to check the output of `echo $MSYSTEM`: it should show either `MINGW32` or `MINGW64`.  You can also tell by examining the `$PATH`.
@@ -37,7 +37,7 @@ Do **not** use the *MSYS2 Shell* shortcut.  *MSYS2 Shell* is for building applic
 
 After starting the shell, make sure `/mingw64/bin` (or `/mingw32/bin` depending on the arch you're building for) is the first thing on `$PATH`. If using Bash, `echo "export PATH=/mingw<bitness>/bin:\$PATH" >>~/.bash_profile` can be run to append your profile. Replace `<bitness>` with either `64` or `32` depending on platform.
 
-# Note
+#### Note
 
 
 This is **required** to ensure that the mingw-w64 variant of tools get priority over the msys versions.
@@ -59,7 +59,7 @@ To start a MinGW shell, run `stack exec --no-ghc-package-path mintty` from Comma
 
 ### Method C: Hadrian Build Via Stack
 
-"GHC supports **two build systems**: Hadrian (recommended) and Make." And this method is dedicated to `Hadrian` build. Below script navigates you directly to Step 5, which means after running the script, it is ready to run hadrian build, `hadrian/build-stack.bat --flavour=quickest -j`. If you'd like to learn more about `hadrian`, (here you go)[https://gitlab.haskell.org/ghc/ghc/-/wikis/building/hadrian]. If you encountered any problem, join the discussion of #21695.  
+"GHC supports **two build systems**: Hadrian (recommended) and Make." And this method is dedicated to `Hadrian` build. Below script navigates you directly to Step 5, which means after running the script, it is ready to run hadrian build, `hadrian/build-stack.bat --flavour=quickest -j`. If you'd like to learn more about `hadrian`, here is [hadrian's wiki page](https://gitlab.haskell.org/ghc/ghc/-/wikis/building/hadrian). If you encountered any problem, join the discussion of #21695.  
  
 ```
 cd c:\project
@@ -123,7 +123,10 @@ curl -L https://downloads.haskell.org/~ghc/8.10.2/ghc-8.10.2-${arch}-unknown-min
 ```
 
 
-Note: `--strip-components=1` places everything within the archive's `ghc-8.10.2` folder directly into the target directory.
+#### Note
+
+
+`--strip-components=1` places everything within the archive's `ghc-8.10.2` folder directly into the target directory.
 
 
 Building GHC requires [Alex](http://www.haskell.org/alex/) and [ Happy](http://www.haskell.org/happy/).  They can be installed using `cabal-install`. We will also put them in `/usr/local/bin`, which is by default included in `PATH` in MSYS.
