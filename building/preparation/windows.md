@@ -57,6 +57,24 @@ It is possible to set up MSYS indirectly through Stack:
 
 To start a MinGW shell, run `stack exec --no-ghc-package-path mintty` from Command Prompt.  The `--no-ghc-package-path` flag is necessary to avoid complaints from Cabal.
 
+### Method C: Hadrian Build Via Stack
+
+"GHC supports **two build systems**: Hadrian (recommended) and Make." And this method is dedicated to `Hadrian` build. Below script navigates you directly to Step 5, which means after running the script, it is ready to run hadrian build, `hadrian/build-stack.bat --flavour=quickest -j`. If you'd like to learn more about `hadrian`, (here you go)[https://gitlab.haskell.org/ghc/ghc/-/wikis/building/hadrian]. If you encountered any problem, join the discussion of #21695.  
+ 
+```
+cd c:\project
+git clone --recursive https://gitlab.haskell.org/ghc/ghc.git
+cd ghc
+curl -sSL https://get.haskellstack.org/ | sh -s - -f
+stack exec --stack-yaml hadrian/stack.yaml -- pacman -Syu --noconfirm
+stack exec --stack-yaml hadrian/stack.yaml  -- pacman -S autoconf automake-wrapper make patch python mintty tar --noconfirm
+stack build --stack-yaml hadrian/stack.yaml  alex happy
+stack --stack-yaml hadrian/stack.yaml build --only-dependencies
+stack --stack-yaml hadrian/stack.yaml exec -- bash -c ./boot
+stack --stack-yaml hadrian/stack.yaml exec -- bash -c "./configure --enable-tarballs-autodownload"
+```
+
+
 ## II. Upgrading packages in MSYS2
 
 
