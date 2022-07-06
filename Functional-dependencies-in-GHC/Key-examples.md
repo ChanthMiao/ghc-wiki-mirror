@@ -90,7 +90,7 @@ instance {-# OVERLAPPABLE #-} r ~ False => TypeEq a b r
 ```
 Now the fundep is effectively vacuous, but if it remains we'd need LCC and LICC.  But the program works fine: the overlapping-instance technology will pick an instance only when it is the unique one, and that will fix `r`.
 
-You might think that it's a bit un-satisfying to have to encode our desired behaviour like this. (Question: with bidirectional fundeps is this encoding even always possible?)
+You might think that it's a bit un-satisfying to have to encode our desired behaviour like this. (Question: with bidirectional fundeps is this encoding even always possible? Answer [AntC following teleconf with SPJ 6-Jul-2022]: not always, or at least not easily: take the example of `AddNat` with three-way FunDeps -- then each of the three positions is a target. If you reduce all three to bare distinct tyvars, because each is a target, you can only write one instance -- see ## Example 8.)
 
 Moreover, you have to add `-XUndecidableInstances` (currently module-wide) to allow these instances, which is a bit of a heavy hammer.
 But there is a good reason. Suppose we allowed the instances
