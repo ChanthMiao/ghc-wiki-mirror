@@ -1,1 +1,1 @@
-AntC's propsoal for fundeps
+AntC's proposal for fundeps
