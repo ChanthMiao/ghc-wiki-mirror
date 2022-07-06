@@ -90,9 +90,9 @@ instance {-# OVERLAPPABLE #-} r ~ False => TypeEq a b r
 ```
 Now the fundep is effectively vacuous, but if it remains we'd need LCC and LICC.  But the program works fine: the overlapping-instance technology will pick an instance only when it is the unique one, and that will fix `r`.
 
-You might think that it's a bit un-satisfying to have to encode our desired behaviour like this.  
-(Question: with bidirectional fundeps is this encoding even always possible?)
-Moreover, you have to add `-XUndecidableInstances` to allow these instances, which is a bit of a heavy hammer.
+You might think that it's a bit un-satisfying to have to encode our desired behaviour like this. (Question: with bidirectional fundeps is this encoding even always possible?)
+
+Moreover, you have to add `-XUndecidableInstances` (currently module-wide) to allow these instances, which is a bit of a heavy hammer.
 But there is a good reason. Suppose we allowed the instances
 ```
 class TypeEq a b (res :: Bool)  | a b -> res
