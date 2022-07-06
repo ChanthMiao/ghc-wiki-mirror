@@ -1,1 +1,1 @@
-AntC's proposal for fundeps
+Go up to [Functional dependencies in GHC](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies-in-GHC)
