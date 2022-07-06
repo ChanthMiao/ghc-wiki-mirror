@@ -179,3 +179,29 @@ instance {-# OVERLAPPABLE #-}
 instance (Monad m, r ~ r') 
       => MonadReader tag r (R.ReaderT tag r' m) where ...
 ```
+
+## Example 8: Multiway FunDeps
+
+(Ref Example # 4 Question: with bidirectional fundeps is this encoding even always possible? -- that is, an encoding with bare tyvar in the target position.)
+
+If we write base case:
+
+```haskell
+class AddNat (x :: Nat) (y :: Nat) (z :: Nat)  | x y -> z, x z -> y, y z -> x
+
+instance                                          AddNat Z      y      y
+```
+
+All three positions are targets. We can't put a bare fresh tyvar in _any_ position; we'd get a 'catch-all' `instance AddNat x y z`, so no way to write an instance for the Successor case(s). Note even with the base case as above, we have to write the Successor case like the catch-all second below:
+
+```haskell
+instance {-# OVERLAPPABLE #-} (z ~ (S z'), AddNat x' y z')
+                                               => AddNat (S x') y      z
+
+instance {-# OVERLAPPABLE #-} (x ~ (S x'), z ~ (S z'), AddNat x' y z')
+                                               => AddNat x      y      z
+```
+
+Despite the `OVERLAPPABLE` allegation, the `instance AddNat (S x') y z` is not more general; it is apart because `(S x') /~ Z`. Then for the FunDep consistency check on `y z -> x`, GHC finds it can unify the determining positions (with `z ~ y`); under that unification the dependent position, namely `(S x')` doesn't unify with `Z`.
+
+With more complex Multiway FunDeps, the catch-all instance might need to call an auxiliary class to discriminate more cases.
