@@ -194,7 +194,7 @@ instance                                          AddNat Z      y      y
 
 All three positions are targets; that is all of `x`, `y`, `z` appear in the RHS of a fundep arrow. 
 
-We can't put a bare fresh tyvar in _any_ position; we'd get a 'catch-all' `instance AddNat x y z`, so no way to write an instance for the Successor case(s). Note even with the base case as above, we have to write the Successor case like the catch-all second below:
+Can we follow Example #4's "imagine we rewrote" to put a fresh bare tyvar in the target positions of the instance?; No, we'd get a 'catch-all' `instance AddNat x y z`, so no way to write a distinct/more general instance for the Successor case(s). Note even with the base case as above, we have to write the Successor case like the catch-all second below:
 
 ```haskell
 instance {-# OVERLAPPABLE #-} (z ~ (S z'), AddNat x' y z')
