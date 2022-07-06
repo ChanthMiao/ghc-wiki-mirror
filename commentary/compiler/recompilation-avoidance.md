@@ -15,7 +15,7 @@ existing object code and interface are still valid.  In GHCi and
 `--make`, we must generate the `ModDetails` from the `ModIface`, but
 this is easily done by calling `MkIface.typecheckIface`.
 
-The recompilation check is **entirely** implemented in `checkRecompile`. This is the **only** place in the compiler where we make any decision about recompilation.
+The recompilation check is **entirely** implemented in [`GHC.Iface.Recomp`](https://gitlab.haskell.org/ghc/ghc/-/blob/master/compiler/GHC/Iface/Recomp.hs). This is the **only** place in the compiler where we make any decision about recompilation.
 
 ## Example
 
