@@ -202,6 +202,6 @@ instance {-# OVERLAPPABLE #-} (x ~ (S x'), z ~ (S z'), AddNat x' y z')
                                                => AddNat x      y      z
 ```
 
-Despite the `OVERLAPPABLE` allegation, the `instance AddNat (S x') y z` is not more general; it is apart because `(S x') /~ Z`. Then for the FunDep consistency check on `y z -> x`, GHC finds it can unify the determining positions (with `z ~ y`); under that unification the dependent position, namely `(S x')` doesn't unify with `Z`.
+Despite the `OVERLAPPABLE` allegation, the `instance AddNat (S x') y z` is not more general than `instance Z y y`; it is apart because `(S x') /~ Z`. Then for the FunDep consistency check on `y z -> x`, GHC finds it can unify the determining positions (with `z := y`); under that unification the dependent position namely `(S x')`, doesn't unify with `Z`.
 
 With more complex Multiway FunDeps, the catch-all instance might need to call an auxiliary class to discriminate more cases.
