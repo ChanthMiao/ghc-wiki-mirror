@@ -19,7 +19,7 @@ For a pair of instances to be valid under RICC wrt a set of FunDeps:
 * All FunDeps must be **Full** (term from Schrijvers et al § 6.1, definition below);
 * Instance heads must be either apart or overlap in strict substitution order;
 * Going by an amended definition of apartness/overlap for FunDeps (note two given instance heads might be apart wrt one FunDep but overlap wrt a different FunDep);
-* If the instance heads overlap wrt two or more FunDeps, it must be the same instance that is more general for each FunDep involved.
+* If the instance heads overlap wrt two or more FunDeps, it must be the same instance that is more general for each FunDep involved. [Best explained by example](#Bi-overlap-avoidance-condition)
 
 # Full FunDeps
 
@@ -44,7 +44,7 @@ class SetField x s t a b  | x s b -> t   -- doesn't mention a
                           , x t   -> b   -- doesn't mention s, a
 
       -- Note this is *not* the currently proposed decl for SetField,
-      -- IIRC this is the form used by Lenses some time ago
+      -- IIRC this is the form used by Lenses some years ago
 ```
 
 Contrast this set of FunDeps for `SetField`, which are all Full:
@@ -122,7 +122,7 @@ Z (S y') apart from (S x') (S z')
     -- the OVERLAPPABLE instance is therefore more general
 ```
 
-This version of `AddNat` fails the RICC (sadly, also is rejected by GHC)
+This version of `AddNat` fails the RICC (sadly. Also is rejected by GHC)
 
 ```haskell
 instance                                          AddNat  Z     y      y
@@ -143,8 +143,83 @@ instance {-# OVERLAPPABLE #-} (z ~ (S z'), AddNat x' y z')
                                                => AddNat (S x') y      z
 ```
 
-# Gnarly and seldom-needed extra condition
+# Bi-overlap avoidance condition
 
 * If the instance heads overlap wrt two or more FunDeps, it must be the same instance that is more general for each FunDep involved.
 
-[To do: this one makes my head hurt.]
+Consider:
+
+```haskell
+class Janus a b c  | a b -> c, b c -> a
+
+instance {-# OVERLAPPABLE #-} (c1 ~ Bool) => Janus a1 a1 c1
+
+instance {-# OVERLAPPABLE #-} (a2 ~ Char) => Janus a2 b2 Int
+```
+
+The SICC doesn't hold for those instance heads; GHC accepts them; OTOH both need `UndecidableInstances`. Both FunDeps are full, they comply with RICC by the rules laid out so far. But both instances are `OVERLAPPABLE`. What's going on?
+
+```
+-- by FunDep a b -> c, projecting on a b
+a1 a1 unifies with a2 b2 using a2 := a1, b2 := a1
+    -- the second instance is therefore strictly more general
+-- by FunDep b c -> a, projecting on b c
+a1 c1 unifies with b2 Int using a1 := b2, c1 := Int
+    -- the first instance is therefore strictly more general
+```
+
+Challenge: write a method using this class that demonstrates (any sort of) type improvement. All I can get is `Overlapping instances` rejections or `Couldn't match type` -- that is, improvement is inconsistent with constraints. These instances appear to be unusable.
+
+Up 'til now, when needing to consider overlapping, there's only been one FunDep that needed to invoke the overlapping rule (by other FunDeps, the instance heads were apart). `Janus` is a case of invoking overlap for two different FunDeps:
+
+* When invoking overlap for two or more FunDeps under RICC, it must be the same instance that is more `OVERLAPPABLE` across all projections on determining positions.
+
+# Selecting instances
+
+(No change to selecting instances for classes without FunDeps.)
+
+Sets of instances (heads) that are pairwise valid according to RICC are globally coherent in the sense:
+
+* If a Wanted is specific enough to match the determining positions of some instance, either
+  * the Wanted determining positions match only one instance (all other instances are apart, projected on those positions); or
+  * if multiple matching instances, they are in strict substitution order, projected on those positions; then
+  * do not reject a more specific instance/do not select a more general instance until seeing sufficient improvement that the more specific instance can't match.
+  * (I believe this is GHC's current behaviour for selecting overlapping instances, but GHC looks at the whole instance head.)
+
+* `INCOHERENT` messes this up -- as to be expected with overlaps in general.
+
+Example:
+
+```haskell
+class TypeEq a b (r :: Bool)  | a b -> r
+
+instance {-# OVERLAPPING  #-} TypeEq a a True
+
+instance {-# OVERLAPPABLE #-} TypeEq a b False
+
+[W] TypeEq alpha beta rho    -- both instances match, don't choose yet
+[W] TypeEq alpha beta False  -- still both instances match on a b, don't choose yet
+[W] TypeEq Int   beta False  -- still don't choose
+[W] TypeEq Int   Int  False  -- choose the True instance
+                             -- report: Couldn't match type 'True with 'False
+                             -- reject the program
+[W] TypeEq Int (Maybe beta2) rho
+                             -- can't unify the first two params, so reject True instance
+                             -- choose False instance, improve rho := False
+                             -- don't need to solve beta2, as usual
+
+--  AddNat with three-way FunDep, see class decl above
+instance                                          AddNat  Z     y      y
+instance {-# OVERLAPPABLE #-} (z ~ (S z'), AddNat x' y z')
+                                               => AddNat (S x') y      z
+
+[W] AddNat (S chi) (S (S Z)) (S (S (S zeta)))
+                              -- either choose (S x') instance by FunDep x y -> z
+                                 -- because (S chi) apart from Z
+                              -- or choose (S x') instance by FunDep x z -> y
+                                 -- for same reason
+                              -- or choose (S x') instance by FunDep z y -> x
+                                 -- because (S (S Z)) apart from (S (S (S zeta)))
+```
+
+
