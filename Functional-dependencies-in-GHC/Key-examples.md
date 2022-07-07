@@ -108,6 +108,8 @@ and try to solve `[W] TypeEq Int Int False`.  We'd pick the first, and end up tr
 
 TL;DR: weakening beyond LICC is dangerous.
 
+**Discussion between AntC and SPJ; ultimately to be moved**
+
 [AntC Note: puzzling behaviour -- almost doing the right thing]
 
 With these instances:
@@ -133,6 +135,15 @@ With only the `instance TypEq a a True`:
 ```
 
 So(?) GHC recognises the instance ought to apply; and does select it; then rejects the program because the improvement gives type inequality. Then why can't it recognise the instance applies in the two-instance case?
+
+SPJ says.  GHC does two *entirely separate* steps:
+1. Improvement of a Wanted.  The only effect is to emit new equality constraints
+2. Discharging a Wanted using an instance.
+
+For (1), GHC sees `[W] TypeEq Int Int False`, and does improvement against the first instance, emitting a new equality `[W] False ~ True`.  This is what yields the error.  But this is totally unrelated to step 2.
+
+For (2), GHC sees `[W] TypeEq Int Int False`, and sees that it matches no instance, so does nothing.
+
 
 ## Example 5: Even LCC is too restrictive
 
