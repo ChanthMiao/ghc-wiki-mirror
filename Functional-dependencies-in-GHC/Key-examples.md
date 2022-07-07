@@ -108,6 +108,32 @@ and try to solve `[W] TypeEq Int Int False`.  We'd pick the first, and end up tr
 
 TL;DR: weakening beyond LICC is dangerous.
 
+[AntC Note: puzzling behaviour -- almost doing the right thing]
+
+With these instances:
+
+```haskell
+instance                                   TypeEq a a True
+instance {-# OVERLAPPABLE #-} r ~ False => TypeEq a b r
+```
+
+`[w] TypeEq Int Bool False` yields `False` (expected)<br>
+`[W] TypeEq Int Int  False` yields `False` (expected, but not desired)
+
+With only the `instance TypEq a a True`:
+
+`[w] TypeEq Int Bool False` yields `No instance for (TypeEq Int Bool 'False)`
+(rejection expected)\
+`[W] TypeEq Int Int  False` yields (rejection expected, it's the reason that's interesting)
+```
+                * Couldn't match type 'True with 'False
+                  arising from a functional dependency between:
+                  constraint `TypeEq Int Int 'False' arising from ...
+                  instance `TypeEq a a 'True'
+```
+
+So(?) GHC recognises the instance ought to apply; and does select it; then rejects the program because the improvement gives type inequality. Then why can't it recognise the instance applies in the two-instance case?
+
 ## Example 5: Even LCC is too restrictive
 
 We can use fundeps to support record selection in records with polymorphic fields (#18759, #20188).  Consider
