@@ -14,7 +14,7 @@ A smaller but significant benefit is to greatly reduce the need for `Undecidable
 
 * The base position is to try the SICC first -- that is, compare instance heads pairwise, applying the SICC for each FunDep of the class. Only if that fails, move to the RICC just for the FunDeps and pairs of instances that fail.
 
-For a pair of instances to be valid under RICC wrt a set of FunDeps:
+For a pair of instances to be valid under RICC wrt a set of FunDeps (given they're not consistent by SICC):
 
 * All FunDeps must be **Full** (term from Schrijvers et al § 6.1, definition below);
 * Instance heads must be either apart or overlap in strict substitution order;
