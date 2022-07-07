@@ -12,7 +12,7 @@ This is a proposal to relax the Strict Instance Consistency Conditions, but not 
 
 A smaller but significant benefit is to greatly reduce the need for `UndecidableInstances`; and somewhat reduce the need for Liberal Coverage; thereby making instances easier to read with less clutter in constraints.
 
-* The base position is to try the SICC first -- that is, compare instance heads pairwise, applying the SICC for each FunDep of the class. Only if that fails, move to the RICC just for the FunDeps that fail.
+* The base position is to try the SICC first -- that is, compare instance heads pairwise, applying the SICC for each FunDep of the class. Only if that fails, move to the RICC just for the FunDeps and pairs of instances that fail.
 
 For a pair of instances to be valid under RICC wrt a set of FunDeps:
 
