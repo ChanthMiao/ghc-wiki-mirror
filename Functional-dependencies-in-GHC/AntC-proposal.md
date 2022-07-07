@@ -75,6 +75,8 @@ Can we use the instance head + FunDep `x s t -> a b` to improve `alpha` in the w
 
 The escape hatch is we can use FunDep `x s b -> t a`, because the wanted specifies all of those determining positions. As a by-product we also improve `tau ~ (T pi2 Bool)`.
 
+Could a class have a mix of Full and non-Full FunDeps? Yes: then for the non-Full FunDeps, the instance heads must meet SICC.
+
 # Overlap/Apartness amended definition
 
 Two instance heads **overlap** wrt a FunDep just in case the FunDep's determining positions from the `OVERLAPPABLE` instance is strictly more general than from the `OVERLAPPING` instance. The instance heads are **apart** wrt a FunDep just in case the determining positions don't unify. (To borrow database terminology -- also borrowed by Schrijvers et al, 'project' the instance heads on to the FunDep's determining positions.) Examples:
@@ -99,8 +101,8 @@ instance {-# OVERLAPPABLE #-} (AddNat x' y z') => AddNat (S x') y     (S z')
     -- Observe these instances are all apart going by GHC's current rules.
     -- They fail GHC's consistency checking.
     -- Under the amended definition of overlap/apart:
-    -- The first two instances are apart, going by any of the FunDeps.
-    -- The third instance is apart from the first, going by any of the FunDeps.
+    -- The first two instances are apart, going by all of the FunDeps.
+    -- The third instance is apart from the first, going by all of the FunDeps.
     -- The third is apart from the second, going by x y -> z, x z -> y.
     -- The third is strictly more general than the second by z x -> z.
 
