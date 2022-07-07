@@ -333,6 +333,8 @@ with abstract stack areas. We essentially need to treat the `keepAlive#` frame a
 an update frame, pushing it above everything else in the `Old` stack region. However
 it appears that this may break invariants within the code generator.
 
+Alternatively, instead of breaking STG's ANF invariant we could rather join-bind the continuation and allow a join point to be passed as an argument to continuation-passing primops.
+That is, `keepAlive# x (\s -> expr)` turns into `join j s = expr in keepAlive# x j`.
 
 Option D: A better improved code generation approach
 ----------------------------------------------------
