@@ -77,7 +77,9 @@ If the SCC holds, then a multi-range fundep `a b -> c d` is just short for `a b 
 class C a b c | a -> b c
 instance C a b b => C [a] [b] [b]
 ```
-Suppose we have `[W] C [p] q r`.  Then a multi-range FD will emit improvement equalities `q ~ [beta], r ~ [beta]`; but two single-range FDs will emit `q ~ [beta1], r ~ [beta2]`, with distinct unification variables `beta1`, `beta2`.
+Suppose we have `[W] C [p] q r`.  Then 
+* A multi-range FD `a -> b c` will emit improvement equalities `q ~ [beta], r ~ [beta]`; but 
+* Two single-range FDs `a -> b, a -> c` will emit `q ~ [beta1], r ~ [beta2]`, with distinct unification variables `beta1`, `beta2`.
 
 
 -------------------------
