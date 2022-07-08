@@ -23,6 +23,7 @@ Here is the list of [tickets related to functional dependencies](https://gitlab.
 * [Understanding functional dependencies via constraint handling rules](https://www.microsoft.com/en-us/research/publication/understanding-functional-dependencies-via-constraint-handling-rules/), Sulzmann et al, JFP 2006.  This journal paper has a lot of examples and we cite it frequently below as "JFP-paper".
 * [Language and Program Design for Functional Dependencies](https://web.cecs.pdx.edu/~mpj/pubs/fundeps-design.pdf), Jones and Diatchki, Haskell Symposium 2008.
 * [Elaboration on functional dependencies](https://people.cs.kuleuven.be/~tom.schrijvers/portfolio/haskell2017a.html), Karachalias and Schrijvers, Haskell Symposium 2017.  This paper shows how to translate functional dependencies into type families. See also [Evidenced functional dependencies](Functional-dependencies-in-GHC/Evidenced-Functional-Dependencies) a wiki page developing the Karachalias and Schrijvers paper further. Crucially, K&S do not consider overlapping instances -- which gives no way forward for writing a type-level type equality test, nor a type-level `AddNat` function with three-way FunDeps.
+* [Strongly typed heterogeneous collections](https://dl.acm.org/doi/10.1145/1017472.1017488), Kiselyov, Lämmel, Schupke 2003 is more or less a cheat sheet for sophisticated usage of FunDeps, including advice on compiler limitations, 'gotchas' and work-rounds at the time -- most of which are still gotchas.
 
 
 ## Key proposals
