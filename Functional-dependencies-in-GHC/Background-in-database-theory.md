@@ -41,7 +41,7 @@ Now _not all_ Functional Dependencies' LHS give an index to look up the table: `
 
 How do we know we no longer have a Good Thing? Because some of those Functional Dependencies are not Full.
 
-**Remedy**
+## Remedy
 
 **Normalise** the table structure by '**vertical partitioning**'. (We'll anticipate people getting multiple `Email`s while we're at it.)
 
@@ -59,7 +59,7 @@ class ( MobileFor mobile familyName givenName doB
 
 This 'vertical partitioning' is exactly what the JFP-paper recommends for non-Full FunDeps [§ 6.2 create an auxiliary class]. Now we're back to all Full FunDeps. That technique can always be applied -- at cost of extra classes and their instances. If I were Haskell FunDep dictator for a day, I'd ban non-Full FunDeps.
 
-**Dysfunctional dependencies/Wiggly arrows**
+## Dysfunctional dependencies/Wiggly arrows
 
 There's a hangover in our personnel database: although `FamilyName+GivenName+DoB` no longer uniquely determines `Mobile`, it does severely limit how many `Mobile`s belong to a person. A non-unique dependency.
 
