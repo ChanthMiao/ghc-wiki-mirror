@@ -38,9 +38,9 @@ Now suppose we are solving the constraint `[W] Mul alpha (Vec beta) beta`
 * That matches the instance decl, giving `[W] Mul alpha (Vec delta) delta`
 * And now we are back where we began.
 
-## Example 2: LCC and LICC do weird improvement (#10675 OP)
+## Example 2:  LICC does weird improvement (#10675 OP, #9210)
 
-Consider
+Consider #10675
 ```
 class CX x a b | a -> b where
   op :: x -> a -> b
@@ -57,6 +57,16 @@ From `f` we get `[W] CX Bool [alpha] beta`.
 * We can solve that from the first instance decl.
 * So we infer `f :: Maybe g -> [Maybe g]`.
   Bizarre.  Where did that `Maybe` come from?  It's nothing to do with it.
+
+Here's another (#9210):
+```
+class Foo s t a b | a b s -> t 
+instance Foo (x, a) (y, a) x y 
+instance Foo (a, x) (a, y) x y 
+```
+Note that the fundep is full.  The instances do not satisfy SICC, because `Foo (p,p) r p y` would implies that `r` is both `(y,p)` (by I1) and `(p,y)` (by I2).  But they do satisfy LICC. 
+
+So if I have `[W] Foo (Int,Int) alpha Int Bool` I will emit improvement equalities `alpha ~ (Int,Bool)` and `alpha ~ (Bool,Int)`. Boo!
 
 ## Example 3: LCC and LICC threaten confluence
 
