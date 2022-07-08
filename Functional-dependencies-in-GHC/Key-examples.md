@@ -21,6 +21,7 @@ Many real-life examples need the LCC. Here are some [everyone: add more]:
     (*)::a->b->c
   instance Mul a b c => Mul a (Vec b) (Vec c) where ...
   ```
+* [`AddNat` Example 8 below](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies-in-GHC/Key-examples/edit#example-8-multiway-fundeps); `HElem` [from the `HList` paper 2003] searching for an element in a type-level list; and in general any instance using recursive descent down a structure.
 
 ## Example 1: liberal coverage breaks termination
 
