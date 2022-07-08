@@ -64,7 +64,7 @@ class Foo s t a b | a b s -> t
 instance Foo (x, a) (y, a) x y 
 instance Foo (a, x) (a, y) x y 
 ```
-Note that the fundep is full.  The instances do not satisfy SICC, because `Foo (p,p) r p y` would implies that `r` is both `(y,p)` (by I1) and `(p,y)` (by I2).  But they do satisfy LICC. 
+Note that the fundep is full.  The instances do not satisfy SICC, because `Foo (p,p) r p y` would imply that `r` is both `(y,p)` (by I1) and `(p,y)` (by I2).  But they do satisfy LICC. 
 
 So if I have `[W] Foo (Int,Int) alpha Int Bool` I will emit improvement equalities `alpha ~ (Int,Bool)` and `alpha ~ (Bool,Int)`. Boo!
 
