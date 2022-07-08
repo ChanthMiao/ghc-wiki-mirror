@@ -58,6 +58,27 @@ Generally,
 * We are happy to risk non-termination when we ask for it; insisting on guaranteed termination is very restrictive
 * We are extremely reluctant to risk non-confluence.
 
+## 1.5 Full functional dependencies
+
+In a class decl, we say that *a functional dependency is **full** if all but one of the class tyvars appears on the LHS of the fundep*.  For example.
+
+```
+class C1 x y z |  x y -> z            -- Full
+class C2 x y z |  x -> z              -- Not Full
+class C3 x y z |  x z -> y, y -> x    -- (x z -> y) is Full; but (y -> x) is not
+```
+
+## 1.6 Multi-range functional dependencies
+
+See Section 6.3 of the JFP paper.
+
+If the SCC holds, then a multi-range fundep `a b -> c d` is just short for `a b -> c, a b -> d`; that is, we can always put just one tyvar on the RHS.  But this is not true of the LCC.  E.g.
+```
+class C a b c | a -> b c
+instance C a b b => C [a] [b] [b]
+```
+Suppose we have `[W] C [p] q r`.  Then a multi-range FD will emit improvement equalities `q ~ [beta], r ~ [beta]`; but two single-range FDs will emit `q ~ [beta1], r ~ [beta2]`, with distinct unification variables `beta1`, `beta2`.
+
 
 -------------------------
 
