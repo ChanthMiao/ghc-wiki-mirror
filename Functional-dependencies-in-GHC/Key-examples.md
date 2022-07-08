@@ -74,6 +74,26 @@ Now suppose we are trying to solve a Wanted constraint `[W] C alpha beta (gamma,
 
 This reflects a loss of confluence.
 
+[AntC] A simpler example of the same weakness
+
+```haskell
+class SomeC a b c  | a -> b
+
+instance SomeC Int Bool Char                    -- covered
+
+instance {-# LIBERAL #-} (b ~ String) => SomeC Int b ()
+
+someMeth :: SomeC a b c => a -> b -> c -> b
+someMeth x y z = y
+```
+
+If the SICC held, the compiler could safely improve using `[W] SomeC Int alpha v` (where `v` is say a skolem variable) and spit out `alpha ~ Bool` without needing to check which instance matches `v`.
+
+But you can call `someMeth` and yield either a `Bool` or a `String` -- depending on what you supply as the third argument, which is no part of the FunDep.
+
+This illustrates the weakness of 'non-Full' FunDeps (defined in the JFP-paper § 6.1). 
+
+
 ## Example 4: Even LICC is too restrictive
 
 Consider (assuming overlapping instances):
