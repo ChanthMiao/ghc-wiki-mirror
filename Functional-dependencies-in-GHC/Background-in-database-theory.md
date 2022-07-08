@@ -61,7 +61,7 @@ This 'vertical partitioning' is exactly what the JFP-paper recommends for non-Fu
 
 ## Dysfunctional dependencies/Wiggly arrows
 
-There's a hangover in our personnel database: although `FamilyName+GivenName+DoB` no longer uniquely determines `Mobile`, it does severely limit how many `Mobile`s belong to a person. A non-unique dependency.
+There's a hangover in our personnel database: although `FamilyName+GivenName+DoB` no longer uniquely determines `Mobile`, knowing those fields does severely limit how many `Mobile`s are related. A non-unique dependency.
 
 Does database theory have something to offer for this case? Yes you've already seen it:
 * FunDep `mobile -> familyName givenName doB` on the `MobileFor` class; plus
