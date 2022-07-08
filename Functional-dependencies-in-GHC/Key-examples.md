@@ -74,7 +74,7 @@ Now suppose we are trying to solve a Wanted constraint `[W] C alpha beta (gamma,
 
 This reflects a loss of confluence.
 
-[AntC] A simpler example of the same weakness
+[AntC] A simpler example of the same non-confluence
 
 ```haskell
 class SomeC a b c  | a -> b
@@ -89,9 +89,9 @@ someMeth x y z = y
 
 If the SICC held, the compiler could safely improve using `[W] SomeC Int alpha v` (where `v` is say a skolem variable) and spit out `alpha ~ Bool` without needing to check which instance matches `v`.
 
-But you can call `someMeth` and yield either a `Bool` or a `String` -- depending on what you supply as the third argument, which is no part of the FunDep.
+But you can call `someMeth` and yield either a `Bool` or a `String` -- depending on what you supply as the _third_ argument, which is no part of the FunDep.
 
-This illustrates the weakness of 'non-Full' FunDeps (defined in the JFP-paper § 6.1). 
+This illustrates the weakness of 'non-Full' FunDeps (defined in the JFP-paper § 6.1 "The real benefit of full FDs is that together with the Weak Coverage Condition they guarantee confluence." Also "For full FDs we can shorten the translation to CHRs by combining the instance improvement and instance rules into one rule." -- 'instance rules' means instance selection). 
 
 
 ## Example 4: Even LICC is too restrictive
