@@ -77,6 +77,10 @@ The escape hatch is we can use FunDep `x s b -> t a`, because the wanted specifi
 
 Could a class have a mix of Full and non-Full FunDeps? Yes: then for the non-Full FunDeps, the instance heads must meet SICC.
 
+
+- **Caveat:** The definition of 'Full' here is not as used in the JFP-paper [§ 6.1 Definition 13]. (Indeed theirs is rather strange and restrictive.) That requires a single dependent/RHS class parameter, and all other class parameters determining/LHS.
+
+
 # Overlap/Apartness amended definition
 
 Two instance heads **overlap** wrt a FunDep just in case the FunDep's determining positions from the `OVERLAPPABLE` instance is strictly more general than from the `OVERLAPPING` instance. The instance heads are **apart** wrt a FunDep just in case the determining positions don't unify. (To borrow database terminology -- also borrowed by Schrijvers et al, 'project' the instance heads on to the FunDep's determining positions.) Examples:
