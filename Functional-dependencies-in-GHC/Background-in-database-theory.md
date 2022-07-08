@@ -1,5 +1,7 @@
 Go up to [Functional dependencies in GHC](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies-in-GHC)
 
+## Why (most) FunDeps are tantamount to instance selection
+
 
 [AntC: in response to crossed wires with SPJ]
 
