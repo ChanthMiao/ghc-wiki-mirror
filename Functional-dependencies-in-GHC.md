@@ -40,4 +40,4 @@ GHC today does this:
   * uses the liberal (not strict) coverage condition
   * lifts the Paterson conditions
 
-* Always: GHC implements liberal instance consistency unconditionally.  See `Note [Bogus consistency check]` in `GHC.Tc.Instance.Fundeps`.  (GHC presumably does this because SICC is incompatible with LCC.)
+* Always: GHC implements liberal instance consistency unconditionally.  See `Note [Bogus consistency check]` in `GHC.Tc.Instance.Fundeps`.  (GHC presumably does this because SICC is incompatible with LCC. [AntC] Hmm? Because chasing through all the constraints is computationally expensive at compile time; and potentially non-terminating (with `UndecidableInstances`). Hugs supports LCC but does impose SICC; and indeed chases through instance constraints and superclass constraints/instances; and sometimes just gives up with a message to the effect 'this is too hard' -- or of course a stack depth check.)
