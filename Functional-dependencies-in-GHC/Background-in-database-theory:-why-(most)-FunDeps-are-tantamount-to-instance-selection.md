@@ -1,6 +1,5 @@
 Go up to [Functional dependencies in GHC](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies-in-GHC)
 
-## Background in database theory
 
 [AntC: in response to crossed wires with SPJ]
 
