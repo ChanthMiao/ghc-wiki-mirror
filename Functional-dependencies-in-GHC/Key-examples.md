@@ -108,7 +108,7 @@ More starkly, this instance is valid with the two above:
 instance {-# LIBERAL, OVERLAPPABLE #-} (b ~ String) => SomeC Int b Char
 ```
 
-Again you can call `someMeth` and yield a `String`: merely by supplying a `String` as second argument -- despite the FunDep+first instance giving that should be `Bool`.
+Again you can call `someMeth` and yield a `String`: merely by supplying a `String` as second argument -- despite the FunDep+first instance giving that should be `Bool`.[improvement vs instance selection q's](improvement-vs-selection)
 
 This illustrates the weakness of 'non-Full' FunDeps (defined in the JFP-paper § 6.1 "The real benefit of full FDs is that together with the Weak Coverage Condition they guarantee confluence." Also "For full FDs we can shorten the translation to CHRs by combining the instance improvement and instance rules into one rule." -- 'instance rules' means instance selection). 
 
