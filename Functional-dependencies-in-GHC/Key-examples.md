@@ -102,6 +102,14 @@ If the SICC held, the compiler could safely improve using `[W] SomeC Int alpha v
 
 But you can call `someMeth` and yield either a `Bool` or a `String` -- depending on what you supply as the _third_ argument, which is no part of the FunDep.
 
+More starkly, this instance is valid with the two above:
+
+```haskell
+instance {-# LIBERAL, OVERLAPPABLE #-} (b ~ String) => SomeC Int b Char
+```
+
+Again you can call `someMeth` and yield a `String`: merely by supplying a `String` as second argument -- despite the FunDep+first instance giving that should be `Bool`.
+
 This illustrates the weakness of 'non-Full' FunDeps (defined in the JFP-paper § 6.1 "The real benefit of full FDs is that together with the Weak Coverage Condition they guarantee confluence." Also "For full FDs we can shorten the translation to CHRs by combining the instance improvement and instance rules into one rule." -- 'instance rules' means instance selection). 
 
 
