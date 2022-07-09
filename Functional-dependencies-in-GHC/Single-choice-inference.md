@@ -75,6 +75,8 @@ what we need. Deriving equalities from Givens might be one such --
 but since GHC can't do that today, what are the *other* compelling
 applications of TrueFundeps?
 
+[AntC] A compelling example ought to be compound `SetField`s (this would avoid the classic `show . read` ambiguity): `setField @foo x . setField @bar y` -- where the `setField`s are potentially changing the type of the record, so the compiler needs to infer the type of the record after setting `bar`/that's passed to setting `foo`. There'd be a similar example with compounded `HasField`s: `getField @baz . getField @quux`, where the type of container field `quux` is parameterised by the type of nested field `baz`.
+
 The big problem is, of course, that many uses of fundeps today are simply incompatible with this approach: see [key examples](./key-examples).
 
 
@@ -108,6 +110,8 @@ To make the point very explicitly, I'll describe an extreme design that focuses 
 * If there is more than one such instance, do nothing.
 
 In this design I have not even annotated the class declaration!  It amounts to saying: if there is only one way to solve the constraint, solve it that way.
+
+* [AntC] How does this play with separate compilation and the dratted orphan instances problem? There might be "only one way to solve the constraint" within this module, but suppose the only instance is marked `OVERLAPPABLE`? There might be a more specific instance that matches when this module is imported into another.
 
 There are many details to work out. For example:
 
