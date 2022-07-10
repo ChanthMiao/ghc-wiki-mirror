@@ -63,7 +63,7 @@ Given how hard it would be to enforce the SICC, it seems to me there's a cleaner
 
 (B) To 'commit to' an instance, match on the determining/LHS positions of a FunDep, ignore the Wanted types in the dependent/RHS positions.
 
-That is, with `[W] SomeC Int String Char`; observe `SomeC`'s 2nd position is a dependent/LHS of a FunDep, so ignore the `String`/read that as `[W] SomeC Int alpha Char`; match the `Int` to the first instance above; from the instance improve `alpha ~ Bool`; then observe you have `Bool /~ String` and reject the program.
+That is, with `[W] SomeC Int String Char`; observe `SomeC`'s 2nd position is a dependent/RHS of a FunDep, so ignore the `String`/read that as `[W] SomeC Int alpha Char`; match the `Int` to the first instance above; from the instance improve `alpha ~ Bool`; then observe you want `Bool ~ String` and reject the program.
 
 **Sadly:** This won't reveal a set of instances is inconsistent until a usage site wants improvement at the crux of inconsistencies -- which might never happen. As the User Manual already says re validating instances: "These [instances] potentially overlap, but GHC will not complain about the instance declarations themselves, regardless of flag settings." [§ 6.8.8.4, link below]
 
@@ -79,7 +79,7 @@ class AddNat x y z  | x y -> z, x z -> y, y z -> x
 [W] AddNat chi        (S y')  (S (S z'))
 ```
 
-There would have to be some sort of (non-strict) consistency condition on the instances, such that if any of the disjuncts matched, their improvement would make the result matchable for the other disjuncts.
+There would have to be some sort of (non-strict) consistency condition on the instances, such that if any of the disjuncts matched, it would be only to the same instance (and thereby their improvement would make the result matchable for the other disjuncts).
 
 **Extension:** We might try to relax (A) -- but this sounds hard:
 
@@ -103,7 +103,7 @@ instance {-# AMBIGUOUS #-} SomeC Char (t -> t) c
 
 We don't care what `t` is/we don't even inspect that parameter. We just match the instance and improve `alpha ~ (t0 -> t0)` for fresh `t0`.
 
-* Then `AMBIGUOUS` there is in the sense of `AllowAmbiguousTypes`: don't require `t` to appear elsewhere in the instance head or constraints, even though it appears only in a dependent/LHS type.
+* Then `AMBIGUOUS` there is in the sense of `AllowAmbiguousTypes`: don't require `t` to appear elsewhere in the instance head or constraints, even though it appears only in a dependent/RHS type.
 
 Should we ignore the `v`? There might be other instances:
 
