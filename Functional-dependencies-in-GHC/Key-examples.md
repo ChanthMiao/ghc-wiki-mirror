@@ -208,6 +208,8 @@ In effect, the fundep gives the *shape* of `alpha` but not its complete type.  T
 
 Here is [a real-world example of someone wanting DYSFUNCTIONAL](https://stackoverflow.com/questions/65514023/how-to-require-functional-dependencies-in-kind-signature).
 
+[AntC] Is that `HasField` an instance-level equivalent of `AllowAmbiguousTypes`? In the sense we should reject `([p] -> [p])` because we can't solve `p` from the info in the instance decl. But we might be able to solve `p` at the call site for `getField`. So defer the ambiguity check. Then can we bring this under the ambiguity mechanism? `instance {-# AMBIGUOUS #-} ...` means allow uncovered tyvars to appear in dependent positions/FunDep RHS's.
+
 #8634 is another example of where even the liberal coverage condition was too restrictive.
 
 ## Example 6: LIBERAL can get you DYSFUNCTIONAL
