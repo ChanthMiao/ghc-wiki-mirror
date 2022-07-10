@@ -260,6 +260,14 @@ instance (Monad m, r ~ r')
       => MonadReader tag r (R.ReaderT tag r' m) where ...
 ```
 
+[AntC] The reliable way to encode type-level type equality (Example # 4) also relies on overlap. (Also `AddNat` Example # 8.)
+
+```haskell
+instance {-# OVERLAPPING #-}  r ~ True  => TypeEq a a r
+instance {-# OVERLAPPABLE #-} r ~ False => TypeEq a b r
+```
+
+
 ## Example 8: Multiway FunDeps
 
 (Ref Example # 4 Question: with bidirectional fundeps is this encoding even always possible? -- that is, an encoding with bare tyvar in the target position.)
