@@ -180,6 +180,12 @@ variables in the instance heads and introducing equality constraints in the
 contexts instead.  This has the effect of delaying the additional constraints
 until it is known which instance is applicable.
 
+[AntC] GHC doesn't try to follow the SICC, so it's a bit of a guess what might happen. But no it's not always possible to put variables in the instance heads if there are other instances: the variable-filled instance might overlap another instance or even be identical to it (modulo alpha-renaming). Also beware GHC accepts this instance along with (1):
+
+```haskell
+instance {-# OVERLAPPABLE #-} x ~ Bool => C Int x Bool -- (2B) inconsistent improvement
+```
+
 
 ## `SetField` examples
 
