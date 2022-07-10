@@ -68,6 +68,8 @@ Note that the fundep is full.  The instances do not satisfy SICC, because `Foo (
 
 So if I have `[W] Foo (Int,Int) alpha Int Bool` I will emit improvement equalities `alpha ~ (Int,Bool)` and `alpha ~ (Bool,Int)`. Boo!
 
+[AntC] The crux here is semi-overlap: the instances unify on `Foo (x, x) (...) x y`. (Hint: try putting `OVERLAPPABLE/OVERLAPPING` pragmas on those instances.) I think GHC's attitude to overlap is too liberal (that causes trouble other places, too): it should insist instances overlap in a strict substitution ordering.
+
 ## Example 3: LCC and LICC threaten confluence
 
 Consider:
