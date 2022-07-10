@@ -74,9 +74,9 @@ class AddNat x y z  | x y -> z, x z -> y, y z -> x
 
 [W] AddNat (S (S x')) (S y')  (S (S z'))
 ===>                                      -- for fresh zeta, ypsilon, chi
-[W] AddNat (S (S x')) (S y')  zeta
-[W] AddNat (S (S x')) ypsilon (S (S z'))
-[W] AddNat chi        (S y')  (S (S z'))
+[W] AddNat (S (S x')) (S y')  zeta       ; [W] zeta    ~ (S (S z'))
+[W] AddNat (S (S x')) ypsilon (S (S z')) ; [W] ypsilon ~ (S y')
+[W] AddNat chi        (S y')  (S (S z')) ; [W] chi     ~ (S (S x'))
 ```
 
 There would have to be some sort of (non-strict) consistency condition on the instances, such that if any of the disjuncts matched, it would be only to the same instance (and thereby their improvement would make the result matchable for the other disjuncts).
