@@ -54,6 +54,7 @@ instance MakeEq b b
 * In the face of LCC, it's impossible to enforce SICC -- or we'd have to enforce something far more restrictive than SICC.
 * Being unable to enforce SICC, improving a Wanted from some instance or other is premature/hazardous: it could easily make the wrong improvement. (That is, 'wrong' considered against the whole structure of instances for the class.)
 * Then don't improve a Wanted from an instance until we're sure that's the only instance that could match. (Hmm ? should this read ... until we've definitively matched the instance, including on positions that aren't involved in the FunDep.)
+* Compare Associated Types, where there's some concern that type `F t` appears to be valid, even though there's no instance that `t` matches; or Type Families in general, where `F t` behaves as if a type, even though there's no equation `t` matches. (This feels like a type-level counterpart of partial functions.)
 
 ## So ... ?
 
