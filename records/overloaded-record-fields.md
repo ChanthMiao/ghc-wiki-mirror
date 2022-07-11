@@ -47,6 +47,7 @@ Other related GHC proposals (not yet accepted):
 ## Task list
 
  - Change `OverloadedRecordDot` parser to permit pseudo-keywords (#21226)
+ - Tighten up import/export of ambiguous fields (#21625)
  - Implement unrestricted `OverloadedLabels` (#11671)
  - Improve error messages related to records (see [tickets](https://gitlab.haskell.org/ghc/ghc/-/issues/?sort=updated_desc&state=opened&label_name%5B%5D=error%20messages&label_name%5B%5D=records))
  - Improve interaction between `TemplateHaskell` and `DuplicateRecordFields` (see [tickets](https://gitlab.haskell.org/ghc/ghc/-/issues/?sort=updated_desc&state=opened&label_name%5B%5D=OverloadedRecordFields&label_name%5B%5D=TemplateHaskell))
