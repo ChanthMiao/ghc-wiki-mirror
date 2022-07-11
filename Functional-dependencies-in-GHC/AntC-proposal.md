@@ -16,7 +16,7 @@ A smaller but significant benefit is to greatly reduce the need for `Undecidable
 
 For a pair of instances to be valid under RICC wrt a set of FunDeps (given they're not consistent by SICC):
 
-* All FunDeps must be **Full** (term from Schrijvers et al § 6.1, definition below);
+* All FunDeps must be **Full** (term from JFP-paper § 6.1, definition below);
 * Instance heads must be either apart or overlap in strict substitution order;
 * Going by an amended definition of apartness/overlap for FunDeps (note two given instance heads might be apart wrt one FunDep but overlap wrt a different FunDep);
 * If the instance heads overlap wrt two or more FunDeps, it must be the same instance that is more general for each FunDep involved. [Best explained by example](#Bi-overlap-avoidance-condition)
@@ -83,7 +83,7 @@ Could a class have a mix of Full and non-Full FunDeps? Yes: then for the non-Ful
 
 # Overlap/Apartness amended definition
 
-Two instance heads **overlap** wrt a FunDep just in case the FunDep's determining positions from the `OVERLAPPABLE` instance is strictly more general than from the `OVERLAPPING` instance. The instance heads are **apart** wrt a FunDep just in case the determining positions don't unify. (To borrow database terminology -- also borrowed by Schrijvers et al, 'project' the instance heads on to the FunDep's determining positions.) Examples:
+Two instance heads **overlap** wrt a FunDep just in case the FunDep's determining positions from the `OVERLAPPABLE` instance is strictly more general than from the `OVERLAPPING` instance. The instance heads are **apart** wrt a FunDep just in case the determining positions don't unify. (To borrow database terminology -- also borrowed by JFP-paper, 'project' the instance heads on to the FunDep's determining positions.) Examples:
 
 ```haskell
 class TypeEq a b (r :: Bool)  | a b -> r
@@ -126,7 +126,7 @@ Z (S y') apart from (S x') (S z')
     -- the OVERLAPPABLE instance is therefore more general
 ```
 
-This version of `AddNat` fails the RICC (sadly. Also is rejected by GHC)
+This version of `AddNat` fails the RICC (sadly. Also is rejected by GHC):
 
 ```haskell
 instance                                          AddNat  Z     y      y
@@ -226,4 +226,15 @@ instance {-# OVERLAPPABLE #-} (z ~ (S z'), AddNat x' y z')
                                  -- because (S (S Z)) apart from (S (S (S zeta)))
 ```
 
+Can we elaborate a Wanted into a disjunction (inclusive-or) of Wanteds?
 
+```haskell
+
+[W] AddNat (S (S x')) (S y')  (S (S z'))
+===>                                      -- for fresh zeta0, ypsilon0, chi0
+[W] AddNat (S (S x')) (S y')   zeta0      ; [W] zeta0    ~ (S (S z'))
+[W] AddNat (S (S x')) ypsilon0 (S (S z')) ; [W] ypsilon0 ~ (S y')
+[W] AddNat chi0       (S y')   (S (S z')) ; [W] chi0     ~ (S (S x'))
+```
+
+Any of those `[W] AddNat ...`s will select the `AddNat (S x') y z` head (but not the `AddNat Z y y`).
