@@ -32,6 +32,8 @@ f x = x
 ```
 We have two givens, `[G] C2 a b, [G] C2 a c`.  Under TrueFundeps, we must have that `b ~ c`, and we should be able to use it in the body.
 
+[AntC] This might be a quibble, but we need to see an `instance C2 ta tbc` for the applicable `ta` -- which means delaying 'til a usage site for `f`. (So this is a difference compared to type families, in which `F2 ta` is treated as a type even though there's no equation matching it.)
+
 This is worked out in [Elaboration on functional dependencies](https://people.cs.kuleuven.be/~tom.schrijvers/portfolio/haskell2017a.html), who translate fundeps into GHC's type families.  For each fundep we create an associated type family of the class, and make an equality superclass, thus:
 ```
 class (b ~ F2 a) => C a b where
@@ -69,6 +71,8 @@ which is available as the superclass of `C2 a b`
 So the logical destination of the TrueFundeps view is to treat fundeps
 as true type functions, fully expressed in System FC. The fundep
 syntax is simply convenient syntactic sugar.
+
+[AntC] The 'Elaboration' paper doesn't consider overlapping instances (such as needed for `TypeEq` or three-FunDep `AddNat`). I think that's a severe weakness.
 
 **ToDo** I'd love to have compelling examples of when TrueFundeps is
 what we need. Deriving equalities from Givens might be one such --
