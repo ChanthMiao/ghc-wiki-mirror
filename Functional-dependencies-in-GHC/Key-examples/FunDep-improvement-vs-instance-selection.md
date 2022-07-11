@@ -8,8 +8,8 @@ Go up to [Key examples # 3](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functiona
 @simonpj Don't forget the (a) improvement vs (b) instance selection separation.  It's important because consider
 
 ```haskell
-class SomeC a b c |  a -> b             -- [AntC] note non-Full FunDep
-instance SomeC Int Bool Char
+class C a b c |  a -> b             -- [AntC] note non-Full FunDep
+instance C Int Bool Char
 ```
 
 and `[W] C Int alpha v`, where `v` is (say) a skolem variable.   Then improvement spits out `alpha ~ Bool`, even though the instance doesn't match.
@@ -23,22 +23,32 @@ GHC does two *entirely separate* steps:
 
 </blockquote>
 
-These instances are accepted along with the one above:
-
+More starkly, these classes/instances are accepted (we don't need an extraneous parameter to the class):
 
 ```haskell
-instance {-# LIBERAL #-} (b ~ String) => SomeC Int b ()
+class Chaos a b  | a -> b                         -- Full FunDep
+    
+instance {-# OVERLAPPING #-}                               Chaos Int (Maybe Bool)
+instance {-# OVERLAPPABLE, LIBERAL #-}      (b' ~ Char) => Chaos Int (Maybe b')
+    
+instance {-# OVERLAPPABLE, LIBERAL #-} Chaos2 (Maybe b) => Chaos Int b
+    
+class Chaos2 b  | -> b                            -- null LHS of FunDep
+instance                                                   Chaos2 (Maybe String)
 
-instance {-# OVERLAPPABLE, LIBERAL #-} (b ~ String) => SomeC Int b Char
+instance {-# OVERLAPPABLE, LIBERAL #-}    (b' ~ Float) =>  Chaos2 (Maybe b')
+
 ```
 
-And it's easy to get `[W] SomeC Int String Char` accepted -- even though it directly contradicts the `OVERLAPPING` first instance.
+And it's easy to get `[W] Chaos Int Float` accepted -- even though it directly contradicts the `OVERLAPPING` first instance.
 
-Now with `~ String` in a constraint (rather than `String` in the head), GHC never [but see next para] 'spits out' an improvement `alpha ~ String` -- which is the trick to getting a type-level `TypeEq` to work. And yet `~` constraints are supposed to be morally equivalent to writing the equated type directly(?) To be clear: I don't have use cases for these examples/I'd prefer they get rejected -- but I do want `TypeEq` to work.
+Now with `(... ~ t)` in a constraint (rather than `t` in the head), GHC never [but see next para] 'spits out' an improvement `alpha ~ t` -- which is the trick to getting a type-level `TypeEq` to work. And yet `~` constraints are supposed to be morally equivalent to writing the equated type directly(?) To be clear: I don't have use cases for these examples/I'd prefer they get rejected -- but I do want `TypeEq` to work.
 
-It's also easy to get `[W] SomeC Int alpha ()` accepted, and thereby get `alpha` improved to `String` -- again contradicting the FunDep. Is this the same sort of "spit out"? It happens as a result of matching to the instance, so raising new Wanteds.
+Back with SPJ's 3-parameter `C`, with `instance {#- OVERLAPPABLE -#} (b ~ String) => C Int b ()` it's also easy to get `[W] C Int alpha ()` accepted, and thereby get `alpha` improved to `String` -- again contradicting the FunDep, and making it seem the FunDep should be `a c -> b`. Is this the same sort of "spit out"? It happens as a result of matching to the instance, so raising new Wanteds.
 
 It's fairly easy to get improvement going different ways in different equations, then getting the program rejected `Bool /~ String`. I haven't managed to get a contradicting program to compile and seg fault. Perhaps if I put the contradictions in separate modules?
+
+This feels like getting different answers to the same question, depending on how you ask it: 'What are six sevens?' ===> 42; 'Are six sevens == 39?' ===> Yes, ok. There's nothing principled going on.
 
 The SICC is aimed to prevent these contradictions, by not allowing conflicting instance decls. In the face of LCC (using `~` in constraints or classes themselves with FunDeps), Consistency Checking would have to chase through constraints and their instances, possibly through very long chains, possibly `Undecidable`. Too hard. Hugs AFAICT takes a very simple approach: if there's a tyvar in a dependent position in the head which isn't covered by the same tyvar in a determining position -- that is, the instance is using Liberal Coverage -- reject the instance as inconsistent/don't even try to unify tyvars with the other instance you're comparing to for consistency. So Hugs rejects this instance is inconsistent with the first -- despite it transparently (to me) making the same improvement:
 
@@ -53,8 +63,13 @@ instance MakeEq b b
 
 * In the face of LCC, it's impossible to enforce SICC -- or we'd have to enforce something far more restrictive than SICC.
 * Being unable to enforce SICC, improving a Wanted from some instance or other is premature/hazardous: it could easily make the wrong improvement. (That is, 'wrong' considered against the whole structure of instances for the class.)
-* Then don't improve a Wanted from an instance until we're sure that's the only instance that could match. (Hmm ? should this read ... until we've definitively matched the instance, including on positions that aren't involved in the FunDep.)
+* And is this improvement the root of the lack of evidence problem? We've improved the Wanted from somewhere -- we're not quite sure where or how; so we can't provide an 'audit trail'.
+* Then don't do that. That is, don't improve a Wanted from an instance until we're sure that's the only instance that could match. (Hmm ? should this read ... until we've definitively matched the instance, including on positions that aren't involved in the FunDep.)
 * Compare Associated Types, where there's some concern that type `F t` appears to be valid, even though there's no instance that `t` matches; or Type Families in general, where `F t` behaves as if a type, even though there's no equation `t` matches. (This feels like a type-level counterpart of partial functions.)
+
+
+* Without improvement, though, GHC has a problem: `[W] C Int alpha Char` (in which something else has improved `(v ~ Char)`) won't match any instance, using usual (for non-FunDeps) instance matching. It's liable to match some more-general instance or get 'stuck', so failing to undergo exactly the improvement the FunDep is supposed to provide.
+* Then instance matching for a class with a FunDep should match the Wanted to an instance head ignoring dependent/RHS positions. (To the most specific instance ignoring those positions, for overlaps.)
 
 ## So ... ?
 
@@ -64,7 +79,7 @@ Given how hard it would be to enforce the SICC, it seems to me there's a cleaner
 
 (B) To 'commit to' an instance, match on the determining/LHS positions of a FunDep, ignore the Wanted types in the dependent/RHS positions.
 
-That is, with `[W] SomeC Int String Char`; observe `SomeC`'s 2nd position is a dependent/RHS of a FunDep, so ignore the `String`/read that as `[W] SomeC Int alpha Char`; match the `Int` to the first instance above; from the instance improve `alpha ~ Bool`; then observe you want `Bool ~ String` and reject the program.
+That is, with `[W] C Int String Char`; observe `C`'s 2nd position is a dependent/RHS of a FunDep, so ignore the `String`/read that as `[W] C Int alpha Char`; match the `Int` to the first instance above, read as `instance C Int beta0 Char`; from the instance improve `beta0 ~ Bool`; then observe you want `Bool ~ String` and reject the program.
 
 **Sadly:** This won't reveal a set of instances is inconsistent until a usage site wants improvement at the crux of inconsistencies -- which might never happen. As the User Manual already says re validating instances: "These [instances] potentially overlap, but GHC will not complain about the instance declarations themselves, regardless of flag settings." [§ 6.8.8.4, link below]
 
@@ -74,10 +89,10 @@ That is, with `[W] SomeC Int String Char`; observe `SomeC`'s 2nd position is a d
 class AddNat x y z  | x y -> z, x z -> y, y z -> x
 
 [W] AddNat (S (S x')) (S y')  (S (S z'))
-===>                                      -- for fresh zeta, ypsilon, chi
-[W] AddNat (S (S x')) (S y')  zeta       ; [W] zeta    ~ (S (S z'))
-[W] AddNat (S (S x')) ypsilon (S (S z')) ; [W] ypsilon ~ (S y')
-[W] AddNat chi        (S y')  (S (S z')) ; [W] chi     ~ (S (S x'))
+===>                                      -- for fresh zeta0, ypsilon0, chi0
+[W] AddNat (S (S x')) (S y')   zeta0      ; [W] zeta0    ~ (S (S z'))
+[W] AddNat (S (S x')) ypsilon0 (S (S z')) ; [W] ypsilon0 ~ (S y')
+[W] AddNat chi0       (S y')   (S (S z')) ; [W] chi0     ~ (S (S x'))
 ```
 
 There would have to be some sort of (non-strict) consistency condition on the instances, such that if any of the disjuncts matched, it would be only to the same instance (and thereby their improvement would make the result matchable for the other disjuncts).
@@ -89,17 +104,17 @@ There would have to be some sort of (non-strict) consistency condition on the in
 (B)'s considering only the determining positions is to give instance selection the best hope. Suppose
 
 ```haskell
-instance SomeC Int Bool Char              -- SPJ's 'kosher' instance from above
+instance C Int Bool Char              -- SPJ's 'kosher' instance from above
 
-[W] SomeC Int alpha v                     -- SPJ's wanted
+[W] C Int alpha v                     -- SPJ's wanted
 ```
 
 We want to ignore the `alpha`, because that's the position awaiting improvement via the FunDep. That gives a benefit, in context of the current discussion. Suppose
 
 ```haskell
-instance {-# AMBIGUOUS #-} SomeC Char (t -> t) c
+instance {-# AMBIGUOUS #-} C Char (t -> t) c
 
-[W] SomeC Char alpha v
+[W] C Char alpha v
 ```
 
 We don't care what `t` is/we don't even inspect that parameter. We just match the instance and improve `alpha ~ (t0 -> t0)` for fresh `t0`.
