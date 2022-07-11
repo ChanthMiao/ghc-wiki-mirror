@@ -21,7 +21,7 @@ Or put differently, the warning shall forecast the compile errors that would occ
 
 
 
-It's already possible to attach (deprecation) warnings to class methods. However, we need a different syntax for this new variant of warnings attached to methods:
+It's already possible to attach top-level (deprecation) warnings to class methods. However, we need a different syntax for this new variant of warnings attached to methods:
 
 
 ```
@@ -32,7 +32,7 @@ class C a where
 
   bar :: a -> a
   bar x = x
- 
+
   -- New class-method deprecation annotation
   -- NB: the pragma is indented at the class body level!
   {-# DEPRECATED bar "'bar' will cease to be a method of C, please avoid referring to it as a method of C!" #-}
@@ -47,7 +47,7 @@ class C a where
 ## Review of DEPRECATED
 
 
-The existing `{-# DEPRECATED foo ".." #}` pragma in a module `Def` causes a deprecation warning to be emitted whenever `foo` is referred to.  But note that we do **not** warn when `foo` is used 
+The existing `{-# DEPRECATED foo ".." #}` pragma in a module `Def` causes a deprecation warning to be emitted whenever `foo` is referred to.  But note that we do **not** warn when `foo` is used
 
 - In the same module that it was defined.
 - In import and export lists.
@@ -69,7 +69,7 @@ Under this new deprecated-class-methods proposal, when `{-# DEPRECATED bar ".." 
 
 More precisely, a deprecation warning is emitted under the following circumstances (only):
 
-- An instance of `C`, in a module other than `Def`, gives a definition for method `bar`, 
+- An instance of `C`, in a module other than `Def`, gives a definition for method `bar`,
 - `bar` is mentioned by a declaration in a module other than `Def`, and `bar` is in scope only via import items that imply `bar` is a class method, namely `C(..)` or `C(bar)`.
 
 
