@@ -259,7 +259,16 @@ I'll reword for a simple example (`TypeEq`) with overlapping instances (under th
 | ● If all the remaining candidates are incoherent, the search succeeds, returning an arbitrary surviving candidate. |   |
 | ● If more than one non-incoherent candidate remains, the search fails.  | _stet_ | _stet_ |
 | ● Otherwise there is exactly one non-incoherent candidate; call it the “prime candidate”. |  |  |
-| ● Now find all instances, or in-scope given constraints, that unify with the target constraint, but do not match it. Such non-candidate instances might match when the target constraint is further instantiated. If all of them are incoherent top-level instances, the search succeeds, returning the prime candidate. Otherwise the search fails. | _stet_ plus: _Add a wanted equality constraint (`~`) to unify the target constraint's dependent position (third class param) with the instance's third param._ | _stet_ plus: _Add wanted equality constraints (`~`) to unify the target constraint's dependent positions (from each FunDep) with the instance's corresponding positions._ |
+| ● Now find all instances, or in-scope given constraints, that unify with the target constraint, but do not match it. Such non-candidate instances might match when the target constraint is further instantiated. If all of them are incoherent top-level instances, the search succeeds, returning the prime candidate. Otherwise the search fails. | _stet_ plus upon returning: _Add a wanted equality constraint (`~`) to unify the target constraint's dependent position (third class param) with the instance's third param._ [Note †] | _stet_ plus upon returning: _Add wanted equality constraints (`~`) to unify the target constraint's dependent positions (from each FunDep) with the instance's corresponding positions._ [Note †] |
 
 
 **[Note ‡]** Revised definition of instance overlap. As described above, the instance heads have been pre-validated to be in strict substitution ordering ignoring their dependent positions. I believe GHC currently doesn't pre-validate, so the filtering for most specific instance at bullet three is the point at which non-strict overlapping will come to light: reject the instance rather than reject the usage site.
+
+**[Note †]** Improvement upon returning the selected instance. This generated equality constraint is the improvement currently applied to a Wanted from a (randomly-chosen) instance before trying to select an instance. Under this proposal, no improvement is to be applied until a unique instance is selected. The effect is as if:
+
+| These instances under proposed rules | were written as these instance, under current GHC |
+| ------------------------------ | -------------------------------- |
+| `instance TypeEq a a True `    | `instance (r ~ True ) => a a r`  |
+| `instance TypeEq a b False`    | `instance (r ~ False) => a b r   |
+
+(But that style of rewrite is not possible in general -- as with `AddNat`, for example.)
