@@ -238,3 +238,28 @@ Can we elaborate a Wanted into a disjunction (inclusive-or) of Wanteds?
 ```
 
 Any of those `[W] AddNat ...`s will select the `AddNat (S x') y z` head (but not the `AddNat Z y y`).
+
+# Selecting instances -- comparison to GHC User Manual's procedure
+
+Ref steps at [§ 6.8.8.4 'Overlapping instances'](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/instances.html#overlapping-instances) -- amended for a definition of Overlapping to be FunDep-aware. We wish to preserve these criteria:
+
+<blockquote>
+Notice that these rules are not influenced by flag settings in the client module, where the instances are used. These rules make it possible for a library author to design a library that relies on overlapping instances without the client having to know.
+</blockquote>
+
+... including the library relying on overlap in the revised sense with FunDeps.
+
+I'll reword for a simple example (`TypeEq`) with overlapping instances (under the amended definition) and a single FunDep, then a more complex (`AddNat`) with multiple FunDeps.
+
+| steps from User Manual | revise for `TypeEq` (one FunDep) | revise for `AddNat` (threee FunDeps) |
+| ---------------------- | ------------------- | -------------------- |
+| ● Find all instances _I_ that match the target constraint; that is, the target constraint is a substitution instance of _I_. These instance declarations are the candidates. | Find all instances _I_ that match the target constraint _ignoring the dependent positions (third class param)_. _That is, match whether or not the target constraint's third param is a substitution instance of the instance's third param._\ These instance declarations are the candidates. | Find all instances _I_ that match the target constraint _trying the match once per FunDep, ignoring the dependent position (for each FunDep respectively)_. _That is, match whether or not the target constraint's respective dependent param is a substitution instance of the instance's dependent param._\ These instance declarations are the candidates. |
+| ● If no candidates remain, the search fails | _stet_ | _stet_ |
+| ● Eliminate any candidate _IX_ for which there is another candidate _IY_ such that both of the following hold:\ ○ _IY_ is strictly more specific than _IX_. That is, _IY_ is a substitution instance of _IX_ but not vice versa.\ ○ Either _IX_ is overlappable, or _IY_ is overlapping. (This “either/or” design, rather than a “both/and” design, allow a client to deliberately override an instance from a library, without requiring a change to the library.) | _stet_ except ... That is, _IY_ is strictly more specific than _IX_, _ignoring the third class param_.  | _stet_ except ... That is, _IY_ is strictly more specific than _IX_, _by comparing for each FunDep, ignoring the dependent position (for each FunDep respectively)_.   [Note ‡] |
+| ● If all the remaining candidates are incoherent, the search succeeds, returning an arbitrary surviving candidate. |   |
+| ● If more than one non-incoherent candidate remains, the search fails.  | _stet_ | _stet_ |
+| ● Otherwise there is exactly one non-incoherent candidate; call it the “prime candidate”. |  |  |
+| ● Now find all instances, or in-scope given constraints, that unify with the target constraint, but do not match it. Such non-candidate instances might match when the target constraint is further instantiated. If all of them are incoherent top-level instances, the search succeeds, returning the prime candidate. Otherwise the search fails. | _stet_ plus: _Add a wanted equality constraint (`~`) to unify the target constraint's dependent position (third class param) with the instance's third param._ | _stet_ plus: _Add wanted equality constraints (`~`) to unify the target constraint's dependent positions (from each FunDep) with the instance's corresponding positions._ |
+
+
+**[Note ‡]** Revised definition of instance overlap. As described above, the instance heads have been pre-validated to be in strict substitution ordering ignoring their dependent positions. I believe GHC currently doesn't pre-validate, so the filtering for most specific instance at bullet three is the point at which non-strict overlapping will come to light: reject the instance rather than reject the usage site.
