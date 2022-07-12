@@ -23,7 +23,7 @@ For a pair of instances to be valid under RICC wrt a set of FunDeps (given they'
 
 # Full FunDeps
 
-A FunDep is **Full** just in case it mentions all class params -- either in determining or dependent positions; otherwise non-Full. These are Full:
+A FunDep is **Full** just in case it mentions all class params -- either in determining or dependent positions; otherwise non-Full. Note in Mark Jones' ESOP paper, all the examples are Full FunDeps. I'm not sure that paper's rules for validity and type improvement through instances are intended to cater for non-Full. These are Full:
 
 ```haskell
 class TypeEq a b (r :: Bool)  | a b -> r
