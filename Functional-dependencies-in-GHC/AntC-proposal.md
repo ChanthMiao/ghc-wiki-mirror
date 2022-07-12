@@ -269,6 +269,6 @@ I'll reword for a simple example (`TypeEq`) with overlapping instances (under th
 | These instances under proposed rules | were written as these instance, under current GHC |
 | ------------------------------ | -------------------------------- |
 | `instance TypeEq a a True `    | `instance (r ~ True ) => a a r`  |
-| `instance TypeEq a b False`    | `instance (r ~ False) => a b r   |
+| `instance TypeEq a b False`    | `instance (r ~ False) => a b r`   |
 
 (But that style of rewrite is not possible in general -- as with `AddNat`, for example.)
