@@ -153,6 +153,10 @@ There are many details to work out. For example:
   intances match but one is more general than the other.  Example:
   `instance forall a. C [a]` and `instance C [Int]`. Then, if there is a unique most-general instance (in this case the `C [a]` instance), use it for generating the derived constraints.  The idea is that it summarise what is common among all the unifying instances, one of which may ultimately solve the constraint.
 
+* [AntC] BTW the (database) theory of Functional Dependencies doesn't entail there be an algorithm or formula to get from LHS to RHS. A database table is merely a long list of correspondences, in which the LHS position(s) act as an index to look up the RHS. Mark Jones' original ESOP paper § 6.1 'Ensuring that Dependencies are Valid' introduces inference/improvement "to ensure pairwise compatibility
+between instance declarations for" a class.\
+  Then in the case of classes like `HasField/GetField`, there will be only one instance for each combination of field label and record type; no risk of non-confluent type improvement between instances, because no other instances. This does suggest that _contra_ the current 'Wiggly arrows' proposal for `SetField`, the LHS of each FunDep include as many parameters as possible, to remove the risk of collisions. That is, not `x s -> t`, but `x s b -> t`; to cover the case where field `x`'s type is a parameter to `s`'s type, so changing the field's type to `b` should produce a type `t` also parametric on `b`. (If `s` happens to be not parametric on `b`, that does no harm.)
+
 --------------------------
 
 ## Examples of SingleChoiceInference
