@@ -16,6 +16,10 @@ Sadly, this design doesn't account for instances where a deprecated definition i
 
 **SimonM** If you import a `DEPRECATED` identifier, then there are two cases: either it is mentioned somewhere, in which case the deprecation warning will be shown, or it is not mentioned, in which case there will be an unused import warning (provided it is enabled), so this seems less useful than the other suggestions on this page. **End SimonM**
 
+**John Ericson**: A related question is whether two overlapping explicit imports (not of the same underlying thing) counts as an error or not. I think they both shouldn't be *silent*, even this is an warning rather than error.
+
+In conclusion, I feel unused explicit imports are "semi uses", somewhat akin to dead code. We don't have to treat them as onerousness as "real" uses, but they do indicate more direct intent than wildcards so we should hold them to a higher standard.
+
 TODO Write formal specification.
 
 ## Deprecating exports
