@@ -222,7 +222,7 @@ module must be recompiled.
 Often the interface file is not touched in order to avoid unnecessary recompilation of external build systems (see [make](make)). As a result, interface files may not change from the previous build, so may contain outdated information. That said, GHC guarantees that:
 
 - Interface files have an up to date ABI hash for the corresponding module
-  - A changed ABI hash is a necessary but not sufficient condition for recompilation of modules that depend on this module.
+  - When considering whether or not a module’s dependent modules need to be recompiled due to changes in the current module, a changed ABI hash is a necessary but not sufficient condition for recompilation.
 
 ### Example
 
