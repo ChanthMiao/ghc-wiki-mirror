@@ -1,5 +1,18 @@
-# Compiler
+# 0. Gotchas
 
+If you get
+```
+bash$ ~/code/HEAD-1/_build/ghc-stage1 -c Foo.hs
+Loaded package environment from /home/simonpj/.ghc/x86_64-linux-9.5.20220628/environments/default
+<command line>: cannot satisfy -package-id base-4.17.0.0
+```
+it could be becuase GHC is "helpfully" [adding flags to your invocation](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/packages.html#package-environments) 
+
+You can see exactly what is being added by inspecting the environment file `$HOME/.ghc/x86_64-linux-9.5.20220628/environments/default`. You can safely delete that file. Although without knowing how it got there, it may re-appear.
+
+You can set `export GHC_ENVIRONMENT=-` or pass `-package-env -` on your command line to disable the reading of environment files.
+
+# 1. Compiler
 
 ## Make the stage1 or stage2 compiler (only)
 
@@ -38,7 +51,7 @@ Then you can scroll back through the build log and copy the command like before.
 
 Add `--skip=_build/stage1/rts/**` to your command line.
 
-# Testsuite
+# 2. Testsuite
 
 See [main documentation here](https://gitlab.haskell.org/ghc/ghc/-/blob/master/hadrian/doc/testsuite.md)
 
@@ -71,7 +84,7 @@ Then copy the command line used to run the test in order change directory
 into the right folder and run the failing test.
 
 
-# Nofib
+# 3. Nofib
 
 See [documentation here](https://gitlab.haskell.org/ghc/nofib/-/blob/master/shake/README.mkd)
 
