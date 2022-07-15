@@ -68,6 +68,24 @@ class C2 x y z |  x -> z              -- Not Full
 class C3 x y z |  x z -> y, y -> x    -- (x z -> y) is Full; but (y -> x) is not
 ```
 
+[AntC] This isn't the definition in the JFP paper [Definition 13]. Furthermore it's incomplete. This meets the above def'n, and is accepted by GHC:
+
+```haskell
+class C4 x y z | x y -> y              -- y appears both sides, z not mentioned
+```
+
+Definition 13 requires that the tyvar that doesn't appear on LHS must appear on RHS.
+
+I prefer a definition that all tyvars from the class head appear in the FunDep, without being specific as to which side. So this is acceptable:
+
+```haskell
+class C5 x y z  | x -> y z
+
+class SetField x s t a b  | x s b -> t a
+```
+
+(Multiple tyvars appearing on RHS is useful with Lenses and maybe `SetField`.)
+
 ## 1.6 Multi-range functional dependencies
 
 See Section 6.3 of the JFP paper.
