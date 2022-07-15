@@ -12,6 +12,15 @@ This is a proposal to relax the Strict Instance Consistency Conditions, but not 
 
 A smaller but significant benefit is to greatly reduce the need for `UndecidableInstances`; and somewhat reduce the need for Liberal Coverage; thereby making instances easier to read with less clutter in constraints.
 
+## Principles
+
+* Instance selection must select exactly one instance, then behave at the usage site as if that is the only instance for the class. (Then #10675 is in error because it tangles together two different instances.)
+* Instance selection must never be driven by matching a dependent position. (Then `[W] TypeEq alpha beta False` alone must not select an instance until `alpha, beta` are further instantiated.)
+  * in case a position is both dependent and determining, wrt different FunDeps (as with `AddNat`), a determining position can drive instance selection.
+* Any type improvement prior to selecting a single instance can apply only if all the candidate instances meet the SICC for the applicable FunDep -- possibly relaxed to the RICC defined here. (Then #10675 is further in error, because its instances don't meet SICC -- indeed they don't even meet LICC.)
+
+## Approach
+
 * The base position is to try the SICC first -- that is, compare instance heads pairwise, applying the SICC for each FunDep of the class. Only if that fails, move to the RICC just for the FunDeps and pairs of instances that fail.
 
 For a pair of instances to be valid under RICC wrt a set of FunDeps (given they're not consistent by SICC):
