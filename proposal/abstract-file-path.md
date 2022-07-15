@@ -1,3 +1,5 @@
+_Update 2022-07-15_: A version of the proposal below has been implemented in [`filepath-1.4.100.0`](https://hackage.haskell.org/package/filepath-1.4.100.0). See https://hasufell.github.io/posts/2022-06-29-fixing-haskell-filepaths.html.
+
 # Abstract `FilePath` Proposal (AFPP)
 
 *Herbert Valerio Riedel, Neil Mitchell & Michael Snoyman*
