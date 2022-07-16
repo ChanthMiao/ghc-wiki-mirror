@@ -1,4 +1,7 @@
 See #21779 for discussion.
+Go up to [Functional dependencies in GHC](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies-in-GHC), which has pointers to terminology etc.
+
+[[_TOC_]]
 
 "Wiggly arrows" are an idea for an alternative to functional dependencies, used merely to guide type inference. Hopefully this could provide a replacement for some of the current "abuses" of fundeps, and allow fundeps to be subsequently made stricter (e.g. by translation to type families).
 
@@ -14,8 +17,6 @@ class instances, even though there may not be a function determining them fully.
 
 Our hypothesis is that all current uses of functional dependencies can either
 use true fundeps or wiggly arrows.
-
-Go up to [Functional dependencies in GHC](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies-in-GHC), which has pointers to terminology etc.
 
 ## The idea
 
@@ -121,8 +122,55 @@ all.  For example, this could be indicated by using a modifier on one of the
 instances.  This would allow the programmer to accept potential non-confluence
 in exchange for being able to express examples that do not satisfy the SICC.
 
+(TODO: perhaps what we actually want is a condition weaker than the SICC but
+stronger than the LICC, along the lines of AntC's suggestions?  In particular we
+may be able to be more liberal if the dependencies are full.)
 
-## Interacting wanteds without LCC leads to non-confluence
+
+## Why are wiggly arrows expressed at the class level?
+
+Wiggly arrows are expressed at the class level, rather than on specific
+instances.  This is in contrast to the proposed [DYSFUNCTIONAL per-instance
+pragma for selective lifting of the coverage condition](https://github.com/ghc-proposals/ghc-proposals/pull/374),
+which advocates marking individual instances that skip checking the coverage
+condition.  It is necessary to have an annotation at the class level because
+wiggly arrows do not generate improvements via wanted-wanted interactions,
+unlike fundeps.  See the following section for the rationale for this choice.
+
+
+## No wanted-wanted interactions
+
+Wiggly arrows allow more instances than GHC's current implementation of
+functional dependencies, because of the absence of the coverage condition
+(setting aside the "circular" hack which allows the coverage condition to be
+bypassed in current GHC).
+
+However they are not simply a liberalisation of GHC's existing rules, because
+wanted constraints do not interact with other wanteds to produce improvements.
+This means that in some cases, type inference may produce more general types if
+a wiggly arrow is used instead of a fundep (potentially leading to ambiguity).
+
+For example:
+
+```hs
+class C a b | a -> b where
+  foo :: a -> b
+
+class D a b c where
+  bar :: a -> b -> c -> ()
+
+instance D a a c where
+  bar _ _ _ = ()
+
+-- inferred: baz :: C a b => a -> a -> ()
+baz (x :: a) (y :: a) = bar (foo x) (foo y) undefined
+
+-- replacing the a -> b fundep with a wiggly arrow would give
+-- the inferred type (C a b1, C a b2, D b1 b2 c) => a -> a -> ()
+-- which is ambiguous because c is undetermined
+```
+
+### Interacting wanteds without LCC leads to non-confluence
 
 This example shows that since wiggly arrows drop the LCC, they must also drop
 wanted-wanted interactions.  The following instance (from
@@ -143,6 +191,10 @@ the instance we simplify to `[W] gamma ~ [beta'], F beta alpha, F beta' alpha`.
 But if the original wanteds were allowed to interact to derive `gamma ~ [beta]`
 we could also simplify to `[W] gamma ~ [beta], F beta alpha`, i.e. constraint
 solving would not be confluent.
+
+Moreover, given wanted-wanted interactions but not the LCC, it is possible to
+violate principal types (see the `hmm` example at the bottom of the `SetField`
+section below).
 
 
 ## What's the difference between fundeps and type equalities?
