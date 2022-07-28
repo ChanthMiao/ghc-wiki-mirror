@@ -106,7 +106,7 @@ An [interface file](commentary/compiler/iface-files) contains:
     whether a file has been modified or not. In the past we used to use the modification time
     of files but using the source hash is more robust to poor resolution timers and modern build
 systems.
-  - The *ABI hash*, which depends on everything that the module
+  - The *ABI hash* (Application Binary Interface), which depends on everything that the module
     exposes about its implementation: think of this as a hash of
     *export-list hash* and *decls*.
   - The *export-list hash*, which depends on
