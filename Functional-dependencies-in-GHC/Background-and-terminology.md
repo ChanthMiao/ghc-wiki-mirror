@@ -114,7 +114,7 @@ The intuition is that since `p` fixes `q` in the context, so `[p]` indirectly fi
 See Defn 12 of the JFP-paper (Section 6.1), which calls it the "weak coverage condition".
 
 The LCC threatens confluence of solving. Consider this (Example 18 in the JFP paper):
-````
+```
 class NF a b c | a->b
 
 instance                NF Int Bool Char   -- (I1)
