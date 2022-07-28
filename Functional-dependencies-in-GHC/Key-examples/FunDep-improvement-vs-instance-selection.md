@@ -129,3 +129,29 @@ instance (b ~ String => SomeC Int b Integer            -- not
 ```
 
 I don't have an answer. This is why I (and the JFP-paper) are deeply suspicious of non-Full FunDeps.
+
+## SPJ thoughts
+
+I think that your instance selection rules are equivalent to this.
+
+1. Transform the instance declarations as below
+2. Drop constraint-to-instance fundep generation entirely
+3. Use GHC's existing rules for instance selection
+
+The transformation.  Consider the class
+```
+    class C a b c | a -> b
+    instance blah => C t1 t2 t3
+```
+Transform the instance to
+```
+    instance (blah, b~t2) => C t1 b t3
+```
+where I've put a wildcard in the determined position. Now we get something
+that effectively combines instance selection and fundep generation in one,
+just as described in 6.1
+
+But I'm not sure what to do if there are multiple fundeps
+```
+    class C a b c | a -> b, b -> a
+```
