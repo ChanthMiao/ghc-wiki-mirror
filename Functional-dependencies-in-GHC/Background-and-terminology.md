@@ -58,35 +58,7 @@ Generally,
 * We are happy to risk non-termination when we ask for it; insisting on guaranteed termination is very restrictive
 * We are extremely reluctant to risk non-confluence.
 
-## 1.5 Full functional dependencies
-
-In a class decl, we say that *a functional dependency is **full** if all but one of the class tyvars appears on the LHS of the fundep*.  For example.
-
-```
-class C1 x y z |  x y -> z            -- Full
-class C2 x y z |  x -> z              -- Not Full
-class C3 x y z |  x z -> y, y -> x    -- (x z -> y) is Full; but (y -> x) is not
-```
-
-[AntC] This isn't the definition in the JFP paper [Definition 13]. Furthermore it's incomplete. This meets the above def'n, and is accepted by GHC:
-
-```haskell
-class C4 x y z | x y -> y              -- y appears both sides, z not mentioned
-```
-
-Definition 13 requires that the tyvar that doesn't appear on LHS must appear on RHS.
-
-I prefer a definition that all tyvars from the class head appear in the FunDep, without being specific as to which side. So this is acceptable:
-
-```haskell
-class C5 x y z  | x -> y z
-
-class SetField x s t a b  | x s b -> t a
-```
-
-(Multiple tyvars appearing on RHS is useful with Lenses and maybe `SetField`.)
-
-## 1.6 Multi-range functional dependencies
+## 1.5 Multi-range functional dependencies
 
 See Section 6.3 of the JFP paper.
 
@@ -99,6 +71,20 @@ Suppose we have `[W] C [p] q r`.  Then
 * A multi-range FD `a -> b c` will emit improvement equalities `q ~ [beta], r ~ [beta]`; but 
 * Two single-range FDs `a -> b, a -> c` will emit `q ~ [beta1], r ~ [beta2]`, with distinct unification variables `beta1`, `beta2`.
 
+## 1.6 Full functional dependencies
+
+In a class decl, we say that *a functional dependency is **full** if all of the class tyvars appears either in the LHS or the RHS of the fundep*.  For example.
+
+```
+class C1 x y z |  x y -> z       -- Full
+class C2 x y z |  x -> z         -- Not Full
+class C3 x y z |  x z -> y       -- Full
+class C4 w x y z |  x z -> w y   -- Full
+```
+Multiple tyvars appearing on RHS is useful with Lenses and maybe `SetField`.  e.g.
+```haskell
+class SetField x s t a b  | x s b -> t a
+```
 
 -------------------------
 
@@ -126,6 +112,32 @@ I'm using `{-# LIBERAL #-}` to signal that the instance only satisfies the liber
 The intuition is that since `p` fixes `q` in the context, so `[p]` indirectly fixes `[q]`.
 
 See Defn 12 of the JFP-paper (Section 6.1), which calls it the "weak coverage condition".
+
+The LCC threatens confluence of solving. Consider this (Example 18 in the JFP paper):
+````
+class NF a b c | a->b
+
+instance                NF Int Bool Char   -- (I1)
+instance NF a b Bool => NF [a] [b]  Bool   -- (I2) Needs liberal coverage condition LCC
+```
+Then we can solve the constraints `[W1] NF [x] [y] Bool, [W2] NF [x] p q` in two ways:
+```
+[W1] NF [x] [y] Bool, [W2] NF [x] p q
+  ==> fundep [W1] and [W2]
+  [W1] NF [x] [y] Bool, [W2] NF [x] p q, [W] p~[y]
+  ==> use (I2)
+  [W1] NF x y Bool, [W2] NF [x] p q, [W] p~[y]
+
+or
+
+[W1] NF [x] [y] Bool, [W2] NF [x] p q
+  ==> use (I2)
+  [W1] NF x y Bool, [W2] NF [x] p q
+  ==> fundep [W2] and (I2)
+  [W1] NF x y Bool, [W2] NF [x] p q, [W] p~[alpha]
+       where alpha is a fresh unification variable
+```
+The results are not the same. Boo.  Making the fundeps full restores confluence (Section 6.1 of the JFP paper).
 
 -------------------------
 
