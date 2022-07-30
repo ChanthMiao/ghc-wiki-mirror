@@ -155,3 +155,36 @@ But I'm not sure what to do if there are multiple fundeps
 ```
     class C a b c | a -> b, b -> a
 ```
+
+### AntC response
+
+> instance selection rules are equivalent to ...
+
+Yes, and @AdamG covers [similar ground here](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies-in-GHC/Wiggly-arrows#whats-the-difference-between-fundeps-and-type-equalities). As he points out, that's not enough without considering consistency conditions. For example:
+
+* If I make that transformation to the instances in #10675, at least I don't get the baffling entanglement between instances.
+* _But_ I do get `[x]` improved differently from the different instances, thus breaking the consistency expectations.
+* Contrast that transformation with Hugs: it still rejects the instances as inconsistent; because it refuses to unify two wildcards arising from different instance heads.
+* Or are you saying the Liberal Instance Consistency should accept differing improvement from selecting a different instance? (In case of #10675, really improvement is being driven from the first param, which isn't mentioned in the FunDep.)
+
+> what to do if there are multiple fundeps
+
+Indeed, and I notice @AdamG wants multiple FunDeps for `setField` -- as do all proposals around record-alikes, including the original Lenses. Also Adam wants non-Full FunDeps with apparently liberaller-than-Liberal Consistency.
+
+Multiple FunDeps don't always muck up the wildcard-with-`~`-constraint idea. Take this version of `AddNat`:
+
+```haskell
+class {- AddNat y x z =>  -- ?? flip the args, would give an extra FunDep -}
+         AddNat x y z  | x y -> z, x z -> y  -- only 2 FunDeps, both mention x
+
+instance                 (z ~ y     ) => AddNat Z      y z
+instance (AddNat x' y z', z ~ (S z')) => AddNat (S x') y z
+```
+
+Since both FunDeps mention `x`; and the instances' `x` positions are apart, this is the usual way to write `AddNat`.
+
+My `??` superclass constraint is rightly rejected: no smaller than class head. You could put it as instance constraints, but that doesn't genuinely induce FunDep-like improvement until the instance is selected -- by which time it's redundant.
+
+We could perhaps figure out some rules for when you can 'get away with' multiple FunDeps. I fear it'll need looking across all instances for the class; and I guess would lead to some horrendous error messages, leaving users perplexed as to whether/how they could patch up their instances.
+
+So my (more tractable) approach is to say instance heads must overlap in strict substitution order -- for an adapted definition of overlap. More tractable because it needs only comparing instances pairwise.
