@@ -158,6 +158,14 @@ But I'm not sure what to do if there are multiple fundeps
 
 ### AntC response
 
+So the penny is dropping slowly: 
+
+> 3.  GHC's existing rules for instance selection
+
+are to select an instance only when the Wanted is a substitution instance of the instance head. A Wanted with a wildcard/skolem in a dependent position (which is what we usually expect) would never select an instance. So GHC uses FunDep improvement to force the instance's type into the Wanted; then the Wanted will match the instance.
+
+That's workable (I guess -- although it seems like going round the houses) provided all instances obey the SICC. But GHC has never (AFAIK) enforced the SICC.
+
 > instance selection rules are equivalent to ...
 
 Yes, and @AdamG covers [similar ground here](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies-in-GHC/Wiggly-arrows#whats-the-difference-between-fundeps-and-type-equalities). As he points out, that's not enough without considering consistency conditions. For example:
@@ -175,13 +183,13 @@ Multiple FunDeps don't always muck up the wildcard-with-`~`-constraint idea. Tak
 
 ```haskell
 class {- AddNat y x z =>  -- ?? flip the args, would give an extra FunDep -}
-         AddNat x y z  | x y -> z, x z -> y  -- only 2 FunDeps, both mention x
+         AddNat x y z  | x y -> z, x z -> y  -- only 2 FunDeps, both have x on LHS
 
 instance                 (z ~ y     ) => AddNat Z      y z
 instance (AddNat x' y z', z ~ (S z')) => AddNat (S x') y z
 ```
 
-Since both FunDeps mention `x`; and the instances' `x` positions are apart, this is the usual way to write `AddNat`.
+Since both FunDeps have `x` as determining; and the instances' `x` positions are apart, this is the usual way to write `AddNat`.
 
 My `??` superclass constraint is rightly rejected: no smaller than class head. You could put it as instance constraints, but that doesn't genuinely induce FunDep-like improvement until the instance is selected -- by which time it's redundant.
 
