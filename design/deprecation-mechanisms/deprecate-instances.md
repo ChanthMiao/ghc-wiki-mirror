@@ -9,6 +9,8 @@ Add the ability to attach a `DEPRECATED` pragma to a specific instance of a clas
 This would be expanding where the `DEPRECATED` pragma can occur, but would not introduce any new
 syntax on it's own.
 
+The location before the `where` matches that for deprecating modules.
+
 ## Examples
 
 ```
