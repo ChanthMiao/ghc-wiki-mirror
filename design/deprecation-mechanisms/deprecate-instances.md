@@ -12,8 +12,7 @@ syntax on it's own.
 ## Examples
 
 ```
-instance Show Foo where
-  {-# DEPRECATED "Don't use the Show instance of Foo" #-}
+instance Show Foo {-# DEPRECATED "Don't use the Show instance of Foo" #-} where
   ...
 ```
 
