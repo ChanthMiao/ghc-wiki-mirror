@@ -13,7 +13,7 @@ The location before the `where` matches that for deprecating modules.
 
 ## Examples
 
-```
+```haskell
 instance Show Foo {-# DEPRECATED "Don't use the Show instance of Foo" #-} where
   ...
 ```
