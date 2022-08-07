@@ -196,3 +196,67 @@ My `??` superclass constraint is rightly rejected: no smaller than class head. Y
 We could perhaps figure out some rules for when you can 'get away with' multiple FunDeps. I fear it'll need looking across all instances for the class; and I guess would lead to some horrendous error messages, leaving users perplexed as to whether/how they could patch up their instances.
 
 So my (more tractable) approach is to say instance heads must overlap in strict substitution order -- for an adapted definition of overlap. More tractable because it needs only comparing instances pairwise.
+
+### Fun Finding: Improvement of a Wanted is tantamount to instance selection
+
+-- that is, providing the improvement is from a FunDep that's Full. (Recap from the top of this page:)
+
+<blockquote>
+[SPJ] GHC does two *entirely separate* steps:
+
+1. Improvement of a Wanted. The only effect is to emit new equality constraints
+</blockquote>
+
+If in searching for improvement from instances/FunDeps:
+
+* the Wanted's types match all the Determining positions for some instance, for some FunDep; and
+* that FunDep is Full (mentions all of the class's params) -- irrespective of whether other FunDeps are non-Full; then
+* we have in effect selected that instance.
+* Note this is 'selected' whether or not reacting with this instance actually improves any types; and
+* is 'selected' whether or not there are other FunDeps (possibly Full) that do improve some types.
+
+If we're going to allow Instance heads that are inconsistent going by (Full) FunDeps, all we need to arrange is:
+
+* the compiler scans through instances in a definite sequence, so that improvement is consistent between compilation runs; and
+* the compiler stops trying to improve via other instances as soon as it's found a Full FunDep that matches the wanted.
+* Beware it should (try to) improve via all FunDeps for the matched instance.
+
+The 'definite sequence' I propose is overlapping instances, for an amended definition of overlap in face of FunDeps, and strict ordering of instances, not GHC's allowing semi-overlap.
+
+**Tests:** I have this accepted in modified Hugs:
+
+```haskell
+class TypeEq a b e  | a b -> e  where tEq :: a -> b -> e
+
+instance TypeEq a a TTrue       where tEq _ _ = TTrue
+    
+instance TypeEq a b TFalse      where tEq _ _ = TFalse
+
+> tEq True False             -- ===> TTrue
+> tEq True ()                -- ===> TFalse
+> tEq True False :: TFalse   -- rejected: Constraints are not consistent with FunDep
+> tEq True ()    :: TTrue    -- rejected: Constraints are not consistent with FunDep
+
+class AddNat x y z  | x y -> z, z x -> y, z y -> x  where     -- 3 x FunDeps
+        addNat :: x -> y -> z                                     
+        subNat :: z -> x -> y
+
+instance AddNat Z y y  where                                
+        addNat _Z y  = y                                          
+        subNat z  _Z = z
+    
+instance (AddNat x' y z') => AddNat (S x') y (S z')  where   
+        addNat (S x') y = S (addNat x' y)
+        subNat (S z') (S x') = subNat z' x'
+
+> :t undefined :: AddNat a (S Z) (S (S Z)) => a    -- ===> :: S Z
+
+```
+
+(Those two instances for `AddNat` are cheating: they're in no strict ordering, I'm relying on textual order of appearance. If I flip round the order of appearance, it all goes wrong. This is where I want Apartness Guards.)
+
+By prematurely stopping the scan of instances, does this block potential improvements?
+
+* Not improvements from instances that are apart: they wouldn't get selected for this Wanted anyway.
+* Yes from instances that are later in the 'definite sequence' -- those we deliberately block, because they'd give contrary improvement.
+* Maybe from non-Full FunDeps for instances later in the definite sequence. I think this is grounds to insist on SICC for non-Full FunDeps: the same (consistent) improvement will then arise from the instance we've matched; no need to go on to other instances.
