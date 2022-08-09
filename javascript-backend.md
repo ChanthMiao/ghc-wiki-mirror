@@ -90,6 +90,54 @@ A good solution fixes both problems. It has to integrate with iserv, but we stil
     * We could have a full bytecode interpreter running in JavaScript, running most of the code in bytecode.
     * We could reuse most of the `iserv` infrastructure, but run compiled JS code (like `-fobject-code`). We'd have to fix the linker to get around the size issue.
 
+## Building Issues and how to fix them
+
+### Configure fails with: sub-word sized atomic operations not available
+
+#### The error output
+The error looks like this:
+```
+[nix-shell:~/programming/haskell/ghc]$ ./boot && ./configure --target=js-unknown-ghcjs
+...
+checking version of gcc... checking version of gcc... 15.0.0
+15.0.0
+checking whether CC supports -no-pie... no
+checking whether C compiler supports __atomic_ builtins... yes
+checking whether -latomic is needed for sub-word-sized atomic operations... failed
+configure: error: sub-word-sized atomic operations are not available.
+```
+
+#### The cause and fix
+If you got this error you are most likely using `nix` and `ghc.nix`. The error is caused by `emscripten` trying to write to the `emscripten_cache`, but it cannot write because the `nix store` is read-only. 
+
+The fix is hacky, we need to provide the `emscripten_cache` to emscripten so that it is mutable. Similarly, setting `EM_CACHE` to the cache in the nix store does not work. The workaround, in nix, is to copy the cache, make it writable and export `EM_CACHE` to point to the cache. This is done in the following lines in `ghc.nix`:
+
+```
+# we have to copy from the nixpkgs because we cannot unlink the symlink and copy
+# similarly exporting the cache to the nix store fails during configuration
+# for some reason
+cp -Lr ${emscripten}/share/emscripten/cache .emscripten_cache
+chmod u+rwX -R .emscripten_cache
+export EM_CACHE=.emscripten_cache
+```
+See [this](https://discourse.nixos.org/t/emscripten-tries-to-write-to-nix/15263) post for more.
+
+### JS Backend fails during stage1 with error: symbol memset missing .functype
+
+#### The error output
+This will fail during stage1 with:
+```
+/run/user/1729/ghc3035129_0/ghc_1.s:528:2: error:
+     error: symbol memset missing .functype
+            call    memset
+            ^
+    |
+528 |         call    ...
+```
+
+#### The cause and fix
+This error is a bug in `llvm` which `emscripten` uses to generate JS through wasm (via `wasm2js`). The fix is to use a more recent version of `llvm` or a patched version, and a more recent version of `emscripten` (at least `3.1.x`). Whichever you choose the llvm you use must include [this](https://github.com/llvm/llvm-project/commit/2368f18eb305ae9d5a4f2110c048e5daf5007992) patch, and that llvm must be the llvm that `emscripten` uses. See also [this](https://github.com/llvm/llvm-project/issues/53712) issue. Thus far this has only been problematic for nix users. If that is you please see [this](https://github.com/NixOS/nixpkgs/pull/182840) PR on nixpkgs. Other distros, such as Ubuntu have worked out of the box due to a patched llvm included in their package manager.
+
 ## References
 
 - Haskell Symposium 2013 paper: [demo proposal](https://www.haskell.org/haskell-symposium/2013/ghcjs.pdf)
