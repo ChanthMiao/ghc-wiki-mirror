@@ -4,21 +4,25 @@ This page summarises the state of play of GHC's release engineering efforts.
 
 We advise users to use the following recent releases:
 
-- GHC %9.2.3 (current major release)
-- GHC %9.0.2 (stable major release)
+- GHC %9.4.1 (current major release)
+- GHC %9.2.4 (stable major release)
 
 Further details on our release policies can be found in on the [Wiki](working-conventions/releases).
 We release GHC on multiple platforms; the [platforms page](platforms) gives details.
 
 ## Future releases
 
-- GHC %9.2.4 is currently being prepared and should be available by end of May
-- GHC %9.4.1 is currently in the alpha stage and will be delivered in the next few months (June/July)
+- GHC %9.2.5 
+- GHC %9.4.2
+- GHC %9.6.1 currently in the planning stage
 
 ## Previous releases
 
 The release plans for previous releases are here:
 
+- GHC %9.4.1
+- GHC %9.2.4
+- GHC %9.2.3
 - GHC %9.2.2
 - GHC %9.2.1
 - [GHC 9.0.1](status/ghc-9.0.1)
