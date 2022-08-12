@@ -162,7 +162,7 @@ You may first have to login to the docker registry using your gitlab credentials
 docker login registry.gitlab.haskell.org
 ```
 
-Let's take a concrete example: the `PartialDownsweep` test is failing in the `validate-x86_64-linux-deb8-hadrian` CI job. By looking at the `.gitlab-ci.yml`'s `DOCKER_REV` entry for the job's commit, you can find the `ci-images` commit that the CI job used. For our example, we will use the following commit: `ac65f31dcffb09cd7ca7aaa70f447fcbb19f427f`. You can now the `ghc-docker.sh` script that pulls the image (if needed) and drops you into a corresponding shell:
+Let's take a concrete example: the `PartialDownsweep` test is failing in the `validate-x86_64-linux-deb8-hadrian` CI job. By looking at the `.gitlab-ci.yml`'s `DOCKER_REV` entry for the job's commit, you can find the `ci-images` commit that the CI job used. For our example, we will use the following commit: `ac65f31dcffb09cd7ca7aaa70f447fcbb19f427f`. You can now use the `ghc-docker.sh` script that pulls the image (if needed) and drops you into a corresponding shell:
 
 ``` sh
 $ ./ghc-docker.sh registry.gitlab.haskell.org/ghc/ci-images/x86_64-linux-deb8:ac65f31dcffb09cd7ca7aaa70f447fcbb19f427f
