@@ -1,0 +1,91 @@
+# Tracking Spurious Failures
+
+This document describes my work to track and mitigate spurious failures.
+
+You can cut to the chase by viewing [the dashboard][dashboard]. To make sense of
+it, you might want to read on a bit.
+
+
+## Background
+
+GHC and a few related projects are developed with [GitLab CI]. Tests and other
+tasks are run automatically. If the system for running those tasks fails, it
+creates a frustrating development experience and wastes time.
+
+Thus we have a high-level goal of stabilizing CI.
+
+One symptom of failures is tests that "fail" for reasons unrelated to the
+code. In practice, these happen infrequently, but just often enough to be
+frustrating. 
+
+## Mission
+
+1. Minimize spurious pipeline failures
+1. Provide better evidence about intermittent failures
+
+## Goals
+
+1. Build a dashboard for tracking failures (done: [dashboard])
+1. Gather examples of failures (effectively done: see [tracking issue])
+1. Characterize the failures (WIP)
+1. Identify root causes and fix them (not started)
+
+## Principles
+### Fragile test != Spurious failure
+
+Both fragile tests and spurious failures happen infrequently and are annoying.
+Sometimes it's hard to tell them apart, but it's important to do so.
+
+I won't discuss fragile tests much in this document. There is some
+infrastructure for tracking them that will be discussed later. Suffice to say
+that fragile tests may very well indicate subtle compiler bugs, and we want to
+keep an eye on them. Cleaning up fragile tests will be a separate effort.
+
+Spurious failures, on the other hand, "look like" something gone wrong with the
+CI infrastructure. One obvious example is when the CI system claims it "cannot
+connect to the Docker daemon" (failure type ["docker"][docker fail]).
+
+Unfortunately, there is a grey area. [MoveFileEx] is probably a bug somewhere,
+but manifests as a failure in CI infrastructure.
+
+### Prioritize characterizing new failure modes over fixing root causes for known modes
+
+Rationale:
+* Known failures get retried, mitigating the worst of the damage
+* Known failure modes can be compared to identify priorities
+
+## How It Works
+
+lol
+
+## Systems
+### Spreadsheet
+
+I created a public spreadsheet where people can report spurious failures. It can
+be found via the [tracking issue].
+
+### Dashboard
+
+Can't have too many links to [the dashboard][dashboard]. :) 
+
+### ci-failure-update
+
+### fetch-job-data
+### Queries
+#### Create fts_job_trace
+#### Create all_types
+## Procedures
+### Add to spreadsheet
+### Add new failure type
+### Explore failures
+## History?
+## Issues
+### False negatives
+#### "No space left on device" is sometimes printed for reasons other than, you know, no space left on the device. I might want to just remove it e.g. https://gitlab.haskell.org/ghc/ghc/-/jobs/1144225
+#### T16916 should be marked fragile probably (registered before discovering the "fragile versus spurious" principle)
+
+[dashboard]: https://grafana.gitlab.haskell.org/d/167r9v6nk/ci-spurious-failures?orgId=2&from=now-90d&to=now&refresh=5m
+[GitLab CI]: https://gitlab.haskell.org/help/ci/index.md
+[docker fail]: https://grafana.gitlab.haskell.org/d/167r9v6nk/ci-spurious-failures?orgId=2&from=now-90d&to=now&refresh=5m&var-types=docker
+[MoveFileEx]: https://grafana.gitlab.haskell.org/d/167r9v6nk/ci-spurious-failures?orgId=2&from=now-90d&to=now&refresh=5m&var-types=MoveFileEx
+[tracking issue]: https://gitlab.haskell.org/ghc/ghc/-/issues/21591
