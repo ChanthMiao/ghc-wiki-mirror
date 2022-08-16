@@ -1,5 +1,3 @@
-# Tracking Spurious Failures
-
 This document describes my work to track and mitigate spurious failures.
 
 You can cut to the chase by viewing [the dashboard][dashboard]. To make sense of
@@ -9,8 +7,7 @@ it, you might want to read on a bit.
 ## Background
 
 GHC and a few related projects are developed with [GitLab CI]. Tests and other
-tasks are run automatically. If the system for running those tasks fails, it
-creates a frustrating development experience and wastes time.
+tasks are run automatically, which mostly works great. If the system for running those tasks fails, however, it creates a frustrating development experience and wastes time.
 
 Thus we have a high-level goal of stabilizing CI.
 
@@ -29,6 +26,10 @@ frustrating.
 1. Gather examples of failures (effectively done: see [tracking issue])
 1. Characterize the failures (WIP)
 1. Identify root causes and fix them (not started)
+
+## Timeline
+
+This work began in summer 2022 and will continue at least into the fall.
 
 ## Principles
 ### Fragile test != Spurious failure
@@ -58,20 +59,22 @@ Rationale:
 
 ### Components
 
+* I created a public spreadsheet where people can report spurious failures. It
+  can be found via the [tracking issue].
+* A (local to my laptop) full-text-search database of job traces
 * CI failure database (in Postgres)
 * Extension to to ghc_perf_import that records new failures to the database
 * Dashboard built in Grafana that queries the database. Can't have too many
   links to [the dashboard][dashboard]. :) 
 * ci-failure-update
 * fetch-job-data
-* I created a public spreadsheet where people can report spurious failures. It
-  can be found via the [tracking issue].
 * Views against the full-text search database
 
 ### Queries
+
 (TBD)
 
-1.Create fts_job_trace
+1. Create fts_job_trace
 1. Create all_types
 1. Queries for the dashboard
 
@@ -81,6 +84,7 @@ Rationale:
 * Build a full-text search database of traces
 * Stare really hard at examples from the spreadsheet
 * Build full-text queries that catalogue similar cases
+* Add new failure types to the dashboard
 
 ## Procedures
 ### Add to spreadsheet
