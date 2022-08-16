@@ -56,33 +56,47 @@ Rationale:
 
 ## How It Works
 
-lol
+### Components
 
-## Systems
-### Spreadsheet
+* CI failure database (in Postgres)
+* Extension to to ghc_perf_import that records new failures to the database
+* Dashboard built in Grafana that queries the database. Can't have too many
+  links to [the dashboard][dashboard]. :) 
+* ci-failure-update
+* fetch-job-data
+* I created a public spreadsheet where people can report spurious failures. It
+  can be found via the [tracking issue].
+* Views against the full-text search database
 
-I created a public spreadsheet where people can report spurious failures. It can
-be found via the [tracking issue].
-
-### Dashboard
-
-Can't have too many links to [the dashboard][dashboard]. :) 
-
-### ci-failure-update
-
-### fetch-job-data
 ### Queries
-#### Create fts_job_trace
-#### Create all_types
+(TBD)
+
+1.Create fts_job_trace
+1. Create all_types
+1. Queries for the dashboard
+
+### Procedures
+
+* Create an archive of CI job metadata and traces (aka logs)
+* Build a full-text search database of traces
+* Stare really hard at examples from the spreadsheet
+* Build full-text queries that catalogue similar cases
+
 ## Procedures
 ### Add to spreadsheet
 ### Add new failure type
 ### Explore failures
 ## History?
+
 ## Issues
+
 ### False negatives
-#### "No space left on device" is sometimes printed for reasons other than, you know, no space left on the device. I might want to just remove it e.g. https://gitlab.haskell.org/ghc/ghc/-/jobs/1144225
-#### T16916 should be marked fragile probably (registered before discovering the "fragile versus spurious" principle)
+
+* "No space left on device" is sometimes printed for reasons other than, you
+  know, no space left on the device. I might want to just remove it e.g.
+  https://gitlab.haskell.org/ghc/ghc/-/jobs/1144225
+* T16916 should be marked fragile probably (registered before discovering the
+  "fragile versus spurious" principle)
 
 [dashboard]: https://grafana.gitlab.haskell.org/d/167r9v6nk/ci-spurious-failures?orgId=2&from=now-90d&to=now&refresh=5m
 [GitLab CI]: https://gitlab.haskell.org/help/ci/index.md
