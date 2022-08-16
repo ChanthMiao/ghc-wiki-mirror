@@ -30,6 +30,18 @@ For a pair of instances to be valid under RICC wrt a set of FunDeps (given they'
 * Going by an amended definition of apartness/overlap for FunDeps (note two given instance heads might be apart wrt one FunDep but overlap wrt a different FunDep);
 * If the instance heads overlap wrt two or more FunDeps, it must be the same instance that is more general for each FunDep involved. [Best explained by example](#Bi-overlap-avoidance-condition)
 
+# Progress report 16-Aug-2022: prototype implemented
+
+The discussion with SPJ was useful, thank you, for alerting that GHC seeks to improve types from FunDeps before knowing/selecting whether/which instance is to apply. It seems Hugs takes the same algorithm. So I modified that:
+
+* As soon as FunDep 'triggering' detects that some instance's _Full_ FunDep applies;
+* (that is, whether or not the FunDep improves any type/it might be already improved);
+* then stop scanning for further FunDeps;
+* but do try improvement via all FunDeps for that instance.
+* This implies that instances are stored/accessed in preference sequence for FunDep triggering purposes; IOW, by the refined notion of overlap per this proposal.
+
+[More detail/examples](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies-in-GHC/AntC-proposal/#progressprototype-16-aug-2022-more-detail)
+
 # Full FunDeps
 
 A FunDep is **Full** just in case it mentions all class params -- either in determining or dependent positions; otherwise non-Full. Note in Mark Jones' ESOP paper, all the examples are Full FunDeps. I'm not sure that paper's rules for validity and type improvement through instances are intended to cater for non-Full. These are Full:
@@ -247,6 +259,61 @@ Can we elaborate a Wanted into a disjunction (inclusive-or) of Wanteds?
 ```
 
 Any of those `[W] AddNat ...`s will select the `AddNat (S x') y z` head (but not the `AddNat Z y y`).
+
+# Progress/prototype 16-Aug-2022: more detail
+
+These instances accepted:
+
+```haskell
+-- constructor class                   -- uses refined notion of instance overlap
+class TypeEq a b c | a b -> c where
+  tEq :: a -> b -> c
+
+-- instances:
+instance TypeEq a a TTrue
+instance TypeEq a b TFalse
+
+-- constructor class
+class AddNat a b c | a b -> c, c a -> b, c b -> a where
+  addNat :: a -> b -> c
+  subNat :: c -> a -> b
+
+-- instances:                         -- uses Apartness guard
+instance AddNat Z a a
+instance AddNat a b c => AddNat (S a) b (S c)  | b /~ S c
+
+--  It was just too easy to implement Apartness guards (in limited form)
+--  and the overlap-only version of AddNat with 3 instances is too ugly
+
+-- constructor class
+class AddNat3 a b c | a b -> c, c a -> b, c b -> a where
+  addNat3 :: a -> b -> c
+  subNat3 :: c -> a -> b
+
+-- instances:
+instance AddNat3 Z Z Z
+instance AddNat3 Z (S a) (S a)
+instance AddNat3 a b c => AddNat3 (S a) b (S c)
+
+
+--  combining overlap with Apartness guards gives nice diamond overlaps
+--  contrast GHC accepting Semi-overlaps which give trouble in remote places
+
+-- constructor class
+class Semi a b
+
+-- instances:
+instance Semi Int Bool
+instance Semi Int a  | Bool /~ a
+instance Semi a Bool  | a /~ Int
+instance Semi a b
+
+class BadSemi a b
+instance BadSemi a Bool     -- rejected: Overlapping instances for class "BadSemi"
+instance BadSemi Int b      --       *** Common instance : BadSemi Int Bool
+
+
+```
 
 # Selecting instances -- comparison to GHC User Manual's procedure
 
