@@ -38,12 +38,6 @@ resolver: lts-11.22
 Stack's resolver specifies both stackage package set and GHC version. The GHC version
 can be set independently of resolver with the [compiler](https://docs.haskellstack.org/en/stable/yaml_configuration/#compiler) option.
 
-### Rebuild Less
-
-With either bisection method aim to minimise the work required to build GHC.
-
-With a `make` build, set `BuildFlavour=quick` in `mk/build.mk`. This file, copied from `mk/build.mk.sample` for your own build, will stick around as commits change. It's ignored.
-
 ## Manual Bisection
 
 Manual bisection allows for intervention at each step in the search to workaround problems in the build of GHC or your test case. Also if we see that a commit is trivial we can exclude it with skip without having to wait for anything to build.
@@ -68,14 +62,14 @@ warning: unable to rmdir 'libraries/text': Directory not empty
 For each step in the search, build GHC and run your test case. Here's a real world example, finding when exactly a typechecker plugin stopped working with GHC, [uom-plugin#43](https://github.com/adamgundry/uom-plugin/issues/43):
 
 ```
-ghc> make clean
+ghc> rm -r _build
 ghc> git submodule update --init
 ghc> ./boot
 ghc> ./configure
-ghc> make -j4
+ghc> ./hadrian/build -j4 --docs=none binary-dist-dir
 ghc> cd ../uom-plugin
 uom-plugin> cabal new-build uom-plugin:units --enable-tests
-  --with-compiler=/Users/pdejoux/dev/src/haskell/ghc/inplace/bin/ghc-stage2
+  --with-compiler=/Users/pdejoux/dev/src/haskell/ghc/_build/stage1/bin/ghc
 # The test case is can we build the units test-suite.
 # Let's say this time it was good so we'll report that back to git bisect.
 uom-plugin> cd ../ghc
@@ -128,8 +122,8 @@ By default the script will clean the tree for every commit. While this is likely
 #!/bin/bash
 
 logs=/mnt/work/ghc/tickets/T13930/logs
-make_opts="-j9"
-ghc=`pwd`/inplace/bin/ghc-stage2
+hadrian_opts="-j9"
+ghc=`pwd`/_build/stage1/bin/ghc
 
 mkdir -p $logs
 rev=$(git rev-parse HEAD)
@@ -156,18 +150,15 @@ function do_it() {
 
 function build_ghc() {
     do_it submodules git submodule update || skip_commit
-    # We run `make` twice as sometimes it will spuriously fail with -j
     if [ -z "$ALWAYS_CLEAN" -o "x$ALWAYS_CLEAN" == "x0" ]; then
         # First try building without cleaning, if that fails then clean and try again
-        do_it ghc1 make $make_opts || \
-          do_it ghc2 make $make_opts || \
-          do_it clean make clean && \
-          do_it ghc3 make $make_opts || \
-          do_it ghc4 make $make_opts || \
+        do_it ghc1 ./hadrian/build --docs=none binary-dist-dir $hadrian_opts || \
+          do_it clean rm -rf _build && \
+          do_it ghc4 ./hadrian/build --docs=none binary-dist-dir $hadrian_opts  || \
           skip_commit
     else
-        do_it clean make clean || log "clean failed"
-        do_it ghc1 make $make_opts || do_it ghc2 make $make_opts || skip_commit
+        do_it clean rm -rf _build || log "clean failed"
+        do_it ghc1 ./hadrian/build --docs=none binary-dist-dir $hadrian_opts || skip_commit
     fi
 }
 
@@ -253,22 +244,6 @@ compiler/stage1/build/Parser.hs:1445:48: error:
 
 Another relevant happy issue (in GHC 9.0) is #18620.
 
-### Starting Dirty
-
-If you've built GHC from source for another version of GHC beware of dirty generated files in the source tree. This can manifest in various ways such as a mismatched package configuration:
-
-```
-> make -j4
-...
-ghc-pkg: Couldn't open database /Users/.../ghc/inplace/lib/package.conf.d for modification:
-  /Users/.../ghc/inplace/lib/package.conf.d/package.cache:
-    GHC.PackageDb.readPackageDb: inappropriate type (not enough bytes)
-make[1]: *** [rts/dist/package.conf.inplace] Error 1
-make[1]: *** Deleting file `rts/dist/package.conf.inplace'
-make[1]: *** Waiting for unfinished jobs....
-```
-
-Be sure to clean before getting started on the bisection with `make clean`.
 
 ### Base Library Changes
 
