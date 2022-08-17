@@ -119,10 +119,10 @@ By default the script will clean the tree for every commit. While this is likely
 
 
 ```bash
-#!/bin/bash
+#!/usr/bin/env bash
 
-logs=/mnt/work/ghc/tickets/T13930/logs
-hadrian_opts="-j9"
+logs=/tmp/bisect-logs
+hadrian_opts="--flavour=devel2 -j4"
 ghc=`pwd`/_build/stage1/bin/ghc
 
 mkdir -p $logs
@@ -158,6 +158,7 @@ function build_ghc() {
           skip_commit
     else
         do_it clean rm -rf _build || log "clean failed"
+        do_it boot ./boot && ./configure
         do_it ghc1 ./hadrian/build --docs=none binary-dist-dir $hadrian_opts || skip_commit
     fi
 }
@@ -169,12 +170,10 @@ function run_test() {
     tree=$HOME/trees/cabal
     cd $tree
     #do_it "clean-test" rm -R dist-newstyle
-    do_it "build-test" cabal v2-build cabal-install --disable-library-profiling --allow-newer=time --with-compiler=$ghc
-    do_it "make-links" /home/ben/.env/bin/mk-cabal-bin.sh
-    do_it "run-test" timeout 10 bin/cabal configure
-
-    # The test has succeeded if the rule fired 
-    if [ "x$?" = "x124" ]; then
+    do_it "build-test" $ghc T22048.hs -O -fomit-interface-pragmas -fforce-recomp
+    do_it "run-test" $ghc --show-iface T22048.hi | grep "_rule"
+    # The test has succeeded if the rule fired
+    if [ "x$?" = "x0" ]; then
         log "Commit $rev: failed"
         commit_bad
     else
