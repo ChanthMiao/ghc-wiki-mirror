@@ -86,6 +86,8 @@ Unfortunately this section is currently just an outline.
 * Build full-text queries that catalogue similar cases
 * Modify ghc_perf_import to add new failure types to the dashboard
 
+## Issues
+
 ### False negatives
 
 * "No space left on device" is sometimes printed for reasons other than, you
