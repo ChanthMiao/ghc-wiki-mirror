@@ -7,7 +7,9 @@ it, you might want to read on a bit.
 ## Background
 
 GHC and a few related projects are developed with [GitLab CI]. Tests and other
-tasks are run automatically, which mostly works great. If the system for running those tasks fails, however, it creates a frustrating development experience and wastes time.
+tasks are run automatically, which mostly works great. If the system for running
+those tasks fails, however, it creates a frustrating development experience and
+wastes time.
 
 Thus we have a high-level goal of stabilizing CI.
 
@@ -66,33 +68,21 @@ Rationale:
 * Extension to to ghc_perf_import that records new failures to the database
 * Dashboard built in Grafana that queries the database. Can't have too many
   links to [the dashboard][dashboard]. :) 
-* ci-failure-update
-* fetch-job-data
+* [Scripts for getting job data][spurious failure repo]
+    * ci-failure-update
+    * fetch-job-data
 * Views against the full-text search database
-
-### Queries
-
-(TBD)
-
-1. Create fts_job_trace
-1. Create all_types
-1. Queries for the dashboard
+    * [queries.sql]
+* Failure checker built into [ghc_perf_import][failure-checker]
 
 ### Procedures
 
 * Create an archive of CI job metadata and traces (aka logs)
 * Build a full-text search database of traces
 * Stare really hard at examples from the spreadsheet
+* Ask for existing knowledge about errors (important!)
 * Build full-text queries that catalogue similar cases
-* Add new failure types to the dashboard
-
-## Procedures
-### Add to spreadsheet
-### Add new failure type
-### Explore failures
-## History?
-
-## Issues
+* Modify ghc_perf_import to add new failure types to the dashboard
 
 ### False negatives
 
@@ -107,3 +97,6 @@ Rationale:
 [docker fail]: https://grafana.gitlab.haskell.org/d/167r9v6nk/ci-spurious-failures?orgId=2&from=now-90d&to=now&refresh=5m&var-types=docker
 [MoveFileEx]: https://grafana.gitlab.haskell.org/d/167r9v6nk/ci-spurious-failures?orgId=2&from=now-90d&to=now&refresh=5m&var-types=MoveFileEx
 [tracking issue]: https://gitlab.haskell.org/ghc/ghc/-/issues/21591
+[spurious failure repo]: https://gitlab.haskell.org/chreekat/spurious-failures
+[queries.sql]: https://gitlab.haskell.org/chreekat/spurious-failures/-/blob/master/queries.sql
+[failure-checker]: https://gitlab.haskell.org/ghc/ghc-perf-import/-/blob/master/gitlab-bot/ghc_perf_import_service/__init__.py#L164
