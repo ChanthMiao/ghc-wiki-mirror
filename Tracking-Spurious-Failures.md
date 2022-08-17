@@ -1,6 +1,6 @@
 This document describes my work to track and mitigate spurious failures.
 
-You can cut to the chase by viewing [the dashboard][dashboard]. To make sense of
+You can cut to the chase by viewing [the dashboard][dashboard] or my [repo of scripts and queries][spurious failure repo]. To make sense of
 it, you might want to read on a bit.
 
 
@@ -27,7 +27,7 @@ frustrating.
 1. Build a dashboard for tracking failures (done: [dashboard])
 1. Gather examples of failures (effectively done: see [tracking issue])
 1. Characterize the failures (WIP)
-1. Identify root causes and fix them (not started)
+1. Identify root causes and fix them (WIP)
 
 ## Timeline
 
@@ -58,6 +58,8 @@ Rationale:
 * Known failure modes can be compared to identify priorities
 
 ## How It Works
+
+Unfortunately this section is currently just an outline.
 
 ### Components
 
