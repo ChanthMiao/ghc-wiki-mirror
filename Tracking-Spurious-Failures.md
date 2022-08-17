@@ -6,8 +6,8 @@ it, you might want to read on a bit.
 
 ## Background
 
-GHC and a few related projects are developed with [GitLab CI]. Tests and other
-tasks are run automatically, which mostly works great. If the system for running
+Tests and other
+tasks for GHC are run automatically on [Gitlab CI], which mostly works great. If the system for running
 those tasks fails, however, it creates a frustrating development experience and
 wastes time.
 
