@@ -9,6 +9,109 @@ This feature has been implemented in [GHCJS](https://github.com/ghcjs/ghcjs) and
   2. the branch is clean enough (documentation, etc.)
   3. it passes reviews
 
+## Build Requirements
+The following have to be on your `$PATH`.
+- emscripten version 3.14 or better
+- llvm 15, or an llvm with a series of specific patches, see the FAQ for errors to expect if you don't have these patches.
+
+## Build Instructions
+The JS backend uses Hadrian. The build is similar to vanilla GHC, just slower and with some changes to the configure step.
+
+### Boot and configure
+Run, configure should take longer than normal because its being run through `emscripten`:
+```
+[nix-shell:~/programming/ghc]$ ./boot && emconfigure ./configure --target=js-unknown-ghcjs
+```
+
+Notice that `emconfigure` wraps the `configure` script _and_ its arguments. This was not the case in early versions of the JS backend (we didn't use `emconfigure` at all). But after a lot of pain we agreed it was the most portable way to set emscripten binaries for autoconf. A successful configure should point to `emscripten` wrapped binaries for `ar` `nm` `clang` and friends, like so:
+```
+----------------------------------------------------------------------
+Configure completed successfully.
+
+   Building GHC version  : 9.5.20220819
+          Git commit id  : 08c3c4783c72d3173d79ccda2ac282e2d3e04e34
+
+   Build platform        : x86_64-unknown-linux
+   Host platform         : x86_64-unknown-linux
+   Target platform       : js-unknown-ghcjs
+
+   Bootstrapping using   : /nix/store/4bkmkc7c98m4qyszsshnw9iclzzmdn4n-ghc-9.2.3-with-packages/bin/ghc
+      which is version   : 9.2.3
+      with threaded RTS? : YES
+
+   Using (for bootstrapping) : /nix/store/yzs8390walgk2rwl6i5li2g672hdn0kv-gcc-wrapper-11.3.0/bin/cc
+   Using clang               : /nix/store/p894nlicv53firllwgrfxfi51jzckh5l-emscripten-3.1.15/bin/emcc
+      which is version       : 15.0.0
+      linker options         : 
+   Building a cross compiler : YES
+   Unregisterised            : NO
+   TablesNextToCode          : YES
+   Build GMP in tree         : NO
+   hs-cpp       : /nix/store/p894nlicv53firllwgrfxfi51jzckh5l-emscripten-3.1.15/bin/emcc
+   hs-cpp-flags : -E -undef -traditional -Wno-invalid-pp-token -Wno-unicode -Wno-trigraphs
+   ar           : /nix/store/p894nlicv53firllwgrfxfi51jzckh5l-emscripten-3.1.15/bin/emar
+   ld           : /nix/store/p894nlicv53firllwgrfxfi51jzckh5l-emscripten-3.1.15/bin/emcc
+   nm           : /nix/store/0dp0bfg9sncg7bjy389zwyg2gskknm6b-emscripten-llvm-3.1.15/bin/llvm-nm
+   objdump      : /nix/store/zgvxnf9047rdd8g8kq2zxxm9k6kfqf8b-binutils-2.38/bin/objdump
+   ranlib       : /nix/store/p894nlicv53firllwgrfxfi51jzckh5l-emscripten-3.1.15/bin/emranlib
+   otool        : otool
+   install_name_tool : install_name_tool
+   windres      : 
+   dllwrap      : 
+   genlib       : 
+   Happy        : /nix/store/ijdmyaj6i6hgx5ll0lxxgcm9b0xn8nma-happy-1.20.0/bin/happy (1.20.0)
+   Alex         : /nix/store/qzgm2m7p7xc0fnyj4vy3jcmz8pvbg9p7-alex-3.2.6/bin/alex (3.2.6)
+   sphinx-build : /nix/store/27dk5i52465a4azjr2dqmrhyc0m4lpf2-python3.9-sphinx-4.5.0/bin/sphinx-build
+   xelatex      : /nix/store/8jc2258h4nqzqjy303zzkssd3ip675pf-texlive-combined-2021/bin/xelatex
+   makeinfo     : /run/current-system/sw/bin/makeinfo
+   git          : /nix/store/vsr2cn15h7cbwd5vqsam2ab2jzwfbyf9-git-2.36.0/bin/git
+   cabal-install : /nix/store/cjmd2qv1b5pdw4lxh1aw4xwwy4ibnb2p-cabal-install-3.6.2.0/bin/cabal
+
+   Using LLVM tools
+      clang : clang
+      llc   : llc
+      opt   : opt
+
+   HsColour was not found; documentation will not contain source links
+
+   Tools to build Sphinx HTML documentation available: YES
+   Tools to build Sphinx PDF documentation available: YES
+   Tools to build Sphinx INFO documentation available: YES
+----------------------------------------------------------------------
+```
+
+You can also double check this output in `ghc/hadrian/cfg/system.config`:
+```
+# This file is processed by the configure script.
+# See hadrian/src/UserSettings.hs for user-defined settings.
+#===========================================================
+
+# Paths to builders:
+#===================
+
+alex           = /nix/store/qzgm2m7p7xc0fnyj4vy3jcmz8pvbg9p7-alex-3.2.6/bin/alex
+ar             = /nix/store/p894nlicv53firllwgrfxfi51jzckh5l-emscripten-3.1.15/bin/emar
+autoreconf     = /nix/store/yfnhm2b6plv48i8sgl64sd148b48hcly-autoconf-2.71/bin/autoreconf
+cc             = /nix/store/p894nlicv53firllwgrfxfi51jzckh5l-emscripten-3.1.15/bin/emcc
+...
+```
+
+Notice that each of the binaries very obviously point to the `emscripten` wrapped versions. We're now ready to start building.
+
+### Build the compiler
+Build using Hadrian, no surprises here:
+```
+[nix-shell:~/programming/ghc]$ hadrian/build -j12 --flavour=quick-js --bignum=native --docs=none
+```
+
+That should take around 30 minutes to complete. `hsc2hs` should be very slow (we're sorry) because its running `emcc` several times. Similarly, expect the `CCS.hs` module itself to take minutes (again, we're sorry! I (Jeff) promise we have a ticket for it). Once that's done you need to export the path to the JS shims and `jsbits` in the base library. This will be the case until we finish patching the `js-sources` field in cabal. So run:
+```
+[nix-shell:~/programming/ghc]$ export JS_RTS_PATH=~/programming/ghc/js/
+
+[nix-shell:~/programming/ghc]$ export JS_BASE_PATH=/home/doyougnu/programming/ghc/libraries/base/jsbits/
+```
+These environment variables are checked by the JS backend linker. The linker will error out if they are not set properly. Now you should have a working Haskell to JavaScript compiler. Good luck!
+
 
 ## FAQ
 
