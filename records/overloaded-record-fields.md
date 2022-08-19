@@ -21,15 +21,18 @@ Accepted GHC proposals:
   - [Adding setField to HasField](https://github.com/ghc-proposals/ghc-proposals/blob/master/proposals/0042-record-set-field.rst) (Pending redesign and implementation, see #16232 and !3257)
   - [Unrestricted Overloaded Labels](https://github.com/ghc-proposals/ghc-proposals/blob/master/proposals/0170-unrestricted-overloadedlabels.rst) (Draft implementation needs work, see #11671)
 
-Planned design changes:
+Proposals under review:
 
  - [Relaxing HasField constraints](https://github.com/ocharles/ghc-proposals/blob/hasfield/proposals/0000-hasfield-incoherence.rst) (proposal under review)
  - [Add warning for incomplete record selectors: proposal 516](https://github.com/adamgundry/ghc-proposals/blob/incomplete-record-selectors/proposals/0000-incomplete-record-selectors.rst) (proposal under review)
+
+Planned design changes:
+
+ - Add a form of record update where the type is explicit (no proposal yet, see [discussion](https://github.com/ghc-proposals/ghc-proposals/discussions/506#discussioncomment-2868700))
  - [`HasField` redesign: split into two classes](https://github.com/adamgundry/ghc-proposals/blob/hasfield-redesign/proposals/0000-hasfield-redesign.rst) (draft proposal)
  - [Add type-changing update](https://github.com/adamgundry/ghc-proposals/blob/hasfield-redesign/proposals/0000-hasfield-type-changing-update.rst) (draft proposal)
  - Clarify semantics of "functional" dependencies for use in `HasField`/`SetField` (initial thoughts on [Wiggly arrows](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies-in-GHC/Wiggly-arrows) wiki page)
  - Allow record pattern synonyms to solve `HasField` constraints (question around multi-constructor pattern synonyms: need pattern synonym collections?)
- - Datatype names as module qualifiers in updates (no proposal yet, see [discussion](https://github.com/ghc-proposals/ghc-proposals/discussions/506#discussioncomment-2868700))
  - Anonymous non-extensible records?
  - Modifier for read-only fields?
 
