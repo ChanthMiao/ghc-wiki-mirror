@@ -104,7 +104,7 @@ Download the script below and edit it to reflect your test-case then begin the b
 > git bisect start
 > git bisect good ghc-8.2.2-release   # we know the test case worked here
 > git bisect bad ghc-8.4.1-release    # but it fails here
-> git bisect run ghc-bisect.sh
+> git bisect run ./ghc-bisect.sh
 ```
 
 
