@@ -150,16 +150,9 @@ function do_it() {
 
 function build_ghc() {
     do_it submodules git submodule update || skip_commit
-    if [ -z "$ALWAYS_CLEAN" -o "x$ALWAYS_CLEAN" == "x0" ]; then
-        # First try building without cleaning, if that fails then clean and try again
-        do_it ghc1 ./hadrian/build --docs=none binary-dist-dir $hadrian_opts || \
-          do_it clean rm -rf _build && \
-          do_it ghc4 ./hadrian/build --docs=none binary-dist-dir $hadrian_opts  || \
-          skip_commit
-    else
-        do_it clean rm -rf _build || log "clean failed"
-        do_it boot ./boot && ./configure
-        do_it ghc1 ./hadrian/build --docs=none binary-dist-dir $hadrian_opts || skip_commit
+    do_it clean rm -rf _build || log "clean failed"
+    do_it boot ./boot && ./configure
+    do_it ghc1 ./hadrian/build --docs=none binary-dist-dir $hadrian_opts || skip_commit
     fi
 }
 
