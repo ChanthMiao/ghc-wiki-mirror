@@ -28,12 +28,12 @@ For implementation status, see #18598, the tracking ticket for most recent work 
 
 ### Drafts
 
+ - [Disambiguating record updates using type signatures](https://github.com/adamgundry/ghc-proposals/blob/disambiguating-record-updates-using-type-signatures/proposals/0000-disambiguating-record-updates-using-type-signatures.rst)
  - [`HasField` redesign: split into two classes](https://github.com/adamgundry/ghc-proposals/blob/hasfield-redesign/proposals/0000-hasfield-redesign.rst)
  - [Add type-changing update](https://github.com/adamgundry/ghc-proposals/blob/hasfield-redesign/proposals/0000-hasfield-type-changing-update.rst)
 
 ### Ideas
 
- - Add a form of record update where the type is explicit (no proposal yet, see [discussion](https://github.com/ghc-proposals/ghc-proposals/discussions/506#discussioncomment-2868700))
  - Clarify semantics of "functional" dependencies for use in `HasField`/`SetField` (initial thoughts on [Wiggly arrows](https://gitlab.haskell.org/ghc/ghc/-/wikis/Functional-dependencies-in-GHC/Wiggly-arrows) wiki page)
  - Allow record pattern synonyms to solve `HasField` constraints (question around multi-constructor pattern synonyms: need pattern synonym collections?)
  - Anonymous non-extensible records?
