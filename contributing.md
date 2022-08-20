@@ -81,6 +81,8 @@ If you want to get a taste for possible starting tasks, the ~newcomer label coll
 
 - Don't get scared. GHC is a big codebase, but it makes sense when you stare at it long enough!
 
+- You can [change](https://gitlab.haskell.org/help/user/profile/index?target=_blank#change-the-email-displayed-on-your-commits) in your profile your commit email to private, e.g. `00001-username@users.gitlab.noreply.gitlab.haskell.org`.
+
 - Don't hesitate to ask questions. We have all been beginners at some point and understand that diving in to GHC can be a challenge. Asking questions will help you make better use of your hacking time.
 
 - Be forewarned that many pages on the GHC Wiki are somewhat out-of-date. Always check the last modification date. Email `ghc-devs` if you're not sure.
