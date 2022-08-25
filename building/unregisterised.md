@@ -15,4 +15,4 @@ The various part of GHC work with registerised and unregisterised as follows:
 - The native code generator requires a registerised build.
 - Object splitting requires a registerised build.
 - The C backend requires an unregisterised build.
-- The LLVM backend works with either a registerised or unregisterised build.
+- The LLVM backend requires a registerised build.
