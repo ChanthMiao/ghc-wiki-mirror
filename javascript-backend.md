@@ -5,9 +5,10 @@ This feature has been implemented in [GHCJS](https://github.com/ghcjs/ghcjs) and
 - tracking ticket: <https://gitlab.haskell.org/ghc/ghc/-/issues/21078>
 - target release: 9.6
 - process: development happens in [js-staging](https://gitlab.haskell.org/ghc/ghc/-/tree/wip/js-staging) branch (regularly rebased on `master`). We hope to get it merged when the following conditions are met:
-  1. it can produce a working HelloWorld example
-  2. the branch is clean enough (documentation, etc.)
-  3. it passes reviews
+  1. it can produce a working HelloWorld example: DONE
+  2. the branch is clean enough (documentation, etc.): WIP
+  3. it passes the testsuite: WIP
+  4. it passes reviews
 
 ## Build Requirements
 The following have to be on your `$PATH`.
